@@ -3,13 +3,13 @@ package org.valkyrienskies.core.physics.nodes
 import org.joml.Vector3dc
 import org.valkyrienskies.core.util.*
 
-class EngineNode(
+data class EngineNode(
     /**
-     * Position of the engine relative to the rigid body. DO NOT MUTATE
+     * Position of the engine relative to the rigid body's <0, 0>. DO NOT MUTATE
      */
     val position: Vector3dc,
     /**
-     * Direction of the engine's force. It should be normalized. DO NOT MUTATE
+     * Direction of the engine's force. It should be normalized to 1. DO NOT MUTATE
      */
     val direction: Vector3dc,
     /**

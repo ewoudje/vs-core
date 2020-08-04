@@ -1,10 +1,12 @@
 package org.valkyrienskies.core.physics.nodes.control
 
 import org.apache.commons.math3.optim.MaxIter
+import org.apache.commons.math3.optim.PointValuePair
 import org.apache.commons.math3.optim.linear.*
 import org.apache.commons.math3.optim.linear.Relationship.GEQ
 import org.apache.commons.math3.optim.linear.Relationship.LEQ
 import org.apache.commons.math3.optim.nonlinear.scalar.GoalType
+import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.core.physics.RigidBody
 import org.valkyrienskies.core.physics.nodes.EngineNode
@@ -13,8 +15,10 @@ import java.util.stream.DoubleStream
 
 /**
  * Solving the jet select problem with the simplex method.
- * Takes some engine nodes and produces the most accurate combination to get
- * targetForce and torque.
+ * Takes some engine nodes and produces the most combination that gets closest
+ * target force and torque.
+ *
+ * In other words, minimizes the difference between the ideal force and torque and the actual
  */
 class ForceAndTorqueLPControlLoop(
     private val targetTorque: Vector3dc,
@@ -23,6 +27,9 @@ class ForceAndTorqueLPControlLoop(
     engineNodes: Collection<EngineNode>
 ) : ControlLoop(engineNodes) {
 
+    // Additional reading:
+    // Absolute values in linear programs: http://lpsolve.sourceforge.net/5.1/absolute.htm
+    // Resultant force: https://en.wikipedia.org/wiki/Resultant_force
     override fun tick(deltaNs: Long) {
         // Number of engine nodes (n)
 
@@ -99,9 +106,24 @@ class ForceAndTorqueLPControlLoop(
         )
 
         engineNodes.forEachIndexed { i, engine ->
-            engine.currentForce = engine.maxForce * solution.pointRef[i + 6]
+            engine.currentForce = solution.pointRef[i + 6] * engine.maxForce
         }
+
+        printDebugInfo(solution)
     }
+
+    private fun printDebugInfo(solution: PointValuePair) {
+        println("Engine nodes: ${engineNodes.map { it.currentForce }}")
+        println("Error: ${solution.value}")
+
+        val tmp = Vector3d()
+        val actualForce = engineNodes.fold(Vector3d()) { acc, node ->
+            acc.add(node.direction.mul(node.currentForce, tmp))
+        }
+        println("Expected force: $targetForce")
+        println("Actual force: $actualForce")
+    }
+
 
     private inline fun getTorque(engine: EngineNode, component: (Vector3dc) -> Double): Double {
         // Point of application, R = center of mass
