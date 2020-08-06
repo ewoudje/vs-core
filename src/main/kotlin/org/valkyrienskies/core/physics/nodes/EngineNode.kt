@@ -15,7 +15,7 @@ data class EngineNode(
     /**
      * Max force output of the engine
      */
-    val maxForce: Double,
+    var maxForce: Double,
     /**
      * Energy used per force outputted
      */

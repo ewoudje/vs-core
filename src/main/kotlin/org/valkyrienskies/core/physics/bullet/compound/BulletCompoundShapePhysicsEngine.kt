@@ -5,13 +5,11 @@ import com.badlogic.gdx.math.Vector3
 import com.badlogic.gdx.physics.bullet.collision.*
 import com.badlogic.gdx.physics.bullet.dynamics.*
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody.btRigidBodyConstructionInfo
+import com.google.common.primitives.Floats
 import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.Vector3ic
-import org.valkyrienskies.core.physics.CuboidRigidBody
-import org.valkyrienskies.core.physics.PhysicsEngine
-import org.valkyrienskies.core.physics.RigidBody
-import org.valkyrienskies.core.physics.VoxelRigidBody
+import org.valkyrienskies.core.physics.*
 import org.valkyrienskies.core.util.*
 import java.nio.ByteBuffer
 
@@ -42,10 +40,10 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
 
     }
 
-    private val _rigidBodies = HashSet<RigidBody>()
-    override val rigidBodies: Set<RigidBody> get() = _rigidBodies
+    private val _rigidBodies = HashSet<RigidBody<*>>()
+    override val rigidBodies: Set<RigidBody<*>> get() = _rigidBodies
 
-    private val requestingUpdate = HashSet<RigidBody>()
+    private val requestingUpdate = HashSet<RigidBody<*>>()
 
     private val bulletWorld: btDynamicsWorld
     private val constraintSolver: btConstraintSolver
@@ -74,44 +72,84 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
         btGImpactCollisionAlgorithm.registerAlgorithm(collisionDispatcher)
     }
 
-    override fun applyForce(body: RigidBody, force: Vector3dc, position: Vector3dc) {
+    override fun applyForce(body: RigidBody<*>, force: Vector3dc, position: Vector3dc) {
         getBullet(body).applyForce(force.toGDX(), position.toGDX())
     }
 
-    override fun addCentralForce(body: RigidBody, force: Vector3dc) {
+    override fun addCentralForce(body: RigidBody<*>, force: Vector3dc) {
         getBullet(body).applyCentralForce(force.toGDX())
     }
 
-    override fun requestUpdate(body: RigidBody) {
+    override fun requestUpdate(body: RigidBody<*>) {
         requestingUpdate += body
     }
 
-    private fun getBullet(body: RigidBody): btRigidBody {
-        return when (body) {
-            is VoxelRigidBody -> body.attached.getValue<VoxelRigidBodyData>().bulletBody
-            is CuboidRigidBody -> error("Not supported yet")
+    private fun getBullet(body: RigidBody<*>): btRigidBody {
+        return when (body.shape) {
+            is VoxelShape -> body.attached.getValue<VoxelRigidBodyData>().bulletBody
+            is CuboidShape -> error("Not supported yet")
         }
     }
 
-    override fun addRigidBody(body: RigidBody) {
+    override fun addRigidBody(body: RigidBody<*>) {
         _rigidBodies += body
 
-        when (body) {
-            is VoxelRigidBody -> addVoxelRigidBody(body)
-            is CuboidRigidBody -> error("Not supported yet")
+        @Suppress("UNCHECKED_CAST")
+        when (body.shape) {
+            is VoxelShape -> addVoxelRigidBody(body as RigidBody<VoxelShape>)
+            is CuboidShape -> error("Not supported yet")
         }
     }
 
-    private fun addVoxelRigidBody(body: VoxelRigidBody) {
-        val mass = body.inertiaData?.mass?.toFloat() ?: 0f
+    override fun getPenetrationAndNormal(
+        shape1: CollisionShape,
+        shape2: CollisionShape,
+        t: PenetrationAndNormal
+    ): PenetrationAndNormal? {
+        val btObj1 = btGhostObject()
+        btObj1.collisionShape = createCollisionShape(shape1)
+        val btObj2 = btGhostObject()
+        btObj2.collisionShape = createCollisionShape(shape2)
+
+        val manifold = collisionDispatcher.getNewManifold(btObj1, btObj1)
+        return manifold.contactPoints.stream()
+            .min { o1, o2 -> Floats.compare(o1.distance, o2.distance) }
+            .filter { it.distance <= 0 }
+            .map {
+                val normal = temps.v3GDX[0]
+                it.getNormalWorldOnB(normal)
+
+                normal assignTo t.normal
+                t.penetration = -(it.distance.toDouble())
+                t
+            }
+            .orElse(null)
+    }
+
+    private fun createCollisionShape(shape: CollisionShape): btCollisionShape {
+        return when (shape) {
+            is VoxelShape -> createVoxelShape(shape)
+            is CuboidShape -> error("")
+        }
+    }
+
+    private fun createVoxelShape(shape: VoxelShape): btCompoundShape {
         val compoundShape = btCompoundShape()
 
-        iterateNonemptyVoxels(body.buffer, body.dimensions) { x, y, z ->
+        iterateNonemptyVoxels(shape.buffer, shape.dimensions) { x, y, z ->
             compoundShape.addChildShape(
                 Matrix4().setTranslation(x.toFloat(), y.toFloat(), z.toFloat()),
                 unitBox
             )
         }
+
+        return compoundShape
+    }
+
+    private fun addVoxelRigidBody(body: RigidBody<VoxelShape>) {
+        val mass = body.inertiaData.mass.toFloat()
+
+        val compoundShape = createVoxelShape(body.shape)
 
         val bulletBody = btRigidBody(
             btRigidBodyConstructionInfo(
@@ -125,14 +163,15 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
         bulletWorld.addRigidBody(bulletBody)
     }
 
-    override fun removeRigidBody(body: RigidBody) {
-        when (body) {
-            is VoxelRigidBody -> removeVoxelRigidBody(body)
-            is CuboidRigidBody -> error("Not supported")
+    override fun removeRigidBody(body: RigidBody<*>) {
+        @Suppress("UNCHECKED_CAST")
+        when (body.shape) {
+            is VoxelShape -> removeVoxelRigidBody(body as RigidBody<VoxelShape>)
+            is CuboidShape -> error("Not supported")
         }
     }
 
-    private fun removeVoxelRigidBody(body: VoxelRigidBody) {
+    private fun removeVoxelRigidBody(body: RigidBody<VoxelShape>) {
         val data = body.attached.getValue<VoxelRigidBodyData>()
 
         bulletWorld.removeRigidBody(data.bulletBody)
@@ -140,20 +179,22 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
         data.bulletBody.dispose()
     }
 
-    private fun updateVoxelRigidBody(body: VoxelRigidBody) {
+    private fun updateVoxelRigidBody(body: RigidBody<VoxelShape>) {
         val data = body.attached.getValue<VoxelRigidBodyData>()
-        body.toAdd.forEach { index ->
-            val (x, y, z) = unwrapIndex(index, body.dimensions, temps.v3i[0])
+        val shape = body.shape
+
+        shape.toAdd.forEach { index ->
+            val (x, y, z) = unwrapIndex(index, shape.dimensions, temps.v3i[0])
             val transform = Matrix4().setTranslation(Vector3(x.toFloat(), y.toFloat(), z.toFloat()))
             data.compoundShape.addChildShape(transform, unitBox)
         }
 
         // Convert toRemove to set for better time complexity
-        val toRemove = body.toRemove.toSet()
+        val toRemove = shape.toRemove.toSet()
         for (i in (data.compoundShape.numChildShapes - 1) downTo 0) {
             val transform = data.compoundShape.getChildTransform(i)
             val translation = transform.getTranslation(temps.v3GDX[0]) assignTo temps.v3i[0]
-            val voxelIndex = wrapIndex(translation, body.dimensions)
+            val voxelIndex = wrapIndex(translation, shape.dimensions)
             if (toRemove.contains(voxelIndex)) {
                 data.compoundShape.removeChildShapeByIndex(i)
             }
@@ -162,16 +203,16 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
 
     override fun tick(deltaNs: Long) {
         requestingUpdate.removeAll { body ->
-            when (body) {
-                is VoxelRigidBody -> updateVoxelRigidBody(body)
-                is CuboidRigidBody -> {}
+            when (body.shape) {
+                is VoxelShape -> updateVoxelRigidBody(body as RigidBody<VoxelShape>)
+                is CuboidShape -> {}
             }
 
             val bulletBody = getBullet(body)
             bulletBody.centerOfMassTransform
             body.linearVelocity assignTo bulletBody.linearVelocity
             body.angularVelocity assignTo bulletBody.angularVelocity
-            body.transform assignTo bulletBody.worldTransform
+            body.shape.transform assignTo bulletBody.worldTransform
             true
         }
 
@@ -181,7 +222,7 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
             val bulletBody = getBullet(body)
             bulletBody.linearVelocity assignTo body.linearVelocity
             bulletBody.angularVelocity assignTo body.angularVelocity
-            bulletBody.worldTransform assignTo body.transform
+            bulletBody.worldTransform assignTo body.shape.transform
             bulletBody.totalTorque assignTo body._totalTorque
         }
     }

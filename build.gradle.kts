@@ -15,12 +15,21 @@ val jacksonVersion = "2.11.1"
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
+
+    // Bullet
     implementation("com.badlogicgames.gdx:gdx-bullet:$gdxVersion")
     implementation("com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-desktop")
+
+    // JOML
     implementation("org.joml:joml:1.9.25")
+
+    // Apache Commons Math for Linear Programming
     implementation("org.apache.commons", "commons-math3", "3.6.1")
-    implementation("com.datumbox", "lpsolve", "5.5.2.0")
+
+    // Guava
     implementation("com.google.guava:guava:29.0-jre")
+
+    // Jackson Binary Dataformat
     implementation("com.fasterxml.jackson.dataformat", "jackson-dataformats-binary", jacksonVersion)
 }
 

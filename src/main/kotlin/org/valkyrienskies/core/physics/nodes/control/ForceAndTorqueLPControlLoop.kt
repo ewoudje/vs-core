@@ -21,11 +21,20 @@ import java.util.stream.DoubleStream
  * In other words, minimizes the difference between the ideal force and torque and the actual
  */
 class ForceAndTorqueLPControlLoop(
-    private val targetTorque: Vector3dc,
-    private val targetForce: Vector3dc,
-    private val rigidBody: RigidBody,
-    engineNodes: Collection<EngineNode>
-) : ControlLoop(engineNodes) {
+    /**
+     * Do not modify outside of physics thread
+     */
+    var targetTorque: Vector3dc,
+    /**
+     * Do not modify outside of physics thread
+     */
+    var targetForce: Vector3dc,
+    private val rigidBody: RigidBody<*>,
+    /**
+     * Do not modify outside of physics thread
+     */
+    var maxIterations: Int = 100
+) : AbstractControlLoop() {
 
     // Additional reading:
     // Absolute values in linear programs: http://lpsolve.sourceforge.net/5.1/absolute.htm
@@ -99,7 +108,7 @@ class ForceAndTorqueLPControlLoop(
         val solver = SimplexSolver()
 
         val solution = solver.optimize(
-            MaxIter(100),
+            MaxIter(maxIterations),
             function,
             LinearConstraintSet(constraints),
             GoalType.MINIMIZE
@@ -124,10 +133,9 @@ class ForceAndTorqueLPControlLoop(
         println("Actual force: $actualForce")
     }
 
-
     private inline fun getTorque(engine: EngineNode, component: (Vector3dc) -> Double): Double {
         // Point of application, R = center of mass
-        val r = rigidBody.inertiaData!!.centerOfMass
+        val r = rigidBody.inertiaData.centerOfMass
 
         // Return (Ri - R) * Fi * Fm
         return (component(engine.position) - component(r)) * component(engine.direction) * engine.maxForce

@@ -4,8 +4,8 @@ import org.valkyrienskies.core.physics.RigidBody
 import org.valkyrienskies.core.physics.ServerPhysicsWorld
 
 class RigidBodyEngineForceApplier(
-    private val body: RigidBody,
-    private val controlLoop: ControlLoop,
+    private val body: RigidBody<*>,
+    private val controlLoop: AbstractControlLoop,
     private val physicsWorld: ServerPhysicsWorld
 ) {
     private var isStarted = false

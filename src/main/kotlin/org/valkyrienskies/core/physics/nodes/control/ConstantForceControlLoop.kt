@@ -3,7 +3,7 @@ package org.valkyrienskies.core.physics.nodes.control
 import kotlin.math.max
 import kotlin.math.min
 
-class ConstantForceControlLoop(multiplier: Double) : ControlLoop() {
+class ConstantForceControlLoop(multiplier: Double) : AbstractControlLoop() {
 
     var multiplier = multiplier
         set(v) {

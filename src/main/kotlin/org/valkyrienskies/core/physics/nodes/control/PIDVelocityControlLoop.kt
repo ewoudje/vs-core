@@ -15,12 +15,12 @@ import kotlin.math.sin
  */
 class PIDVelocityControlLoop(
     private val target: VelocityTarget,
-    private val rigidBody: RigidBody,
+    private val rigidBody: RigidBody<*>,
     /**
      * Activation function so that not all engines get the same multiplier
      */
     private val activate: ((Double) -> Double) = { sin(it * 0.5) + 0.5 }
-) : ControlLoop() {
+) : AbstractControlLoop() {
 
     /**
      * A Deque of (Time, Error)
