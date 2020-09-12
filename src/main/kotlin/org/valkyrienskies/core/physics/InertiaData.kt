@@ -11,6 +11,10 @@ import org.joml.Vector3dc
  */
 data class InertiaData(
     var mass: Double,
+    /**
+     * The center of mass of the rigid body. This is a coordinate
+     * IN the world, NOT relative to the rigid body.
+     */
     val centerOfMass: Vector3dc,
     val inertia: Matrix3dc
 ) {

@@ -21,7 +21,7 @@ dependencies {
     implementation("com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-desktop")
 
     // JOML
-    implementation("org.joml:joml:1.9.25")
+    api("org.joml:joml:1.9.25")
 
     // Apache Commons Math for Linear Programming
     implementation("org.apache.commons", "commons-math3", "3.6.1")

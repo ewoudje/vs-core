@@ -120,6 +120,12 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
                 it.getNormalWorldOnB(normal)
 
                 normal assignTo t.normal
+
+                val position = temps.v3GDX[0]
+                it.getPositionWorldOnB(position)
+
+                position assignTo t.position
+
                 t.penetration = -(it.distance.toDouble())
                 t
             }

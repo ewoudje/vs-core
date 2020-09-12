@@ -4,6 +4,9 @@ import org.joml.Vector3i
 import org.joml.Vector3ic
 import java.nio.ByteBuffer
 
+fun asLong(x: Int, y: Int): Long = x.toLong() or (y.toLong() shl 32)
+fun asInts(x: Long): Pair<Int, Int> = Pair(x.toInt(), (x shr 32).toInt())
+
 inline fun Byte.iterateBits(func: (Boolean, Int) -> Unit) {
     for (i in 8 downTo 0) {
         val masked = (this.toInt() and (1 shl i))
@@ -53,3 +56,24 @@ fun wrapIndex(x: Int, y: Int, z: Int, dimensions: Vector3ic): Int =
 
 fun wrapIndex(point: Vector3ic, dimensions: Vector3ic): Int =
     wrapIndex(point.x, point.y, point.z, dimensions)
+
+
+inline fun timeNanos(func: () -> Unit): Long {
+    val start = System.nanoTime()
+    func()
+    return System.nanoTime() - start
+}
+
+inline fun timeMillis(func: () -> Unit): Long {
+    val start = System.currentTimeMillis()
+    func()
+    return System.currentTimeMillis() - start
+}
+
+inline fun tryAndPrint(func: () -> Unit) {
+    try {
+        func()
+    } catch(ex: Exception) {
+        ex.printStackTrace()
+    }
+}
