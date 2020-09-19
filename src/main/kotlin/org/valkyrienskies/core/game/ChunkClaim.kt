@@ -1,37 +1,57 @@
 package org.valkyrienskies.core.game
 
+import java.lang.Math.floorDiv
+import kotlin.math.abs
+
 data class ChunkClaim(
     /**
-     * center X
+     * CHUNK center X
      */
     val x: Int,
     /**
-     * center Z
+     * CHUNK center Z
      */
-    val z: Int,
-    val radius: Int
+    val z: Int
 ) {
+
+    companion object {
+        // Every ship is given 625x625 chunks (10k blocks)
+        // Hard-coded
+        const val RADIUS: Int = 312
+
+        /**
+         * Get the claim for a specific chunk
+         */
+        fun getClaim(chunkX: Int, chunkZ: Int) =
+            ChunkClaim(
+                floorDiv(chunkX, RADIUS) * RADIUS,
+                floorDiv(chunkZ, RADIUS) * RADIUS
+            )
+    }
     /**
      * x start (inclusive)
      */
-    val xStart = x - radius
+    val xStart = x - RADIUS
 
     /**
      * x end (inclusive)
      */
-    val xEnd = x + radius
+    val xEnd = x + RADIUS
 
     /**
      * z start (inclusive)
      */
-    val zStart = z - radius
+    val zStart = z - RADIUS
 
     /**
      * z end (inclusive)
      */
-    val zEnd = z + radius
+    val zEnd = z + RADIUS
 
-    val size = radius * radius * 4
+    val size = RADIUS * RADIUS * 4
+
+    fun contains(x: Int, z: Int) =
+        abs(this.x - x) <= RADIUS && abs(this.z - z) <= RADIUS;
 
     inline fun <T> mapChunks(func: (x: Int, y: Int) -> T): MutableList<T> {
         val list = ArrayList<T>(size)
