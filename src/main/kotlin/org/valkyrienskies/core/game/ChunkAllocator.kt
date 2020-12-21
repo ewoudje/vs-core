@@ -45,7 +45,8 @@ class ChunkAllocator(
      */
     fun allocateNextChunkClaim(): ChunkClaim {
         lastChunkZ += MAX_CHUNK_LENGTH
-        return ChunkClaim(CHUNK_X, lastChunkZ, MAX_CHUNK_RADIUS)
+        // Not sure what this 3rd arg is for, removing it so it compiles
+        return ChunkClaim(CHUNK_X, lastChunkZ) // , MAX_CHUNK_RADIUS)
     }
 
 }
