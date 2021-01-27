@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.3.72"
+    kotlin("jvm") version "1.4.21"
     maven
 }
 
@@ -32,6 +32,7 @@ dependencies {
 
     // Jackson Binary Dataformat
     implementation("com.fasterxml.jackson.dataformat", "jackson-dataformats-binary", jacksonVersion)
+    implementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
 
 tasks {
