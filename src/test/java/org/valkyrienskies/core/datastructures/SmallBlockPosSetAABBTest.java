@@ -14,7 +14,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SmallBlockPosSetAABBTest {
 
@@ -113,10 +112,7 @@ public class SmallBlockPosSetAABBTest {
         final byte[] blockPosSetSerialized = serializer.writeValueAsBytes(blockPosSet);
         final SmallBlockPosSetAABB blockPosSetDeserialized = serializer.readValue(blockPosSetSerialized, SmallBlockPosSetAABB.class);
 
-        // Verify both sets are the same size
-        assertEquals(blockPosSet.size(), blockPosSetDeserialized.size());
-        // Verify both sets contents are equal
-        assertTrue(blockPosSet.containsAll(blockPosSetDeserialized));
-        assertTrue(blockPosSetDeserialized.containsAll(blockPosSet));
+        // Verify both sets are equal
+        assertEquals(blockPosSet, blockPosSetDeserialized);
     }
 }

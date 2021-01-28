@@ -128,6 +128,14 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
         blockPosSet.forEach(action);
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof IBlockPosSetAABB) {
+            return (((IBlockPosSetAABB) other).size() == size()) && ((IBlockPosSetAABB) other).containsAll(this);
+        }
+        return false;
+    }
+
     public static class SmallBlockPosSetAABBSerializer extends StdSerializer<SmallBlockPosSetAABB> {
 
         public SmallBlockPosSetAABBSerializer() {

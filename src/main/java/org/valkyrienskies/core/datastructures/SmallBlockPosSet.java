@@ -185,6 +185,14 @@ public class SmallBlockPosSet implements IBlockPosSet {
         return centerZ;
     }
 
+    @Override
+    public boolean equals(Object other) {
+        if (other instanceof IBlockPosSet) {
+            return (((IBlockPosSet) other).size() == size()) && ((IBlockPosSet) other).containsAll(this);
+        }
+        return false;
+    }
+
     private class SmallBlockPosIterator implements Iterator<Vector3ic> {
 
         private final TIntIterator iterator;
