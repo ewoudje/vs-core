@@ -33,7 +33,6 @@ dependencies {
     implementation("com.google.guava:guava:29.0-jre")
 
     // Jackson Binary Dataformat for Object Serialization
-    implementation("com.fasterxml.jackson.dataformat", "jackson-dataformat-binary", jacksonVersion)
     implementation("com.fasterxml.jackson.dataformat", "jackson-dataformat-cbor", jacksonVersion)
     implementation("com.fasterxml.jackson.module", "jackson-module-kotlin", jacksonVersion)
 
