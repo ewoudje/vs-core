@@ -1,5 +1,14 @@
 package org.valkyrienskies.core.datastructures;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import gnu.trove.iterator.TIntIterator;
 import gnu.trove.list.TIntList;
 import gnu.trove.list.array.TIntArrayList;
@@ -10,6 +19,7 @@ import org.joml.Vector3ic;
 import org.valkyrienskies.core.util.VSIterationUtils;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.Iterator;
 
 /**
@@ -19,8 +29,8 @@ import java.util.Iterator;
  * This leaves 8 bits for storing the y coordinate, which allows it the range of 0 to 255, exactly the same as
  * Minecraft.
  */
-// @JsonDeserialize(using = SmallBlockPosSetDeserializer.class)
-// @JsonSerialize(using = SmallBlockPosSetSerializer.class)
+@JsonDeserialize(using = SmallBlockPosSet.SmallBlockPosSetDeserializer.class)
+@JsonSerialize(using = SmallBlockPosSet.SmallBlockPosSetSerializer.class)
 public class SmallBlockPosSet implements IBlockPosSet {
 
     private static final int BOT_12_BITS = 0x00000FFF;
@@ -195,7 +205,6 @@ public class SmallBlockPosSet implements IBlockPosSet {
 
     }
 
-    /*
     public static class SmallBlockPosSetSerializer extends StdSerializer<SmallBlockPosSet> {
 
         public SmallBlockPosSetSerializer() {
@@ -209,7 +218,7 @@ public class SmallBlockPosSet implements IBlockPosSet {
             gen.writeStartObject();
 
             gen.writeFieldName("positions");
-            gen.writeStartArray(value.compressedBlockPosList.size());
+            gen.writeStartArray(value.compressedBlockPosList, value.compressedBlockPosList.size());
             TIntIterator iter = value.compressedBlockPosList.iterator();
 
             while (iter.hasNext()) {
@@ -250,6 +259,4 @@ public class SmallBlockPosSet implements IBlockPosSet {
             return set;
         }
     }
-
-     */
 }

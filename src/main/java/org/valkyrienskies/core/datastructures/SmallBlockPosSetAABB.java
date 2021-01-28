@@ -1,19 +1,30 @@
 package org.valkyrienskies.core.datastructures;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import org.joml.Vector3ic;
 import org.joml.primitives.AABBd;
 import org.valkyrienskies.core.util.VSIterationUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.util.Iterator;
 
 /**
  * A wrapper around SmallBlockPosSet that can make create tight AxisAlignedBB containing all BlockPos in the Set.
  * All operations (except clear) run in O(1) average time.
  */
-// @JsonDeserialize(using = WrapperSmallBlockPosSetAABBDeserializer.class)
-// @JsonSerialize(using = WrapperSmallBlockPosSetAABBSerializer.class)
+@JsonDeserialize(using = SmallBlockPosSetAABB.SmallBlockPosSetAABBDeserializer.class)
+@JsonSerialize(using = SmallBlockPosSetAABB.SmallBlockPosSetAABBSerializer.class)
 public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
 
     private final SmallBlockPosSet blockPosSet;
@@ -117,10 +128,9 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
         blockPosSet.forEach(action);
     }
 
-    /*
-    public static class WrapperSmallBlockPosSetAABBSerializer extends StdSerializer<SmallBlockPosSetAABB> {
+    public static class SmallBlockPosSetAABBSerializer extends StdSerializer<SmallBlockPosSetAABB> {
 
-        public WrapperSmallBlockPosSetAABBSerializer() {
+        public SmallBlockPosSetAABBSerializer() {
             super((Class<SmallBlockPosSetAABB>) null);
         }
 
@@ -139,11 +149,11 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
         }
     }
 
-    public static class WrapperSmallBlockPosSetAABBDeserializer extends StdDeserializer<SmallBlockPosSetAABB> {
+    public static class SmallBlockPosSetAABBDeserializer extends StdDeserializer<SmallBlockPosSetAABB> {
 
         private final ObjectMapper objectMapper = new ObjectMapper();
 
-        public WrapperSmallBlockPosSetAABBDeserializer() {
+        public SmallBlockPosSetAABBDeserializer() {
             super((Class<?>) null);
         }
 
@@ -164,6 +174,4 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
             return wrapper;
         }
     }
-
-     */
 }

@@ -1,12 +1,24 @@
 package org.valkyrienskies.core.datastructures;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
+import org.valkyrienskies.core.util.serialization.VSJacksonUtil;
+
+import java.io.IOException;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SmallBlockPosSetAABBTest {
+
+    private static final ObjectMapper serializer = VSJacksonUtil.Companion.getDefaultMapper();
 
     @Test
     public void testSmallBlockPosSetAABB() {
@@ -64,5 +76,47 @@ public class SmallBlockPosSetAABBTest {
         toTest.clear();
         aabbMaker.clear();
         assertEquals(toTest.makeAABB(), aabbMaker.makeVoxelFieldAABB());
+    }
+
+    private static Stream<Arguments> coordsGenerator(final int centerX, final int centerZ) {
+        final int testIterations = 500;
+        final ThreadLocalRandom random = ThreadLocalRandom.current();
+        return IntStream.range(0, testIterations)
+                .mapToObj(ignore -> {
+                    int x = random.nextInt(-2048, 2047);
+                    int y = random.nextInt(0, 255);
+                    int z = random.nextInt(-2048, 2047);
+                    return Arguments.arguments(centerX + x, y, centerZ + z, centerX, centerZ);
+                });
+    }
+
+    /**
+     * Tests the correctness of SmallBlockPosSetAABB serialization and deserialization.
+     */
+    @RepeatedTest(25)
+    public void testSerializationAndDeSerialization() throws IOException {
+        final ThreadLocalRandom random = ThreadLocalRandom.current();
+        final int centerX = random.nextInt(Integer.MIN_VALUE + 2048, Integer.MAX_VALUE - 2047);
+        final int centerY = 0; // Not very random :P
+        final int centerZ = random.nextInt(Integer.MIN_VALUE + 2048, Integer.MAX_VALUE - 2047);
+
+        final int xSize = 4096;
+        final int ySize = 4096;
+        final int zSize = 4096;
+
+        final SmallBlockPosSetAABB blockPosSet = new SmallBlockPosSetAABB(centerX, centerY, centerZ, xSize, ySize, zSize);
+        final Stream<Arguments> coordinatesGenerator = coordsGenerator(centerX, centerZ);
+
+        coordinatesGenerator.forEach(pos -> blockPosSet.add((Integer) pos.get()[0], (Integer) pos.get()[1], (Integer) pos.get()[2]));
+
+        // Now serialize and deserialize and verify that they are the same
+        final byte[] blockPosSetSerialized = serializer.writeValueAsBytes(blockPosSet);
+        final SmallBlockPosSetAABB blockPosSetDeserialized = serializer.readValue(blockPosSetSerialized, SmallBlockPosSetAABB.class);
+
+        // Verify both sets are the same size
+        assertEquals(blockPosSet.size(), blockPosSetDeserialized.size());
+        // Verify both sets contents are equal
+        assertTrue(blockPosSet.containsAll(blockPosSetDeserialized));
+        assertTrue(blockPosSetDeserialized.containsAll(blockPosSet));
     }
 }

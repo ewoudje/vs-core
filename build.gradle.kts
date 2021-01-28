@@ -12,16 +12,17 @@ repositories {
 }
 
 val gdxVersion = "1.9.11"
-val jacksonVersion = "2.11.1"
+val jacksonVersion = "2.12.1"
 
 dependencies {
+    // Kotlin
     implementation(kotlin("stdlib-jdk8"))
 
-    // Bullet
+    // Bullet for Physics
     implementation("com.badlogicgames.gdx:gdx-bullet:$gdxVersion")
     implementation("com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-desktop")
 
-    // JOML
+    // JOML for Math
     api("org.joml:joml:1.10.0")
     api("org.joml:joml-primitives:1.10.0")
 
@@ -31,19 +32,16 @@ dependencies {
     // Guava
     implementation("com.google.guava:guava:29.0-jre")
 
-    // Jackson Binary Dataformat
-    implementation("com.fasterxml.jackson.dataformat", "jackson-dataformats-binary", jacksonVersion)
-    implementation("org.junit.jupiter:junit-jupiter:5.4.2")
+    // Jackson Binary Dataformat for Object Serialization
+    implementation("com.fasterxml.jackson.dataformat", "jackson-dataformat-binary", jacksonVersion)
+    implementation("com.fasterxml.jackson.dataformat", "jackson-dataformat-cbor", jacksonVersion)
+    implementation("com.fasterxml.jackson.module", "jackson-module-kotlin", jacksonVersion)
 
-    // CQEngine
-    implementation("com.googlecode.cqengine", "cqengine", "3.4.0") {
-        exclude("sqlite-jdbc") //11.1 MB
-        exclude("antlr4-runtime") //648.0 KB
-        exclude("javassist") //1.5 MB
-    }
-
-    // Trove
+    // Trove for Fast Primitive Collections
     implementation("net.sf.trove4j", "trove4j", "3.0.3")
+
+    // Junit 5 for Unit Testing
+    implementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
 
 tasks {
