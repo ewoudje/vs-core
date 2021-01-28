@@ -8,10 +8,11 @@ class ChunksTransform(
     /**
      * <0,0,0> to global transform
      */
+
     val originToGlobal: Matrix4d = Matrix4d(),
     val chunks: ChunkClaim
 ) {
-    private val subspaceToOrigin = Vector3d(-chunks.x * 16.0, 0.0, -chunks.z * 16.0)
+    private val subspaceToOrigin = Vector3d() // idk Vector3d(-chunks.x * 16.0, 0.0, -chunks.z * 16.0)
 
     private val _subspacetoGlobal = Matrix4d()
     val subspaceToGlobal: Matrix4dc

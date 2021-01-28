@@ -1,71 +1,33 @@
 package org.valkyrienskies.core.game
 
-import java.lang.Math.floorDiv
-import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
 
+/**
+ * Claims all chunks within [xStart] .. [xEnd] and [zStart] .. [zEnd] inclusive.
+ *
+ * Avoid calling this constructor, when possible use [ChunkClaim.createChunkClaimSafe] instead.
+ */
 data class ChunkClaim(
-    /**
-     * CHUNK center X
-     */
-    val x: Int,
-    /**
-     * CHUNK center Z
-     */
-    val z: Int
+    val xStart: Int,
+    val xEnd: Int,
+    val zStart: Int,
+    val zEnd: Int
 ) {
 
     companion object {
-        // Every ship is given 625x625 chunks (10k blocks)
-        // Hard-coded
-        const val RADIUS: Int = 312
-
         /**
-         * Get the claim for a specific chunk
+         * Create a ChunkClaim that guarantees xStart <= xEnd and zStart <= zEnd.
          */
-        fun getClaim(chunkX: Int, chunkZ: Int) =
-            ChunkClaim(
-                floorDiv(chunkX, RADIUS) * RADIUS,
-                floorDiv(chunkZ, RADIUS) * RADIUS
-            )
-
-        fun claimToLong(chunkX: Int, chunkZ: Int): Long {
-            return ((chunkX shl 32) or chunkZ).toLong()
-        }
-
-        fun getClaimThenToLong(chunkX: Int, chunkZ: Int): Long {
-            val claimCenterX = floorDiv(chunkX, RADIUS) * RADIUS
-            val claimCenterZ = floorDiv(chunkZ, RADIUS) * RADIUS
-            return claimToLong(claimCenterX, claimCenterZ)
+        fun createChunkClaimSafe(xStart: Int, xEnd: Int, zStart: Int, zEnd: Int): ChunkClaim {
+            return ChunkClaim(min(xStart, xEnd), max(xStart, xEnd), min(zStart, zEnd), max(zStart, zEnd))
         }
     }
-    /**
-     * x start (inclusive)
-     */
-    val xStart = x - RADIUS / 2
-
-    /**
-     * x end (inclusive)
-     */
-    val xEnd = x + RADIUS / 2
-
-    /**
-     * z start (inclusive)
-     */
-    val zStart = z - RADIUS / 2
-
-    /**
-     * z end (inclusive)
-     */
-    val zEnd = z + RADIUS / 2
 
     val size = (xEnd - xStart + 1) * (zEnd - zStart + 1)
 
-    fun toLong(): Long {
-        return getClaimThenToLong(x, z)
-    }
-
     fun contains(x: Int, z: Int) =
-        abs(this.x - x) <= RADIUS && abs(this.z - z) <= RADIUS
+        x in xStart .. xEnd && z in zStart .. zEnd
 
     inline fun <T> mapChunks(func: (x: Int, y: Int) -> T): MutableList<T> {
         val list = ArrayList<T>(size)

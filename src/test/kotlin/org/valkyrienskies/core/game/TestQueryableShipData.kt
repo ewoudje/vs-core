@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.RepeatedTest
 import org.valkyrienskies.core.VSRandomUtils
 
 class TestQueryableShipData {
@@ -12,7 +12,7 @@ class TestQueryableShipData {
     /**
      * Tests getting [ShipData] from [java.util.UUID].
      */
-    @Test
+    @RepeatedTest(25)
     fun testGetShipFromUUID() {
         val queryableShipData = QueryableShipData()
         val shipData = VSRandomUtils.randomShipData()
@@ -23,19 +23,37 @@ class TestQueryableShipData {
     /**
      * Tests getting [ShipData] from [ChunkClaim].
      */
-    @Test
+    @RepeatedTest(25)
     fun testGetShipFromChunkClaim() {
         val queryableShipData = QueryableShipData()
         val shipData = VSRandomUtils.randomShipData()
         queryableShipData.addShipData(shipData)
         val shipChunkClaim = shipData.chunkClaim
-        assertEquals(shipData, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.x, shipChunkClaim.z))
+
+        // Assert that querying the chunk claim corners returns shipData
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart, shipChunkClaim.zStart), shipData)
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart, shipChunkClaim.zEnd), shipData)
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd, shipChunkClaim.zStart), shipData)
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd, shipChunkClaim.zEnd), shipData)
+
+        // Assert that querying the chunk claim center returns shipData
+        assertEquals(queryableShipData.getShipDataFromChunkPos((shipChunkClaim.xStart + shipChunkClaim.xEnd) / 2, (shipChunkClaim.zStart + shipChunkClaim.zEnd) / 2), shipData)
+
+        // Assert that querying outside the chunk claim returns nothing
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart - 1, shipChunkClaim.zStart), null)
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart - 1, shipChunkClaim.zEnd), null)
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd + 1, shipChunkClaim.zStart), null)
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd + 1, shipChunkClaim.zEnd), null)
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart, shipChunkClaim.zStart - 1), null)
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart, shipChunkClaim.zEnd + 1), null)
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd, shipChunkClaim.zStart - 1), null)
+        assertEquals(queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd, shipChunkClaim.zEnd + 1), null)
     }
 
     /**
      * Test adding duplicate [ShipData].
      */
-    @Test
+    @RepeatedTest(25)
     fun testAddDuplicateShip() {
         val queryableShipData = QueryableShipData()
         val shipData = VSRandomUtils.randomShipData()
@@ -48,7 +66,7 @@ class TestQueryableShipData {
     /**
      * Test removing [ShipData] in [QueryableShipData].
      */
-    @Test
+    @RepeatedTest(25)
     fun testRemovingShipNotInQueryableShipData() {
         val queryableShipData = QueryableShipData()
         val shipData = VSRandomUtils.randomShipData()
@@ -62,7 +80,7 @@ class TestQueryableShipData {
     /**
      * Test getting a [ShipData] by its [org.joml.primitives.AABBdc]
      */
-    @Test
+    @RepeatedTest(25)
     fun testGettingShipByBoundingBox() {
         val queryableShipData = QueryableShipData()
         val shipData = VSRandomUtils.randomShipData()

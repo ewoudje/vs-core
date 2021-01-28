@@ -39,6 +39,9 @@ dependencies {
     // Trove for Fast Primitive Collections
     implementation("net.sf.trove4j", "trove4j", "3.0.3")
 
+    // PH-Tree for 2 & 3 Dimensional Spatial Maps
+    implementation("ch.ethz.globis.phtree", "phtree", "2.5.0")
+
     // Junit 5 for Unit Testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
