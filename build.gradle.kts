@@ -23,8 +23,8 @@ dependencies {
     implementation("com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-desktop")
 
     // JOML for Math
-    api("org.joml:joml:1.10.0")
-    api("org.joml:joml-primitives:1.10.0")
+    implementation("org.joml:joml:1.10.0")
+    implementation("org.joml:joml-primitives:1.10.0")
 
     // Apache Commons Math for Linear Programming
     implementation("org.apache.commons", "commons-math3", "3.6.1")
@@ -33,14 +33,14 @@ dependencies {
     implementation("com.google.guava:guava:29.0-jre")
 
     // Jackson Binary Dataformat for Object Serialization
-    implementation("com.fasterxml.jackson.dataformat", "jackson-dataformat-cbor", jacksonVersion)
     implementation("com.fasterxml.jackson.module", "jackson-module-kotlin", jacksonVersion)
+    implementation("com.fasterxml.jackson.dataformat", "jackson-dataformat-cbor", jacksonVersion)
 
     // Trove for Fast Primitive Collections
     implementation("net.sf.trove4j", "trove4j", "3.0.3")
 
     // Junit 5 for Unit Testing
-    implementation("org.junit.jupiter:junit-jupiter:5.4.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
 
 tasks {
