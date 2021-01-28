@@ -2,7 +2,6 @@ package org.valkyrienskies.core.datastructures;
 
 import org.joml.Vector3ic;
 import org.valkyrienskies.core.util.VSIterationUtils;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -42,7 +41,7 @@ public interface IBlockPosSet extends Set<Vector3ic> {
      * all. But the chances of these events occurring is very small.
      */
     default void forEachUnsafe(@Nonnull VSIterationUtils.IntTernaryConsumer action) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     default boolean add(@Nonnull Vector3ic pos) throws IllegalArgumentException {
