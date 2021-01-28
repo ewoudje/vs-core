@@ -59,7 +59,7 @@ object VSRandomUtils {
 
     @Suppress("WeakerAccess")
     fun randomChunkClaim(random: Random = Random.Default): ChunkClaim {
-        return ChunkClaim(randomIntegerNotCloseToLimit(random), randomIntegerNotCloseToLimit(random))
+        return ChunkClaim.getClaim(randomIntegerNotCloseToLimit(random), randomIntegerNotCloseToLimit(random))
     }
 
     @Suppress("WeakerAccess")

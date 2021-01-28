@@ -27,31 +27,45 @@ data class ChunkClaim(
                 floorDiv(chunkX, RADIUS) * RADIUS,
                 floorDiv(chunkZ, RADIUS) * RADIUS
             )
+
+        fun claimToLong(chunkX: Int, chunkZ: Int): Long {
+            return ((chunkX shl 32) or chunkZ).toLong()
+        }
+
+        fun getClaimThenToLong(chunkX: Int, chunkZ: Int): Long {
+            val claimCenterX = floorDiv(chunkX, RADIUS) * RADIUS
+            val claimCenterZ = floorDiv(chunkZ, RADIUS) * RADIUS
+            return claimToLong(claimCenterX, claimCenterZ)
+        }
     }
     /**
      * x start (inclusive)
      */
-    val xStart = x - RADIUS
+    val xStart = x - RADIUS / 2
 
     /**
      * x end (inclusive)
      */
-    val xEnd = x + RADIUS
+    val xEnd = x + RADIUS / 2
 
     /**
      * z start (inclusive)
      */
-    val zStart = z - RADIUS
+    val zStart = z - RADIUS / 2
 
     /**
      * z end (inclusive)
      */
-    val zEnd = z + RADIUS
+    val zEnd = z + RADIUS / 2
 
-    val size = RADIUS * RADIUS * 4
+    val size = (xEnd - xStart + 1) * (zEnd - zStart + 1)
+
+    fun toLong(): Long {
+        return getClaimThenToLong(x, z)
+    }
 
     fun contains(x: Int, z: Int) =
-        abs(this.x - x) <= RADIUS && abs(this.z - z) <= RADIUS;
+        abs(this.x - x) <= RADIUS && abs(this.z - z) <= RADIUS
 
     inline fun <T> mapChunks(func: (x: Int, y: Int) -> T): MutableList<T> {
         val list = ArrayList<T>(size)
