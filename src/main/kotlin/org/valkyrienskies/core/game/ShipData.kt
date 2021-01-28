@@ -5,8 +5,7 @@ import org.valkyrienskies.core.datastructures.IBlockPosSet
 import org.valkyrienskies.core.datastructures.IBlockPosSetAABB
 import java.util.*
 
-class ShipData(
-    val owner: QueryableShipData,
+data class ShipData(
     val shipUUID: UUID,
     var name: String,
     val chunkClaim: ChunkClaim,
