@@ -17,5 +17,18 @@ data class ShipData(
     val blockPositionSet: IBlockPosSetAABB,
     val forceBlockPositionsSet: IBlockPosSet
 ) {
+    internal fun onSetBlock(posX: Int, posY: Int, posZ: Int, blockType: VSBlockType, oldBlockMass: Double, newBlockMass: Double) {
+        // Update [blockPositionsSet]
+        if (blockType != VSBlockType.AIR) {
+            blockPositionSet.add(posX, posY, posZ)
+        } else {
+            blockPositionSet.remove(posX, posY, posZ)
+        }
 
+        // Update [inertiaData]
+        inertiaData.onSetBlock(posX, posY, posZ, oldBlockMass, newBlockMass)
+
+        // Update [forceBlockPositionsSet]
+        // TODO: Add support for forceBlockPositionsSet eventually
+    }
 }
