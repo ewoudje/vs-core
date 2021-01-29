@@ -3,13 +3,11 @@ package org.valkyrienskies.core
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
-class TestStuff {
+/**
+ * Running `./gradlew test` doesn't work if this class doesn't exist. So, just keep it for now.
+ */
+internal class TestStuff {
 
-    /**
-     * We must have at least 1 test in the kotlin folder for gradle to run the java tests.
-     *
-     * So for now just leave this here until we have some more interesting tests to fill that role.
-     */
     @Test
     fun testStuff() {
         assertEquals(5, 5)

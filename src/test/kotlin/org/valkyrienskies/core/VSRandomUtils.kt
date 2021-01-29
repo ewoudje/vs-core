@@ -15,7 +15,10 @@ import org.valkyrienskies.core.game.ShipTransform
 import java.util.*
 import kotlin.random.Random
 
-object VSRandomUtils {
+/**
+ * This singleton generates random objects to be used in tests.
+ */
+internal object VSRandomUtils {
 
     /**
      * Use this instead of random.nextDouble() to avoid overflow errors
