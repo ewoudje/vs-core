@@ -4,8 +4,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import org.valkyrienskies.core.VSRandomUtils
+import kotlin.random.Random
 
 class TestQueryableShipData {
 
@@ -23,13 +25,40 @@ class TestQueryableShipData {
     /**
      * Tests getting [ShipData] from [ChunkClaim].
      */
-    @Test
+    @RepeatedTest(25)
     fun testGetShipFromChunkClaim() {
         val queryableShipData = QueryableShipData()
         val shipData = VSRandomUtils.randomShipData()
         queryableShipData.addShipData(shipData)
         val shipChunkClaim = shipData.chunkClaim
-        assertEquals(shipData, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xIndex, shipChunkClaim.zIndex))
+
+        // Test chunks inside of the claim
+        for (count in 1 .. 1000) {
+            val chunkX = Random.nextInt(shipChunkClaim.xStart, shipChunkClaim.xEnd + 1)
+            val chunkZ = Random.nextInt(shipChunkClaim.zStart, shipChunkClaim.zEnd + 1)
+            assertEquals(shipData, queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ))
+        }
+
+        // Test chunks outside of the claim
+        for (count in 1 .. 1000) {
+            val chunkX = if (Random.nextBoolean()) {
+                shipChunkClaim.xStart - Random.nextInt(1, 1000)
+            } else {
+                shipChunkClaim.xEnd + Random.nextInt(1, 1000)
+            }
+            val chunkZ = if (Random.nextBoolean()) {
+                shipChunkClaim.zStart - Random.nextInt(1, 1000)
+            } else {
+                shipChunkClaim.zEnd + Random.nextInt(1, 1000)
+            }
+            assertEquals(null, queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ))
+        }
+
+        // Test more chunks outside of the claim
+        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart, shipChunkClaim.zStart - 1))
+        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart - 1, shipChunkClaim.zStart))
+        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd, shipChunkClaim.zEnd + 1))
+        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd + 1, shipChunkClaim.zEnd))
     }
 
     /**

@@ -18,22 +18,27 @@ data class ChunkClaim(val xIndex: Int, val zIndex: Int) {
          */
         const val DIAMETER: Int = 256
 
+        private const val BOTTOM_32_BITS_MASK: Long = 0xFFFFFFFFL
+
         /**
          * Get the claim for a specific chunk
          */
         fun getClaim(chunkX: Int, chunkZ: Int) =
             ChunkClaim(floorDiv(chunkX, DIAMETER), floorDiv(chunkZ, DIAMETER))
 
-        fun claimToLong(chunkX: Int, chunkZ: Int): Long {
-            return ((chunkX shl 32) or chunkZ).toLong()
+        private fun claimToLong(claimXIndex: Int, claimZIndex: Int): Long {
+            return ((claimXIndex.toLong() shl 32) or (claimZIndex.toLong() and BOTTOM_32_BITS_MASK))
         }
 
         fun getClaimThenToLong(chunkX: Int, chunkZ: Int): Long {
-            val claimCenterX = floorDiv(chunkX, DIAMETER)
-            val claimCenterZ = floorDiv(chunkZ, DIAMETER)
-            return claimToLong(claimCenterX, claimCenterZ)
+            // Compute the coordinates of the claim this chunk is in (not the same as chunk coordinates)
+            val claimXIndex = floorDiv(chunkX, DIAMETER)
+            val claimZIndex = floorDiv(chunkZ, DIAMETER)
+            // Then convert
+            return claimToLong(claimXIndex, claimZIndex)
         }
     }
+
     /**
      * x start (inclusive)
      */
@@ -60,7 +65,7 @@ data class ChunkClaim(val xIndex: Int, val zIndex: Int) {
     val size = (xEnd - xStart + 1) * (zEnd - zStart + 1)
 
     fun toLong(): Long {
-        return getClaimThenToLong(xIndex, zIndex)
+        return claimToLong(xIndex, zIndex)
     }
 
     fun contains(x: Int, z: Int) =
