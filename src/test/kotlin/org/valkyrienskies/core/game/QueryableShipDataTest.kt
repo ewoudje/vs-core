@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import org.valkyrienskies.core.VSRandomUtils
 import kotlin.random.Random
 
-internal class TestQueryableShipData {
+internal class QueryableShipDataTest {
 
     /**
      * Tests getting [ShipData] from [java.util.UUID].

@@ -12,7 +12,7 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SuppressWarnings({"UnusedDeclaration", "WeakerAccess"})
-public class TestVoxelFieldAABBMaker {
+public class VoxelFieldAABBMakerTest {
 
     @RepeatedTest(25)
     public void naiveTest1() {
