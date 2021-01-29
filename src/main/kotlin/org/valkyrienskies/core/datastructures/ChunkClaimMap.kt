@@ -36,7 +36,4 @@ class ChunkClaimMap<T> {
         return backingMap[chunkPosToClaimAsLong]
     }
 
-    private fun convertChunkCoordinatesToLong(chunkX: Int, chunkZ: Int): Long {
-        return ChunkClaim.getClaimThenToLong(chunkX, chunkZ)
-    }
 }
