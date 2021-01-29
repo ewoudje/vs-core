@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import org.valkyrienskies.core.VSRandomUtils
+import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import kotlin.random.Random
 
 internal class QueryableShipDataTest {
@@ -100,5 +101,21 @@ internal class QueryableShipDataTest {
         assertTrue(shipsIntersectingBB.hasNext())
         assertEquals(shipsIntersectingBB.next(), shipData)
         assertFalse(shipsIntersectingBB.hasNext())
+    }
+
+    /**
+     * Tests the correctness of [QueryableShipData] serialization and deserialization.
+     */
+    @RepeatedTest(25)
+    fun testSerializationAndDeSerialization() {
+        val queryableShipData = VSRandomUtils.randomQueryableShipData(size=Random.nextInt(20))
+        // Now serialize and deserialize and verify that they are the same
+        val queryableShipDataSerialized = VSJacksonUtil.defaultMapper.writeValueAsBytes(queryableShipData)
+        val queryableShipDataDeserialized = VSJacksonUtil.defaultMapper.readValue(
+            queryableShipDataSerialized,
+            QueryableShipData::class.java
+        )
+        // Verify that both are equal
+        assertEquals(queryableShipData, queryableShipDataDeserialized)
     }
 }
