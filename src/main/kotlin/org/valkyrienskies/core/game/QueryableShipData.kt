@@ -31,7 +31,7 @@ class QueryableShipData {
         if (getShipDataFromUUID(shipData.shipUUID) != null) {
             throw IllegalArgumentException("Adding shipData $shipData failed because of duplicated UUID.")
         }
-        if (getShipDataFromChunkPos(shipData.chunkClaim.x, shipData.chunkClaim.z) != null) {
+        if (getShipDataFromChunkPos(shipData.chunkClaim.xIndex, shipData.chunkClaim.zIndex) != null) {
             throw IllegalArgumentException("Adding shipData $shipData failed because of duplicated chunk claim.")
         }
         uuidToShipData[shipData.shipUUID] = shipData
@@ -42,7 +42,7 @@ class QueryableShipData {
         if (getShipDataFromUUID(shipData.shipUUID) == null) {
             throw IllegalArgumentException("Removing $shipData failed because it wasn't in the UUID map.")
         }
-        if (getShipDataFromChunkPos(shipData.chunkClaim.x, shipData.chunkClaim.z) == null) {
+        if (getShipDataFromChunkPos(shipData.chunkClaim.xIndex, shipData.chunkClaim.zIndex) == null) {
             throw IllegalArgumentException("Removing shipData $shipData failed because it wasn't in the Chunk Claim map.")
         }
         uuidToShipData.remove(shipData.shipUUID)

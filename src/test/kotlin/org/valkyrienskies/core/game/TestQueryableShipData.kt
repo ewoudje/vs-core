@@ -29,7 +29,7 @@ class TestQueryableShipData {
         val shipData = VSRandomUtils.randomShipData()
         queryableShipData.addShipData(shipData)
         val shipChunkClaim = shipData.chunkClaim
-        assertEquals(shipData, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.x, shipChunkClaim.z))
+        assertEquals(shipData, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xIndex, shipChunkClaim.zIndex))
     }
 
     /**

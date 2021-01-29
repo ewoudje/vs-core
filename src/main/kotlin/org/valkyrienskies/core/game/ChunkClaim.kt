@@ -1,71 +1,70 @@
 package org.valkyrienskies.core.game
 
+import org.valkyrienskies.core.game.ChunkClaim.Companion.DIAMETER
 import java.lang.Math.floorDiv
-import kotlin.math.abs
 
-data class ChunkClaim(
-    /**
-     * CHUNK center X
-     */
-    val x: Int,
-    /**
-     * CHUNK center Z
-     */
-    val z: Int
-) {
+/**
+ * Each ChunkClaim claims all chunks between the coordinates
+ * ([xIndex] * [DIAMETER], [zIndex] * [DIAMETER]) and ([xIndex] * [DIAMETER] + [DIAMETER] - 1, [zIndex] * [DIAMETER] + [DIAMETER] - 1)
+ *
+ * So for example, if [xIndex] is 5, [zIndex] is 10, and [DIAMETER] is 50, then this claim contains all chunks between
+ * (250, 500) and (299, 549)
+ */
+data class ChunkClaim(val xIndex: Int, val zIndex: Int) {
 
     companion object {
-        // Every ship is given 625x625 chunks (10k blocks)
-        // Hard-coded
-        const val RADIUS: Int = 312
+        /**
+         * Every ship is given [DIAMETER] x [DIAMETER] chunks, hard-coded.
+         */
+        const val DIAMETER: Int = 256
 
         /**
          * Get the claim for a specific chunk
          */
         fun getClaim(chunkX: Int, chunkZ: Int) =
-            ChunkClaim(
-                floorDiv(chunkX, RADIUS) * RADIUS,
-                floorDiv(chunkZ, RADIUS) * RADIUS
-            )
+            ChunkClaim(floorDiv(chunkX, DIAMETER), floorDiv(chunkZ, DIAMETER))
 
         fun claimToLong(chunkX: Int, chunkZ: Int): Long {
             return ((chunkX shl 32) or chunkZ).toLong()
         }
 
         fun getClaimThenToLong(chunkX: Int, chunkZ: Int): Long {
-            val claimCenterX = floorDiv(chunkX, RADIUS) * RADIUS
-            val claimCenterZ = floorDiv(chunkZ, RADIUS) * RADIUS
+            val claimCenterX = floorDiv(chunkX, DIAMETER)
+            val claimCenterZ = floorDiv(chunkZ, DIAMETER)
             return claimToLong(claimCenterX, claimCenterZ)
         }
     }
     /**
      * x start (inclusive)
      */
-    val xStart = x - RADIUS / 2
+    val xStart = xIndex * DIAMETER
 
     /**
      * x end (inclusive)
      */
-    val xEnd = x + RADIUS / 2
+    val xEnd = (xIndex * DIAMETER) + DIAMETER - 1
 
     /**
      * z start (inclusive)
      */
-    val zStart = z - RADIUS / 2
+    val zStart = zIndex * DIAMETER
 
     /**
      * z end (inclusive)
      */
-    val zEnd = z + RADIUS / 2
+    val zEnd = (zIndex * DIAMETER) + DIAMETER - 1
 
+    /**
+     * The number of chunks owned by this claim
+     */
     val size = (xEnd - xStart + 1) * (zEnd - zStart + 1)
 
     fun toLong(): Long {
-        return getClaimThenToLong(x, z)
+        return getClaimThenToLong(xIndex, zIndex)
     }
 
     fun contains(x: Int, z: Int) =
-        abs(this.x - x) <= RADIUS && abs(this.z - z) <= RADIUS
+        (x in xStart .. xEnd) and (z in zStart .. zEnd)
 
     inline fun <T> mapChunks(func: (x: Int, y: Int) -> T): MutableList<T> {
         val list = ArrayList<T>(size)
