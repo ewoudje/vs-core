@@ -7,17 +7,6 @@ import org.joml.Vector3dc
 import kotlin.math.abs
 
 /**
- * Consider 2 doubles to be equal if the distance between them is less than this.
- */
-private const val EPSILON = 1.0e-6
-/**
- * We define the inertia of a cube as being 8 point masses within a cube.
- *
- * The positions of these points are the corners of a different cube with radius [INERTIA_OFFSET].
- */
-private const val INERTIA_OFFSET = 0.4
-
-/**
  * This class keeps track of a ships mass, center of mass, and moment of inertia given the block changes within the ship.
  */
 data class ShipInertiaData(private val centerOfMassInShipSpace: Vector3d, private var shipMass: Double, private val momentOfInertiaTensor: Matrix3d) {
@@ -111,5 +100,16 @@ data class ShipInertiaData(private val centerOfMassInShipSpace: Vector3d, privat
         internal fun newEmptyShipInertiaData(): ShipInertiaData {
             return ShipInertiaData(Vector3d(), 0.0, Matrix3d())
         }
+
+        /**
+         * Consider 2 doubles to be equal if the distance between them is less than this.
+         */
+        private const val EPSILON = 1.0e-6
+        /**
+         * We define the inertia of a cube as being 8 point masses within a cube.
+         *
+         * The positions of these points are the corners of a different cube with radius [INERTIA_OFFSET].
+         */
+        private const val INERTIA_OFFSET = 0.4
     }
 }
