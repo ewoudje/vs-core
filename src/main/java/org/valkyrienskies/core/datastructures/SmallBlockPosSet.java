@@ -16,6 +16,7 @@ import gnu.trove.map.TIntIntMap;
 import gnu.trove.map.hash.TIntIntHashMap;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
+import org.valkyrienskies.core.game.ChunkClaim;
 import org.valkyrienskies.core.util.VSIterationUtils;
 
 import javax.annotation.Nonnull;
@@ -41,6 +42,14 @@ public class SmallBlockPosSet implements IBlockPosSet {
     @Nonnull
     private final TIntIntMap listValueToIndex;
     private final int centerX, centerZ;
+
+    public SmallBlockPosSet(ChunkClaim chunkClaim) {
+        final Vector3ic centerCoordinates = chunkClaim.getCenterBlockCoordinates(new Vector3i());
+        this.compressedBlockPosList = new TIntArrayList();
+        this.listValueToIndex = new TIntIntHashMap();
+        this.centerX = centerCoordinates.x();
+        this.centerZ = centerCoordinates.z();
+    }
 
     public SmallBlockPosSet(int centerX, int centerZ) {
         this.compressedBlockPosList = new TIntArrayList();

@@ -106,4 +106,10 @@ data class ShipInertiaData(private val centerOfMassInShipSpace: Vector3d, privat
         return momentOfInertiaTensor
     }
     // endregion
+
+    companion object {
+        internal fun newEmptyShipInertiaData(): ShipInertiaData {
+            return ShipInertiaData(Vector3d(), 0.0, Matrix3d())
+        }
+    }
 }

@@ -10,8 +10,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.joml.primitives.AABBd;
+import org.valkyrienskies.core.game.ChunkClaim;
 import org.valkyrienskies.core.util.VSIterationUtils;
 
 import javax.annotation.Nonnull;
@@ -31,6 +33,22 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
     private final int centerX, centerY, centerZ;
     private final int xSize, ySize, zSize;
     private final FastMinMaxMap xMap, yMap, zMap; // Only non-final so we can clear() quickly.
+
+    public SmallBlockPosSetAABB(ChunkClaim chunkClaim) {
+        final Vector3ic centerCoordinates = chunkClaim.getCenterBlockCoordinates(new Vector3i());
+        final Vector3ic claimSize = chunkClaim.getBlockSize(new Vector3i());
+
+        this.blockPosSet = new SmallBlockPosSet(centerCoordinates.x(), centerCoordinates.z());
+        this.centerX = centerCoordinates.x();
+        this.centerY = centerCoordinates.y();
+        this.centerZ = centerCoordinates.z();
+        this.xSize = claimSize.x();
+        this.ySize = claimSize.y();
+        this.zSize = claimSize.z();
+        this.xMap = new FastMinMaxMap(xSize);
+        this.yMap = new FastMinMaxMap(ySize);
+        this.zMap = new FastMinMaxMap(zSize);
+    }
 
     public SmallBlockPosSetAABB(int centerX, int centerY, int centerZ, int xSize, int ySize, int zSize) {
         this(new SmallBlockPosSet(centerX, centerZ), centerX, centerY, centerZ, xSize, ySize, zSize);

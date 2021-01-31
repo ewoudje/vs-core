@@ -1,7 +1,7 @@
 package org.valkyrienskies.core
 
 import org.joml.Matrix3d
-import org.joml.Matrix4d
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.primitives.AABBd
 import org.valkyrienskies.core.datastructures.IBlockPosSet
@@ -14,10 +14,12 @@ import org.valkyrienskies.core.game.ShipInertiaData
 import org.valkyrienskies.core.game.ShipPhysicsData
 import org.valkyrienskies.core.game.ShipTransform
 import java.util.*
+import java.util.concurrent.ThreadLocalRandom
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 /**
- * This singleton generates random objects to be used in tests.
+ * This singleton generates random objects for unit tests.
  */
 internal object VSRandomUtils {
 
@@ -42,14 +44,39 @@ internal object VSRandomUtils {
         return Vector3d(randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random))
     }
 
+    /**
+     * Generates a random unit quaternion with a uniform distribution.
+     */
     @Suppress("WeakerAccess")
-    fun randomMatrix3d(random: Random = Random.Default): Matrix3d {
-        return Matrix3d(randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random))
+    fun randomQuaterniond(random: Random = Random.Default): Quaterniond {
+        // First generate a random unit vector
+        // We use the gaussian distribution to make the random unit vector distribution uniform
+        val gaussianRandomGenerator = ThreadLocalRandom.current()
+        var randX = gaussianRandomGenerator.nextGaussian()
+        var randY = gaussianRandomGenerator.nextGaussian()
+        var randZ = gaussianRandomGenerator.nextGaussian()
+        val normalizationConstant = sqrt(randX * randX + randY * randY + randZ * randZ)
+
+        // Edge case
+        if (normalizationConstant < 1.0e-6) {
+            return Quaterniond()
+        }
+
+        // Then normalize these to form a unit vector
+        randX /= normalizationConstant
+        randY /= normalizationConstant
+        randZ /= normalizationConstant
+
+        // Then generate a random rotation degree
+        val randomDegrees = random.nextDouble(360.0)
+
+        // Finally generate a quaternion from the random axis and random angle
+        return Quaterniond().fromAxisAngleDeg(randX, randY, randZ, randomDegrees)
     }
 
     @Suppress("WeakerAccess")
-    fun randomMatrix4d(random: Random = Random.Default): Matrix4d {
-        return Matrix4d(randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random))
+    fun randomMatrix3d(random: Random = Random.Default): Matrix3d {
+        return Matrix3d().set(randomQuaterniond(random))
     }
 
     @Suppress("WeakerAccess")
@@ -78,7 +105,9 @@ internal object VSRandomUtils {
 
     @Suppress("WeakerAccess")
     fun randomShipTransform(random: Random = Random.Default): ShipTransform {
-        return ShipTransform(randomMatrix4d(random), randomVector3d(random))
+        val scalingMaxMagnitude = 10.0
+        val randomScaling = Vector3d(random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude), random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude), random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude))
+        return ShipTransform(randomVector3d(random), randomVector3d(random), randomQuaterniond(random), randomScaling)
     }
 
     @Suppress("WeakerAccess")

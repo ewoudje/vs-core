@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.game
 
+import org.joml.Vector3i
 import org.valkyrienskies.core.game.ChunkClaim.Companion.DIAMETER
 import java.lang.Math.floorDiv
 
@@ -24,7 +25,10 @@ data class ChunkClaim(val xIndex: Int, val zIndex: Int) {
          * Get the claim for a specific chunk
          */
         fun getClaim(chunkX: Int, chunkZ: Int) =
-            ChunkClaim(floorDiv(chunkX, DIAMETER), floorDiv(chunkZ, DIAMETER))
+            ChunkClaim(getClaimXIndex(chunkX), getClaimZIndex(chunkZ))
+
+        fun getClaimXIndex(chunkX: Int) = floorDiv(chunkX, DIAMETER)
+        fun getClaimZIndex(chunkZ: Int) = floorDiv(chunkZ, DIAMETER)
 
         private fun claimToLong(claimXIndex: Int, claimZIndex: Int): Long {
             return ((claimXIndex.toLong() shl 32) or (claimZIndex.toLong() and BOTTOM_32_BITS_MASK))
@@ -32,8 +36,8 @@ data class ChunkClaim(val xIndex: Int, val zIndex: Int) {
 
         fun getClaimThenToLong(chunkX: Int, chunkZ: Int): Long {
             // Compute the coordinates of the claim this chunk is in (not the same as chunk coordinates)
-            val claimXIndex = floorDiv(chunkX, DIAMETER)
-            val claimZIndex = floorDiv(chunkZ, DIAMETER)
+            val claimXIndex = getClaimXIndex(chunkX)
+            val claimZIndex = getClaimZIndex(chunkZ)
             // Then convert
             return claimToLong(claimXIndex, claimZIndex)
         }
@@ -121,6 +125,25 @@ data class ChunkClaim(val xIndex: Int, val zIndex: Int) {
 
             }
         }
+    }
+
+    fun getCenterBlockCoordinates(destination: Vector3i): Vector3i {
+        val minBlockX = xStart * 16
+        val maxBlockX = (xEnd * 16) - 1
+        val minBlockZ = zStart * 16
+        val maxBlockZ = (zEnd * 16) - 1
+
+        val centerX = (minBlockX + maxBlockX) / 2
+        val centerY = 127
+        val centerZ = (minBlockZ + maxBlockZ) / 2
+        return destination.set(centerX, centerY, centerZ)
+    }
+
+    fun getBlockSize(destination: Vector3i): Vector3i {
+        val xSize = (xEnd - xStart + 1) * 16
+        val ySize = 256
+        val zSize = (zEnd - zStart + 1) * 16
+        return destination.set(xSize, ySize, zSize)
     }
 
 }

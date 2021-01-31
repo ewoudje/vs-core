@@ -1,10 +1,19 @@
 package org.valkyrienskies.core.game
 
+import org.joml.Vector3dc
+import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
 import org.valkyrienskies.core.datastructures.IBlockPosSet
 import org.valkyrienskies.core.datastructures.IBlockPosSetAABB
+import org.valkyrienskies.core.datastructures.SmallBlockPosSet
+import org.valkyrienskies.core.datastructures.SmallBlockPosSetAABB
 import java.util.*
 
+/**
+ * The purpose of [ShipData] is to keep track of the state of a ship; it does not manage the behavior of a ship.
+ *
+ * See [ShipObject] to find the code that defines ship behavior (movement, player interactions, etc)
+ */
 data class ShipData(
     val shipUUID: UUID,
     var name: String,
@@ -17,6 +26,9 @@ data class ShipData(
     val blockPositionSet: IBlockPosSetAABB,
     val forceBlockPositionsSet: IBlockPosSet
 ) {
+    /**
+     * Updates the [IBlockPosSet] and [ShipInertiaData] for this [ShipData]
+     */
     internal fun onSetBlock(posX: Int, posY: Int, posZ: Int, blockType: VSBlockType, oldBlockMass: Double, newBlockMass: Double) {
         // Update [blockPositionsSet]
         if (blockType != VSBlockType.AIR) {
@@ -30,5 +42,35 @@ data class ShipData(
 
         // Update [forceBlockPositionsSet]
         // TODO: Add support for forceBlockPositionsSet eventually
+    }
+
+    companion object {
+        /**
+         * Creates a new [ShipData] from the given name and coordinates. The resulting [ShipData] is completely empty,
+         * so it must be filled with blocks by other code.
+         */
+        internal fun newEmptyShipData(name: String, chunkClaim: ChunkClaim, shipCenterInWorldCoordinates: Vector3dc, shipCenterInShipCoordinates: Vector3dc): ShipData {
+            val shipUUID = UUID.randomUUID()
+            val physicsData = ShipPhysicsData.newEmptyShipPhysicsData()
+            val inertiaData = ShipInertiaData.newEmptyShipInertiaData()
+            val shipTransform = ShipTransform.newShipTransformFromCoordinates(shipCenterInWorldCoordinates, shipCenterInShipCoordinates)
+            val prevTickShipTransform = shipTransform
+            val shipAABB = AABBd()
+            val blockPositionSet = SmallBlockPosSetAABB(chunkClaim)
+            val forceBlockPositionsSet = SmallBlockPosSet(chunkClaim)
+
+            return ShipData(
+                shipUUID = shipUUID,
+                name = name,
+                chunkClaim = chunkClaim,
+                physicsData = physicsData,
+                inertiaData = inertiaData,
+                shipTransform = shipTransform,
+                prevTickShipTransform = prevTickShipTransform,
+                shipAABB = shipAABB,
+                blockPositionSet = blockPositionSet,
+                forceBlockPositionsSet = forceBlockPositionsSet
+            )
+        }
     }
 }
