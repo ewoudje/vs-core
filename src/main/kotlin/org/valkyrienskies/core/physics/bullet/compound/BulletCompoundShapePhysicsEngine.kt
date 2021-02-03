@@ -119,12 +119,12 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
                 val normal = temps.v3GDX[0]
                 it.getNormalWorldOnB(normal)
 
-                t.normal setTo normal
+                t.normal set normal
 
                 val position = temps.v3GDX[0]
                 it.getPositionWorldOnB(position)
 
-                t.position setTo position
+                t.position set position
 
                 t.penetration = -(it.distance.toDouble())
                 t
@@ -199,7 +199,7 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
         val toRemove = shape.toRemove.toSet()
         for (i in (data.compoundShape.numChildShapes - 1) downTo 0) {
             val transform = data.compoundShape.getChildTransform(i)
-            val translation = temps.v3i[0] setTo transform.getTranslation(temps.v3GDX[0])
+            val translation = temps.v3i[0] set transform.getTranslation(temps.v3GDX[0])
             val voxelIndex = wrapIndex(translation, shape.dimensions)
             if (toRemove.contains(voxelIndex)) {
                 data.compoundShape.removeChildShapeByIndex(i)
@@ -216,9 +216,9 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
 
             val bulletBody = getBullet(body)
             bulletBody.centerOfMassTransform
-            bulletBody.linearVelocity setTo body.linearVelocity
-            bulletBody.angularVelocity setTo body.angularVelocity
-            bulletBody.worldTransform setTo body.shape.transform
+            bulletBody.linearVelocity set body.linearVelocity
+            bulletBody.angularVelocity set body.angularVelocity
+            bulletBody.worldTransform set body.shape.transform
             true
         }
 
@@ -226,10 +226,10 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
 
         rigidBodies.forEach { body ->
             val bulletBody = getBullet(body)
-            body.linearVelocity setTo bulletBody.linearVelocity
-            body.angularVelocity setTo bulletBody.angularVelocity
-            body.shape.transform setTo bulletBody.worldTransform
-            body._totalTorque setTo bulletBody.totalTorque
+            body.linearVelocity set bulletBody.linearVelocity
+            body.angularVelocity set bulletBody.angularVelocity
+            body.shape.transform set bulletBody.worldTransform
+            body._totalTorque set bulletBody.totalTorque
         }
     }
 

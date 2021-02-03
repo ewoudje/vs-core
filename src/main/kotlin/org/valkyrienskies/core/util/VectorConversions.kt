@@ -19,8 +19,8 @@ val Vector3ic.z get() = z()
 fun Vector3ic.multiplyTerms() = x * y * z
 
 // Vector3dc
-fun Vector3dc.toGDX() = Vector3() setTo this
-infix fun Vector3.setTo(v: Vector3dc): Vector3 = also {
+fun Vector3dc.toGDX() = Vector3() set this
+infix fun Vector3.set(v: Vector3dc): Vector3 = also {
     x = v.x.toFloat()
     y = v.y.toFloat()
     z = v.z.toFloat()
@@ -38,28 +38,28 @@ fun Vector3dc.multiplyTerms() = x * y * z
 fun Vector3dc.addTerms() = x + y + z
 
 // Matrix4dc
-fun Matrix4dc.toGDX() = Matrix4() setTo this
-infix fun Matrix4d.setTo(m: Matrix4) = also { set(m.values) }
+fun Matrix4dc.toGDX() = Matrix4() set this
+infix fun Matrix4d.set(m: Matrix4) = also { set(m.values) }
 
 
 // Matrix3dc
 
-fun Matrix3dc.toGDX() = Matrix3() setTo this
+fun Matrix3dc.toGDX() = Matrix3() set this
 
 // endregion
 
 // region GDX
 
 // Vector3
-infix fun Matrix3.setTo(m: Matrix3dc): Matrix3 = also { m.get(values) }
+infix fun Matrix3.set(m: Matrix3dc): Matrix3 = also { m.get(values) }
 
-infix fun Vector3d.setTo(v: Vector3): Vector3d = also {
+infix fun Vector3d.set(v: Vector3): Vector3d = also {
     x = v.x.toDouble()
     y = v.y.toDouble()
     z = v.z.toDouble()
 }
 
-infix fun Vector3i.setTo(v: Vector3): Vector3i = also {
+infix fun Vector3i.set(v: Vector3): Vector3i = also {
     x = v.x.toInt()
     y = v.y.toInt()
     z = v.z.toInt()
@@ -67,5 +67,5 @@ infix fun Vector3i.setTo(v: Vector3): Vector3i = also {
 
 // Matrix4
 
-infix fun Matrix4.setTo(m: Matrix4dc): Matrix4 = also { m.get(values) }
+infix fun Matrix4.set(m: Matrix4dc): Matrix4 = also { m.get(values) }
 
