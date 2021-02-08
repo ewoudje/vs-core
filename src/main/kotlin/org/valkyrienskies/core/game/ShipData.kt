@@ -24,7 +24,6 @@ data class ShipData(
     var prevTickShipTransform: ShipTransform,
     var shipAABB: AABBdc,
     val blockPositionSet: IBlockPosSetAABB,
-    val forceBlockPositionsSet: IBlockPosSet
 ) {
     /**
      * Updates the [IBlockPosSet] and [ShipInertiaData] for this [ShipData]
@@ -39,9 +38,6 @@ data class ShipData(
 
         // Update [inertiaData]
         inertiaData.onSetBlock(posX, posY, posZ, oldBlockMass, newBlockMass)
-
-        // Update [forceBlockPositionsSet]
-        // TODO: Add support for forceBlockPositionsSet eventually
     }
 
     companion object {
@@ -57,7 +53,6 @@ data class ShipData(
             val prevTickShipTransform = shipTransform
             val shipAABB = AABBd()
             val blockPositionSet = SmallBlockPosSetAABB(chunkClaim)
-            val forceBlockPositionsSet = SmallBlockPosSet(chunkClaim)
 
             return ShipData(
                 shipUUID = shipUUID,
@@ -69,7 +64,6 @@ data class ShipData(
                 prevTickShipTransform = prevTickShipTransform,
                 shipAABB = shipAABB,
                 blockPositionSet = blockPositionSet,
-                forceBlockPositionsSet = forceBlockPositionsSet
             )
         }
     }

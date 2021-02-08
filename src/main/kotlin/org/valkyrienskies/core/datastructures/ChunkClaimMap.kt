@@ -1,7 +1,7 @@
 package org.valkyrienskies.core.datastructures
 
-import gnu.trove.map.TLongObjectMap
-import gnu.trove.map.hash.TLongObjectHashMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap
 import org.valkyrienskies.core.game.ChunkClaim
 
 /**
@@ -12,7 +12,7 @@ import org.valkyrienskies.core.game.ChunkClaim
  */
 class ChunkClaimMap<T> {
 
-    private val backingMap: TLongObjectMap<T> = TLongObjectHashMap()
+    private val backingMap: Long2ObjectMap<T> = Long2ObjectOpenHashMap()
 
     fun addChunkClaim(chunkClaim: ChunkClaim, data: T) {
         val claimAsLong = chunkClaim.toLong()

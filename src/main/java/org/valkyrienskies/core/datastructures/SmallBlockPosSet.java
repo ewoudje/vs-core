@@ -9,11 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import gnu.trove.iterator.TIntIterator;
-import gnu.trove.list.TIntList;
-import gnu.trove.list.array.TIntArrayList;
-import gnu.trove.map.TIntIntMap;
-import gnu.trove.map.hash.TIntIntHashMap;
+import it.unimi.dsi.fastutil.ints.*;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.valkyrienskies.core.game.ChunkClaim;
@@ -38,22 +34,22 @@ public class SmallBlockPosSet implements IBlockPosSet {
     private static final int BOT_8_BITS = 0x000000FF;
 
     @Nonnull
-    private final TIntList compressedBlockPosList;
+    private final IntList compressedBlockPosList;
     @Nonnull
-    private final TIntIntMap listValueToIndex;
+    private final Int2IntMap listValueToIndex;
     private final int centerX, centerZ;
 
     public SmallBlockPosSet(ChunkClaim chunkClaim) {
         final Vector3ic centerCoordinates = chunkClaim.getCenterBlockCoordinates(new Vector3i());
-        this.compressedBlockPosList = new TIntArrayList();
-        this.listValueToIndex = new TIntIntHashMap();
+        this.compressedBlockPosList = new IntArrayList();
+        this.listValueToIndex = new Int2IntOpenHashMap();
         this.centerX = centerCoordinates.x();
         this.centerZ = centerCoordinates.z();
     }
 
     public SmallBlockPosSet(int centerX, int centerZ) {
-        this.compressedBlockPosList = new TIntArrayList();
-        this.listValueToIndex = new TIntIntHashMap();
+        this.compressedBlockPosList = new IntArrayList();
+        this.listValueToIndex = new Int2IntOpenHashMap();
         this.centerX = centerX;
         this.centerZ = centerZ;
     }
@@ -86,10 +82,10 @@ public class SmallBlockPosSet implements IBlockPosSet {
 
         if (elementIndex == compressedBlockPosList.size() - 1) {
             // If the element we're removing is at the end then its EZ
-            compressedBlockPosList.removeAt(elementIndex);
+            compressedBlockPosList.removeInt(elementIndex);
         } else {
             // Otherwise, swap the last element with the one we're removing, and then remove the end
-            int lastElementValue = compressedBlockPosList.removeAt(compressedBlockPosList.size() - 1);
+            int lastElementValue = compressedBlockPosList.removeInt(compressedBlockPosList.size() - 1);
             compressedBlockPosList.set(elementIndex, lastElementValue);
             listValueToIndex.put(lastElementValue, elementIndex);
         }
@@ -127,9 +123,9 @@ public class SmallBlockPosSet implements IBlockPosSet {
 
     @Override
     public void forEach(@Nonnull VSIterationUtils.IntTernaryConsumer action) {
-        TIntIterator iterator = compressedBlockPosList.iterator();
+        IntIterator iterator = compressedBlockPosList.iterator();
         while (iterator.hasNext()) {
-            int compressed = iterator.next();
+            int compressed = iterator.nextInt();
             // Repeated code from decompress() because java has no output parameters.
             int z = compressed >> 20;
             int y = (compressed >> 12) & BOT_8_BITS;
@@ -204,9 +200,9 @@ public class SmallBlockPosSet implements IBlockPosSet {
 
     private class SmallBlockPosIterator implements Iterator<Vector3ic> {
 
-        private final TIntIterator iterator;
+        private final IntIterator iterator;
 
-        SmallBlockPosIterator(TIntIterator intIterator) {
+        SmallBlockPosIterator(IntIterator intIterator) {
             this.iterator = intIterator;
         }
 
@@ -236,10 +232,10 @@ public class SmallBlockPosSet implements IBlockPosSet {
 
             gen.writeFieldName("positions");
             gen.writeStartArray(value.compressedBlockPosList, value.compressedBlockPosList.size());
-            TIntIterator iter = value.compressedBlockPosList.iterator();
+            IntIterator iter = value.compressedBlockPosList.iterator();
 
             while (iter.hasNext()) {
-                gen.writeNumber(iter.next());
+                gen.writeNumber(iter.nextInt());
             }
             gen.writeEndArray();
 

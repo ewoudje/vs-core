@@ -29,7 +29,7 @@ class VSJacksonUtil {
 
         private fun configurePacketMapper(mapper: ObjectMapper) {
             configureMapper(mapper)
-            mapper.setAnnotationIntrospector(VSAnnotationIntrospector.instance)
+            mapper.setAnnotationIntrospector(VSAnnotationIntrospector)
         }
 
         /**

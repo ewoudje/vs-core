@@ -11,7 +11,10 @@ import kotlin.collections.HashMap
 /**
  * Manages all the [ShipObject]s in a world.
  */
-class ShipObjectWorld(val queryableShipData: QueryableShipData, val chunkAllocator: ChunkAllocator) {
+class ShipObjectWorld(
+    val queryableShipData: QueryableShipData,
+    val chunkAllocator: ChunkAllocator
+) {
 
     val uuidToShipObjectMap = HashMap<UUID, ShipObject>()
 
@@ -27,11 +30,11 @@ class ShipObjectWorld(val queryableShipData: QueryableShipData, val chunkAllocat
     fun createNewShipAtBlock(blockPosInWorldCoordinates: Vector3ic, createShipObjectImmediately: Boolean): ShipData {
         val chunkClaim = chunkAllocator.allocateNewChunkClaim()
         val shipName = NounListNameGenerator.generateName()
-        val shipCenterInWorldCoordinates: Vector3dc = Vector3d(blockPosInWorldCoordinates.x() + .5, blockPosInWorldCoordinates.y() + .5, blockPosInWorldCoordinates.z() + .5)
+        val shipCenterInWorldCoordinates: Vector3dc = Vector3d(blockPosInWorldCoordinates).add(0.5, 0.5, 0.5)
 
         val blockPosInShipCoordinates: Vector3ic = chunkClaim.getCenterBlockCoordinates(Vector3i())
 
-        val shipCenterInShipCoordinates: Vector3dc = Vector3d(blockPosInShipCoordinates.x() + .5, blockPosInShipCoordinates.y() + .5, blockPosInShipCoordinates.z() + .5)
+        val shipCenterInShipCoordinates: Vector3dc = Vector3d(blockPosInShipCoordinates).add(0.5, 0.5, 0.5)
 
         val newShipData = ShipData.newEmptyShipData(
             name = shipName,

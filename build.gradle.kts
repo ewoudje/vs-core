@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.4.21"
+    java
     maven
 }
 
@@ -37,8 +38,8 @@ dependencies {
     api("com.fasterxml.jackson.module", "jackson-module-kotlin", jacksonVersion)
     api("com.fasterxml.jackson.dataformat", "jackson-dataformat-cbor", jacksonVersion)
 
-    // Trove for Fast Primitive Collections
-    implementation("net.sf.trove4j", "trove4j", "3.0.3")
+    // FastUtil for Fast Primitive Collections
+    implementation("it.unimi.dsi", "fastutil", "8.2.1")
 
     // Netty for networking
     implementation("io.netty", "netty-buffer", nettyVersion)

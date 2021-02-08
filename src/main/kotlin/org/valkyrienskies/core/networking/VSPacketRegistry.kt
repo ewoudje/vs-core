@@ -49,38 +49,40 @@ class VSPacketRegistry<P> {
     }
 
     fun writeVSPacket(vsPacket: IVSPacket, byteBuf: ByteBuf) {
-        if (!classToIdMap.containsKey(vsPacket::class.java)) {
-            throw IllegalArgumentException("No packetId found for $vsPacket")
-        }
-        val packetId: Int = classToIdMap[vsPacket::class.java]!!
+        val packetId = classToIdMap[vsPacket::class.java]
+        requireNotNull(packetId) { "No packetId found for $vsPacket" }
+
         byteBuf.writeInt(packetId)
         vsPacket.write(byteBuf)
     }
 
     private fun readVSPacket(byteBuf: ByteBuf): IVSPacket {
         val packetId: Int = byteBuf.readInt()
-        if (!idToSupplierMap.containsKey(packetId)) {
-            throw IllegalArgumentException("No supplier found for packetId $packetId")
-        }
-        val vsPacket: IVSPacket = idToSupplierMap[packetId]!!.invoke()
+
+        val supplier = idToSupplierMap[packetId]
+        requireNotNull(supplier) { "No supplier found for packetId $packetId" }
+
+        val vsPacket: IVSPacket = supplier()
         vsPacket.read(byteBuf)
         return vsPacket
     }
 
     fun handleVSPacketClient(byteBuf: ByteBuf) {
         val vsPacket = readVSPacket(byteBuf)
-        if (!classToClientHandlerMap.containsKey(vsPacket::class.java)) {
-            throw IllegalArgumentException("No client handler found for $vsPacket")
-        }
-        classToClientHandlerMap[vsPacket::class.java]!!.handlePacket(vsPacket)
+
+        val handler = classToClientHandlerMap[vsPacket::class.java]
+        requireNotNull(handler) { "No client handler found for $vsPacket" }
+
+        handler.handlePacket(vsPacket)
     }
 
     fun handleVSPacketServer(byteBuf: ByteBuf, sender: P) {
         val vsPacket = readVSPacket(byteBuf)
-        if (!classToServerHandlerMap.containsKey(vsPacket::class.java)) {
-            throw IllegalArgumentException("No server handler found for $vsPacket")
-        }
-        classToServerHandlerMap[vsPacket::class.java]!!.handlePacket(vsPacket, sender)
+
+        val handler = classToServerHandlerMap[vsPacket::class.java]
+        requireNotNull(handler) { "No server handler found for $vsPacket" }
+
+        handler.handlePacket(vsPacket, sender)
     }
 
 }

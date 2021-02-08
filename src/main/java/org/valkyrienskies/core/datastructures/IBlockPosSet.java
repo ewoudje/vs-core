@@ -9,7 +9,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * Acts just like a Set<BlockPos>, but it can store the data however it wants to.
+ * Acts just like a <code>Set&lt;Vector3ic&gt;</code>, but it can store the data however it wants to.
  */
 public interface IBlockPosSet extends Set<Vector3ic> {
 

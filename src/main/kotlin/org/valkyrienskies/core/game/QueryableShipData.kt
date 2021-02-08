@@ -1,13 +1,5 @@
 package org.valkyrienskies.core.game
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.SerializerProvider
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
 import org.valkyrienskies.core.datastructures.ChunkClaimMap
@@ -17,9 +9,7 @@ import java.util.*
  * This object stores all the [ShipData] in a world. It can quickly query [ShipData] by their [UUID] and chunk positions
  * that they have claimed.
  */
-@JsonDeserialize(using = QueryableShipData.Companion.QueryableShipDataDeserializer::class)
-@JsonSerialize(using = QueryableShipData.Companion.QueryableShipDataSerializer::class)
-class QueryableShipData {
+class QueryableShipData(data: Iterable<ShipData> = emptyList()) : Iterable<ShipData> {
 
     private val uuidToShipData: MutableMap<UUID, ShipData>
     private val chunkClaimToShipData: ChunkClaimMap<ShipData>
@@ -27,9 +17,11 @@ class QueryableShipData {
     init {
         uuidToShipData = HashMap<UUID, ShipData>()
         chunkClaimToShipData = ChunkClaimMap()
+
+        data.forEach(::addShipData)
     }
 
-    fun getAllShipData(): Iterator<ShipData> {
+    override fun iterator(): Iterator<ShipData> {
         return uuidToShipData.values.iterator()
     }
 
@@ -76,26 +68,4 @@ class QueryableShipData {
         return uuidToShipData.hashCode()
     }
 
-    companion object {
-        class QueryableShipDataSerializer() : StdSerializer<QueryableShipData>(QueryableShipData::class.java) {
-            override fun serialize(value: QueryableShipData, gen: JsonGenerator, provider: SerializerProvider) {
-                gen.writeStartArray()
-                for (shipData in value.getAllShipData()) {
-                    gen.writeObject(shipData)
-                }
-                gen.writeEndArray()
-            }
-        }
-
-        class QueryableShipDataDeserializer() : StdDeserializer<QueryableShipData>(QueryableShipData::class.java) {
-            override fun deserialize(p: JsonParser, ctxt: DeserializationContext): QueryableShipData {
-                val queryableShipData = QueryableShipData()
-                val shipDataList = p.readValueAs(Array<ShipData>::class.java)
-                for (shipData in shipDataList) {
-                    queryableShipData.addShipData(shipData)
-                }
-                return queryableShipData
-            }
-        }
-    }
 }

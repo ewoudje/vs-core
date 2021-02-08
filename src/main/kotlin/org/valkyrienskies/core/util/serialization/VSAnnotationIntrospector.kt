@@ -3,13 +3,10 @@ package org.valkyrienskies.core.util.serialization
 import com.fasterxml.jackson.databind.introspect.AnnotatedMember
 import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector
 
-class VSAnnotationIntrospector: JacksonAnnotationIntrospector() {
-
-    companion object {
-        val instance: VSAnnotationIntrospector = VSAnnotationIntrospector()
-    }
+object VSAnnotationIntrospector: JacksonAnnotationIntrospector() {
 
     override fun hasIgnoreMarker(m: AnnotatedMember): Boolean {
         return if (m.hasAnnotation(VSPacketIgnore::class.java)) true else super.hasIgnoreMarker(m)
     }
+
 }
