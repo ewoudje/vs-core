@@ -7,12 +7,7 @@ import org.joml.primitives.AABBd
 import org.valkyrienskies.core.datastructures.IBlockPosSet
 import org.valkyrienskies.core.datastructures.SmallBlockPosSet
 import org.valkyrienskies.core.datastructures.SmallBlockPosSetAABB
-import org.valkyrienskies.core.game.ChunkClaim
-import org.valkyrienskies.core.game.QueryableShipData
-import org.valkyrienskies.core.game.ShipData
-import org.valkyrienskies.core.game.ShipInertiaData
-import org.valkyrienskies.core.game.ShipPhysicsData
-import org.valkyrienskies.core.game.ShipTransform
+import org.valkyrienskies.core.game.*
 import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.sqrt
@@ -153,8 +148,7 @@ internal object VSRandomUtils {
             shipTransform = randomShipTransform(random),
             prevTickShipTransform = randomShipTransform(random),
             shipAABB = randomAABBd(random),
-            blockPositionSet = randomBlockPosSetAABB(random, random.nextInt(100)),
-            forceBlockPositionsSet = randomBlockPosSet(random, random.nextInt(100))
+            blockPositionSet = randomBlockPosSetAABB(random, random.nextInt(100))
         )
     }
 
