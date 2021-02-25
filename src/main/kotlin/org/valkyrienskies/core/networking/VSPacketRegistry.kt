@@ -56,7 +56,7 @@ class VSPacketRegistry<P> {
         vsPacket.write(byteBuf)
     }
 
-    private fun readVSPacket(byteBuf: ByteBuf): IVSPacket {
+    fun readVSPacket(byteBuf: ByteBuf): IVSPacket {
         val packetId: Int = byteBuf.readInt()
 
         val supplier = idToSupplierMap[packetId]
@@ -69,10 +69,12 @@ class VSPacketRegistry<P> {
 
     fun handleVSPacketClient(byteBuf: ByteBuf) {
         val vsPacket = readVSPacket(byteBuf)
+        handleVSPacketClient(vsPacket)
+    }
 
+    fun handleVSPacketClient(vsPacket: IVSPacket) {
         val handler = classToClientHandlerMap[vsPacket::class.java]
         requireNotNull(handler) { "No client handler found for $vsPacket" }
-
         handler.handlePacket(vsPacket)
     }
 
