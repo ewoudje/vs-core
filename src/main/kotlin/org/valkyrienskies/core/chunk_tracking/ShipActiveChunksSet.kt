@@ -51,7 +51,7 @@ class ShipActiveChunksSet private constructor(
     }
 
     companion object {
-        fun createNewShipActiveChunkSet(): ShipActiveChunksSet {
+        fun create(): ShipActiveChunksSet {
             return ShipActiveChunksSet(LongOpenHashSet())
         }
 
@@ -70,7 +70,7 @@ class ShipActiveChunksSet private constructor(
 
         class ShipActiveChunksSetDeserializer : StdDeserializer<ShipActiveChunksSet>(ShipActiveChunksSet::class.java) {
             override fun deserialize(p: JsonParser, ctxt: DeserializationContext): ShipActiveChunksSet {
-                val shipActiveChunkSet = createNewShipActiveChunkSet()
+                val shipActiveChunkSet = create()
                 val chunkPositionArray = p.readValueAs(Array<Int>::class.java)
                 for (i in 0 until (chunkPositionArray.size / 2)) {
                     val chunkX = chunkPositionArray[i * 2]

@@ -73,21 +73,21 @@ data class ShipData(
          * Creates a new [ShipData] from the given name and coordinates. The resulting [ShipData] is completely empty,
          * so it must be filled with blocks by other code.
          */
-        internal fun newEmptyShipData(
+        internal fun createEmpty(
             name: String,
             chunkClaim: ChunkClaim,
             shipCenterInWorldCoordinates: Vector3dc,
             shipCenterInShipCoordinates: Vector3dc
         ): ShipData {
             val shipUUID = UUID.randomUUID()
-            val physicsData = ShipPhysicsData.newEmptyShipPhysicsData()
+            val physicsData = ShipPhysicsData.createEmpty()
             val inertiaData = ShipInertiaData.newEmptyShipInertiaData()
             val shipTransform =
-                ShipTransform.newShipTransformFromCoordinatesAndRotationAndScaling(shipCenterInWorldCoordinates, shipCenterInShipCoordinates, Quaterniond().fromAxisAngleDeg(0.0, 1.0, 0.0, 45.0), Vector3d(.5, .5, .5))
+                ShipTransform.createFromCoordinatesAndRotationAndScaling(shipCenterInWorldCoordinates, shipCenterInShipCoordinates, Quaterniond().fromAxisAngleDeg(0.0, 1.0, 0.0, 45.0), Vector3d(.5, .5, .5))
             val prevTickShipTransform = shipTransform
             val shipAABB = AABBd()
             val blockPositionSet = SmallBlockPosSetAABB(chunkClaim)
-            val shipActiveChunksSet = ShipActiveChunksSet.createNewShipActiveChunkSet()
+            val shipActiveChunksSet = ShipActiveChunksSet.create()
 
             return ShipData(
                 shipUUID = shipUUID,

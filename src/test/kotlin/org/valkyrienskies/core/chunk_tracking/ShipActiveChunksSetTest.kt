@@ -10,7 +10,7 @@ internal class ShipActiveChunksSetTest {
 
     @Test
     fun addChunkPos() {
-        val shipActiveChunksSet = ShipActiveChunksSet.createNewShipActiveChunkSet()
+        val shipActiveChunksSet = ShipActiveChunksSet.create()
         assertTrue(shipActiveChunksSet.addChunkPos(0, 0))
         assertTrue(shipActiveChunksSet.addChunkPos(1, 1))
         assertFalse(shipActiveChunksSet.addChunkPos(0, 0))
@@ -18,7 +18,7 @@ internal class ShipActiveChunksSetTest {
 
     @RepeatedTest(25)
     fun removeChunkPos() {
-        val shipActiveChunksSet = ShipActiveChunksSet.createNewShipActiveChunkSet()
+        val shipActiveChunksSet = ShipActiveChunksSet.create()
         val chunkX = VSRandomUtils.randomIntegerNotCloseToLimit()
         val chunkZ = VSRandomUtils.randomIntegerNotCloseToLimit()
         assertTrue(shipActiveChunksSet.addChunkPos(chunkX, chunkZ))
@@ -28,7 +28,7 @@ internal class ShipActiveChunksSetTest {
 
     @Test
     fun iterateChunkPos() {
-        val shipActiveChunksSet = ShipActiveChunksSet.createNewShipActiveChunkSet()
+        val shipActiveChunksSet = ShipActiveChunksSet.create()
         assertTrue(shipActiveChunksSet.addChunkPos(200, 300))
 
         val sum: (Int, Int) -> Unit = { chunkX: Int, chunkZ: Int ->

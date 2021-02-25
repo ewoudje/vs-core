@@ -94,7 +94,7 @@ class ShipObjectWorld(
         val blockPosInShipCoordinates: Vector3ic = chunkClaim.getCenterBlockCoordinates(Vector3i())
         val shipCenterInShipCoordinates: Vector3dc = Vector3d(blockPosInShipCoordinates).add(0.5, 0.5, 0.5)
 
-        val newShipData = ShipData.newEmptyShipData(
+        val newShipData = ShipData.createEmpty(
             name = shipName,
             chunkClaim = chunkClaim,
             shipCenterInWorldCoordinates = shipCenterInWorldCoordinates,

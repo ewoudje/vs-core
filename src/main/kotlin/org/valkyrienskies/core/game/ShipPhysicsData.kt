@@ -7,7 +7,7 @@ import org.joml.Vector3d
  */
 data class ShipPhysicsData(val linearVelocity: Vector3d, val angularVelocity: Vector3d) {
     companion object {
-        internal fun newEmptyShipPhysicsData(): ShipPhysicsData {
+        internal fun createEmpty(): ShipPhysicsData {
             return ShipPhysicsData(Vector3d(), Vector3d())
         }
     }

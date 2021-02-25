@@ -165,7 +165,7 @@ internal object VSRandomUtils {
 
     @Suppress("WeakerAccess")
     fun randomShipActiveChunkSet(random: Random = Random.Default, size: Int): ShipActiveChunksSet {
-        val shipActiveChunkSet = ShipActiveChunksSet.createNewShipActiveChunkSet()
+        val shipActiveChunkSet = ShipActiveChunksSet.create()
         for (i in 1 .. size) {
             shipActiveChunkSet.addChunkPos(randomIntegerNotCloseToLimit(random), randomIntegerNotCloseToLimit(random))
         }

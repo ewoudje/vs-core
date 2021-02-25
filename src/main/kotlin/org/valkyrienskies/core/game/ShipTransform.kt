@@ -38,15 +38,15 @@ data class ShipTransform(val shipPositionInWorldCoordinates: Vector3dc, val ship
         // The vector that represents no scaling
         private val UNIT_SCALING: Vector3dc = Vector3d(1.0, 1.0, 1.0)
 
-        fun newShipTransformFromCoordinates(centerCoordinateInWorld: Vector3dc, centerCoordinateInShip: Vector3dc): ShipTransform {
-            return newShipTransformFromCoordinatesAndRotation(centerCoordinateInWorld, centerCoordinateInShip, ZERO_ROTATION)
+        fun createFromCoordinates(centerCoordinateInWorld: Vector3dc, centerCoordinateInShip: Vector3dc): ShipTransform {
+            return createFromCoordinatesAndRotation(centerCoordinateInWorld, centerCoordinateInShip, ZERO_ROTATION)
         }
 
-        fun newShipTransformFromCoordinatesAndRotation(centerCoordinateInWorld: Vector3dc, centerCoordinateInShip: Vector3dc, shipRotation: Quaterniondc): ShipTransform {
+        fun createFromCoordinatesAndRotation(centerCoordinateInWorld: Vector3dc, centerCoordinateInShip: Vector3dc, shipRotation: Quaterniondc): ShipTransform {
             return ShipTransform(centerCoordinateInWorld, centerCoordinateInShip, shipRotation, UNIT_SCALING)
         }
 
-        fun newShipTransformFromCoordinatesAndRotationAndScaling(centerCoordinateInWorld: Vector3dc, centerCoordinateInShip: Vector3dc, shipRotation: Quaterniondc, shipScaling: Vector3dc): ShipTransform {
+        fun createFromCoordinatesAndRotationAndScaling(centerCoordinateInWorld: Vector3dc, centerCoordinateInShip: Vector3dc, shipRotation: Quaterniondc, shipScaling: Vector3dc): ShipTransform {
             return ShipTransform(centerCoordinateInWorld, centerCoordinateInShip, shipRotation, shipScaling)
         }
     }
