@@ -30,7 +30,7 @@ class QueryableShipData(data: Iterable<ShipData> = emptyList()) : Iterable<ShipD
     }
 
     fun getShipDataFromChunkPos(chunkX: Int, chunkZ: Int): ShipData? {
-        return chunkClaimToShipData.getDataAtChunkPosition(chunkX, chunkZ)
+        return chunkClaimToShipData.get(chunkX, chunkZ)
     }
 
     fun addShipData(shipData: ShipData) {
@@ -38,7 +38,7 @@ class QueryableShipData(data: Iterable<ShipData> = emptyList()) : Iterable<ShipD
             throw IllegalArgumentException("Adding shipData $shipData failed because of duplicated UUID.")
         }
         uuidToShipData[shipData.shipUUID] = shipData
-        chunkClaimToShipData.addChunkClaim(shipData.chunkClaim, shipData)
+        chunkClaimToShipData.set(shipData.chunkClaim, shipData)
     }
 
     fun removeShipData(shipData: ShipData) {
@@ -46,12 +46,14 @@ class QueryableShipData(data: Iterable<ShipData> = emptyList()) : Iterable<ShipD
             throw IllegalArgumentException("Removing $shipData failed because it wasn't in the UUID map.")
         }
         uuidToShipData.remove(shipData.shipUUID)
-        chunkClaimToShipData.removeChunkClaim(shipData.chunkClaim)
+        chunkClaimToShipData.remove(shipData.chunkClaim)
     }
 
     fun getShipDataIntersecting(aabb: AABBdc): Iterator<ShipData> {
         // TODO("Use https://github.com/tzaeschke/phtree")
-        return uuidToShipData.values.filter { shipData: ShipData -> shipData.shipAABB.intersectsAABB(aabb as AABBd) }.iterator()
+        return uuidToShipData.values
+            .filter { it.shipAABB.intersectsAABB(aabb as AABBd) }
+            .iterator()
     }
 
     override fun equals(other: Any?): Boolean {
@@ -67,5 +69,4 @@ class QueryableShipData(data: Iterable<ShipData> = emptyList()) : Iterable<ShipD
     override fun hashCode(): Int {
         return uuidToShipData.hashCode()
     }
-
 }
