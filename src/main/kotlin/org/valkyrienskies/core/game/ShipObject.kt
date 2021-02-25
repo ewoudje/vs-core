@@ -13,7 +13,7 @@ class ShipObject(val shipData: ShipData) {
     internal val shipChunkTracker: IShipChunkTracker =
         ShipChunkTracker(shipData.shipActiveChunksSet, DEFAULT_CHUNK_WATCH_DISTANCE, DEFAULT_CHUNK_UNWATCH_DISTANCE)
 
-    fun getRenderTransform() = shipData.shipTransform
+    val renderTransform get() = shipData.shipTransform
 
     companion object {
         private const val DEFAULT_CHUNK_WATCH_DISTANCE = 128.0
