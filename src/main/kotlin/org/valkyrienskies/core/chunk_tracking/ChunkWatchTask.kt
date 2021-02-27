@@ -1,7 +1,6 @@
 package org.valkyrienskies.core.chunk_tracking
 
 import org.valkyrienskies.core.game.IPlayer
-import kotlin.math.sign
 
 /**
  * This task says that [playersNeedWatching] should be watching the chunk at [chunkPos].
@@ -22,14 +21,14 @@ class ChunkWatchTask(
      * Call this after the chunk at [chunkPos] has been watched by [playersNeedWatching] to update the [ShipChunkTracker].
      */
     fun onExecuteChunkWatchTask() {
-        require(hasBeenExecuted.not()) {
+        require(!hasBeenExecuted) {
             "This ChunkWatchTask has already been executed!"
         }
         onExecute()
-        hasBeenExecuted = hasBeenExecuted.not()
+        hasBeenExecuted = true
     }
 
     override fun compareTo(other: ChunkWatchTask): Int {
-        return (distanceSqToClosestPlayer - other.distanceSqToClosestPlayer).sign.toInt()
+        return distanceSqToClosestPlayer.compareTo(other.distanceSqToClosestPlayer)
     }
 }
