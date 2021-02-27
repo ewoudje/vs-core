@@ -79,27 +79,24 @@ data class ShipData(
             shipCenterInWorldCoordinates: Vector3dc,
             shipCenterInShipCoordinates: Vector3dc
         ): ShipData {
-            val shipUUID = UUID.randomUUID()
-            val physicsData = ShipPhysicsData.createEmpty()
-            val inertiaData = ShipInertiaData.newEmptyShipInertiaData()
-            val shipTransform =
-                ShipTransform.createFromCoordinatesAndRotationAndScaling(shipCenterInWorldCoordinates, shipCenterInShipCoordinates, Quaterniond().fromAxisAngleDeg(0.0, 1.0, 0.0, 45.0), Vector3d(.5, .5, .5))
-            val prevTickShipTransform = shipTransform
-            val shipAABB = AABBd()
-            val blockPositionSet = SmallBlockPosSetAABB(chunkClaim)
-            val shipActiveChunksSet = ShipActiveChunksSet.create()
+            val shipTransform = ShipTransform.createFromCoordinatesAndRotationAndScaling(
+                shipCenterInWorldCoordinates,
+                shipCenterInShipCoordinates,
+                Quaterniond().fromAxisAngleDeg(0.0, 1.0, 0.0, 45.0),
+                Vector3d(.5, .5, .5)
+            )
 
             return ShipData(
-                shipUUID = shipUUID,
+                shipUUID = UUID.randomUUID(),
                 name = name,
                 chunkClaim = chunkClaim,
-                physicsData = physicsData,
-                inertiaData = inertiaData,
+                physicsData = ShipPhysicsData.createEmpty(),
+                inertiaData = ShipInertiaData.newEmptyShipInertiaData(),
                 shipTransform = shipTransform,
-                prevTickShipTransform = prevTickShipTransform,
-                shipAABB = shipAABB,
-                blockPositionSet = blockPositionSet,
-                shipActiveChunksSet = shipActiveChunksSet
+                prevTickShipTransform = shipTransform,
+                shipAABB = AABBd(),
+                blockPositionSet = SmallBlockPosSetAABB(chunkClaim),
+                shipActiveChunksSet = ShipActiveChunksSet.create()
             )
         }
     }

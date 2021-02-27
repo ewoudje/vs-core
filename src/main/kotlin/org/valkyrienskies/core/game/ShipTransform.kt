@@ -12,7 +12,12 @@ import org.joml.*
  * after that it is rotated by [shipCoordinatesToWorldCoordinatesRotation],
  * finally it is translated by [shipPositionInWorldCoordinates].
  */
-data class ShipTransform(val shipPositionInWorldCoordinates: Vector3dc, val shipPositionInShipCoordinates: Vector3dc, val shipCoordinatesToWorldCoordinatesRotation: Quaterniondc, val shipCoordinatesToWorldCoordinatesScaling: Vector3dc) {
+data class ShipTransform(
+    val shipPositionInWorldCoordinates: Vector3dc,
+    val shipPositionInShipCoordinates: Vector3dc,
+    val shipCoordinatesToWorldCoordinatesRotation: Quaterniondc,
+    val shipCoordinatesToWorldCoordinatesScaling: Vector3dc
+) {
 
     /**
      * Transforms positions and directions from ship coordinates to world coordinates

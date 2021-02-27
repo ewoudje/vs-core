@@ -12,5 +12,6 @@ interface IPlayer {
      */
     fun getPosition(dest: Vector3d): Vector3d
 
-    fun getPlayerID(): UUID
+    val uuid: UUID
+
 }

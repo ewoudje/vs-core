@@ -9,7 +9,9 @@ import org.valkyrienskies.core.chunk_tracking.ShipChunkTracker
  * Its just is to interact with the player. This includes stuff like rendering, colliding with entities, and adding
  * a rigid body to the physics engine.
  */
-class ShipObject(val shipData: ShipData) {
+class ShipObject(
+    val shipData: ShipData
+) {
     internal val shipChunkTracker: IShipChunkTracker =
         ShipChunkTracker(shipData.shipActiveChunksSet, DEFAULT_CHUNK_WATCH_DISTANCE, DEFAULT_CHUNK_UNWATCH_DISTANCE)
 

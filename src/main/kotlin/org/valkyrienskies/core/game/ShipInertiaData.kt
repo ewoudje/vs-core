@@ -9,7 +9,11 @@ import kotlin.math.abs
 /**
  * This class keeps track of a ships mass, center of mass, and moment of inertia given the block changes within the ship.
  */
-data class ShipInertiaData(private val centerOfMassInShipSpace: Vector3d, private var shipMass: Double, private val momentOfInertiaTensor: Matrix3d) {
+data class ShipInertiaData(
+    private val centerOfMassInShipSpace: Vector3d,
+    private var shipMass: Double,
+    private val momentOfInertiaTensor: Matrix3d
+) {
 
     internal fun onSetBlock(posX: Int, posY: Int, posZ: Int, oldBlockMass: Double, newBlockMass: Double) {
         val deltaBlockMass = newBlockMass - oldBlockMass
