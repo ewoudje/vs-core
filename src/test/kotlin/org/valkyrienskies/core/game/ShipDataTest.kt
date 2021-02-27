@@ -3,6 +3,7 @@ package org.valkyrienskies.core.game
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.RepeatedTest
 import org.valkyrienskies.core.VSRandomUtils
+import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 
 internal class ShipDataTest {

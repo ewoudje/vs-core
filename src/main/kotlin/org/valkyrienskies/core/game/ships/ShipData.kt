@@ -1,4 +1,4 @@
-package org.valkyrienskies.core.game
+package org.valkyrienskies.core.game.ships
 
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -10,6 +10,8 @@ import org.valkyrienskies.core.chunk_tracking.ShipActiveChunksSet
 import org.valkyrienskies.core.datastructures.IBlockPosSet
 import org.valkyrienskies.core.datastructures.IBlockPosSetAABB
 import org.valkyrienskies.core.datastructures.SmallBlockPosSetAABB
+import org.valkyrienskies.core.game.ChunkClaim
+import org.valkyrienskies.core.game.VSBlockType
 import java.util.*
 
 /**

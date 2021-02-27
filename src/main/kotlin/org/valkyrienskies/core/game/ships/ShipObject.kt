@@ -1,4 +1,4 @@
-package org.valkyrienskies.core.game
+package org.valkyrienskies.core.game.ships
 
 import org.valkyrienskies.core.chunk_tracking.IShipChunkTracker
 import org.valkyrienskies.core.chunk_tracking.ShipChunkTracker

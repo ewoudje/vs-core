@@ -1,4 +1,4 @@
-package org.valkyrienskies.core.game
+package org.valkyrienskies.core.game.ships
 
 import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc

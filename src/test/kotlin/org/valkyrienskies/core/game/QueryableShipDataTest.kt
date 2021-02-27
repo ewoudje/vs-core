@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.RepeatedTest
 import org.junit.jupiter.api.Test
 import org.valkyrienskies.core.VSRandomUtils
+import org.valkyrienskies.core.game.ships.QueryableShipData
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import kotlin.random.Random
 

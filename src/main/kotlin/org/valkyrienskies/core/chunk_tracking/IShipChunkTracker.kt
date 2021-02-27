@@ -1,7 +1,7 @@
 package org.valkyrienskies.core.chunk_tracking
 
 import org.valkyrienskies.core.game.IPlayer
-import org.valkyrienskies.core.game.ShipTransform
+import org.valkyrienskies.core.game.ships.ShipTransform
 
 /**
  * The [IShipChunkTracker] keeps track of the players that are watching each ship chunk.

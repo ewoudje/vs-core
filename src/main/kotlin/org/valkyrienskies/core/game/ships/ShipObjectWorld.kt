@@ -1,4 +1,4 @@
-package org.valkyrienskies.core.game
+package org.valkyrienskies.core.game.ships
 
 import org.joml.Vector3d
 import org.joml.Vector3dc
@@ -6,6 +6,9 @@ import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.valkyrienskies.core.chunk_tracking.ChunkUnwatchTask
 import org.valkyrienskies.core.chunk_tracking.ChunkWatchTask
+import org.valkyrienskies.core.game.ChunkAllocator
+import org.valkyrienskies.core.game.IPlayer
+import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.util.names.NounListNameGenerator
 import java.util.*
 import kotlin.collections.HashMap

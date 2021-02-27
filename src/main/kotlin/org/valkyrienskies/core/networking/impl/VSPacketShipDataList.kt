@@ -4,7 +4,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.ByteBufInputStream
 import io.netty.buffer.ByteBufOutputStream
-import org.valkyrienskies.core.game.ShipData
+import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.networking.IVSPacket
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import java.io.InputStream
