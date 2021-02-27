@@ -23,7 +23,7 @@ data class ChunkAllocator(
         private const val Z_INDEX_START = 3000 // Start at Z=12288000 block coordinates
         private const val Z_INDEX_END = 7000 // End at Z=28672000 block coordinates
 
-        fun newChunkAllocator(): ChunkAllocator {
+        fun create(): ChunkAllocator {
             return ChunkAllocator(X_INDEX_START, Z_INDEX_START)
         }
     }
