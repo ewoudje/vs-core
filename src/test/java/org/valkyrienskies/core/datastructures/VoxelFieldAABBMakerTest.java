@@ -3,6 +3,7 @@ package org.valkyrienskies.core.datastructures;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.junit.jupiter.api.RepeatedTest;
+import org.valkyrienskies.core.VSRandomUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,7 +19,7 @@ public class VoxelFieldAABBMakerTest {
     public void naiveTest1() {
         NaiveVoxelFieldAABBMaker naive = new NaiveVoxelFieldAABBMaker(0, 0);
         ExtremelyNaiveVoxelFieldAABBMaker extreme = new ExtremelyNaiveVoxelFieldAABBMaker(0, 0);
-        Random random = new Random();
+        Random random = VSRandomUtils.INSTANCE.getDefaultRandomJava();
         for (int i = 0; i < 100; i++) {
             int randomX = random.nextInt(512) - 256;
             int randomY = random.nextInt(256);
@@ -63,7 +64,7 @@ public class VoxelFieldAABBMakerTest {
 
     @RepeatedTest(100)
     public void naiveTest2() {
-        Random random = new Random();
+        Random random = VSRandomUtils.INSTANCE.getDefaultRandomJava();
         Vector3ic centerPos = new Vector3i(random.nextInt() / 100, 0, random.nextInt() / 100);
 
         NaiveVoxelFieldAABBMaker naive = new NaiveVoxelFieldAABBMaker(centerPos.x(),

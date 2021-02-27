@@ -14,6 +14,7 @@ import java.util.*
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.sqrt
 import kotlin.random.Random
+import kotlin.random.asJavaRandom
 
 /**
  * This singleton generates random objects for unit tests.
@@ -21,10 +22,21 @@ import kotlin.random.Random
 internal object VSRandomUtils {
 
     /**
+     * Seeded random for tests
+     */
+    val defaultRandom = Random(-945798382)
+
+    /**
+     * Shares the same seed and state as defaultRandom but it's java.util.Random
+     * instead of kotlin.random.Random
+     */
+    val defaultRandomJava = defaultRandom.asJavaRandom()
+
+    /**
      * Use this instead of random.nextDouble() to avoid overflow errors
      */
     @Suppress("WeakerAccess")
-    fun randomDoubleNotCloseToLimit(random: Random = Random.Default): Double {
+    fun randomDoubleNotCloseToLimit(random: Random = defaultRandom): Double {
         return random.nextDouble(-1000000.0, 1000000.0)
     }
 
@@ -32,12 +44,12 @@ internal object VSRandomUtils {
      * Use this instead of random.nextInt() to avoid overflow errors
      */
     @Suppress("WeakerAccess")
-    fun randomIntegerNotCloseToLimit(random: Random = Random.Default): Int {
+    fun randomIntegerNotCloseToLimit(random: Random = defaultRandom): Int {
         return random.nextInt(-1000000, 1000000)
     }
 
     @Suppress("WeakerAccess")
-    fun randomVector3d(random: Random = Random.Default): Vector3d {
+    fun randomVector3d(random: Random = defaultRandom): Vector3d {
         return Vector3d(randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random))
     }
 
@@ -45,7 +57,7 @@ internal object VSRandomUtils {
      * Generates a random unit quaternion with a uniform distribution.
      */
     @Suppress("WeakerAccess")
-    fun randomQuaterniond(random: Random = Random.Default): Quaterniond {
+    fun randomQuaterniond(random: Random = defaultRandom): Quaterniond {
         // First generate a random unit vector
         // We use the gaussian distribution to make the random unit vector distribution uniform
         val gaussianRandomGenerator = ThreadLocalRandom.current()
@@ -72,12 +84,12 @@ internal object VSRandomUtils {
     }
 
     @Suppress("WeakerAccess")
-    fun randomMatrix3d(random: Random = Random.Default): Matrix3d {
+    fun randomMatrix3d(random: Random = defaultRandom): Matrix3d {
         return Matrix3d().set(randomQuaterniond(random))
     }
 
     @Suppress("WeakerAccess")
-    fun randomString(random: Random = Random.Default, length: Int): String {
+    fun randomString(random: Random = defaultRandom, length: Int): String {
         val charPool : List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
         return (1..length)
             .map{random.nextInt(0, charPool.size)}
@@ -86,34 +98,34 @@ internal object VSRandomUtils {
     }
 
     @Suppress("WeakerAccess")
-    fun randomChunkClaim(random: Random = Random.Default): ChunkClaim {
+    fun randomChunkClaim(random: Random = defaultRandom): ChunkClaim {
         return ChunkClaim.getClaim(randomIntegerNotCloseToLimit(random), randomIntegerNotCloseToLimit(random))
     }
 
     @Suppress("WeakerAccess")
-    fun randomShipPhysicsData(random: Random = Random.Default): ShipPhysicsData {
+    fun randomShipPhysicsData(random: Random = defaultRandom): ShipPhysicsData {
         return ShipPhysicsData(randomVector3d(random), randomVector3d(random))
     }
 
     @Suppress("WeakerAccess")
-    fun randomShipInertiaData(random: Random = Random.Default): ShipInertiaData {
+    fun randomShipInertiaData(random: Random = defaultRandom): ShipInertiaData {
         return ShipInertiaData(randomVector3d(random), randomDoubleNotCloseToLimit(random), randomMatrix3d(random))
     }
 
     @Suppress("WeakerAccess")
-    fun randomShipTransform(random: Random = Random.Default): ShipTransform {
+    fun randomShipTransform(random: Random = defaultRandom): ShipTransform {
         val scalingMaxMagnitude = 10.0
         val randomScaling = Vector3d(random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude), random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude), random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude))
         return ShipTransform(randomVector3d(random), randomVector3d(random), randomQuaterniond(random), randomScaling)
     }
 
     @Suppress("WeakerAccess")
-    fun randomAABBd(random: Random = Random.Default): AABBd {
+    fun randomAABBd(random: Random = defaultRandom): AABBd {
         return AABBd(randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random)).correctBounds()
     }
 
     @Suppress("WeakerAccess")
-    fun randomBlockPosSetAABB(random: Random = Random.Default, size: Int): SmallBlockPosSetAABB {
+    fun randomBlockPosSetAABB(random: Random = defaultRandom, size: Int): SmallBlockPosSetAABB {
         val centerX = randomIntegerNotCloseToLimit(random)
         val centerZ = randomIntegerNotCloseToLimit(random)
         val blockPosSet = SmallBlockPosSetAABB(centerX, 0, centerZ, 4096, 4096, 4096)
@@ -122,7 +134,7 @@ internal object VSRandomUtils {
     }
 
     @Suppress("WeakerAccess")
-    fun randomBlockPosSet(random: Random = Random.Default, size: Int): SmallBlockPosSet {
+    fun randomBlockPosSet(random: Random = defaultRandom, size: Int): SmallBlockPosSet {
         val centerX = randomIntegerNotCloseToLimit(random)
         val centerZ = randomIntegerNotCloseToLimit(random)
         val blockPosSet = SmallBlockPosSet(centerX, centerZ)
@@ -130,7 +142,7 @@ internal object VSRandomUtils {
         return blockPosSet
     }
 
-    private fun fillBlockPosSet(random: Random = Random.Default, blockPosSet: IBlockPosSet, centerX: Int, centerZ: Int, size: Int) {
+    private fun fillBlockPosSet(random: Random = defaultRandom, blockPosSet: IBlockPosSet, centerX: Int, centerZ: Int, size: Int) {
         for (i in 1 until size) {
             val x = random.nextInt(-2048, 2047) + centerX
             val y = random.nextInt(0, 255)
@@ -140,7 +152,7 @@ internal object VSRandomUtils {
     }
 
     @Suppress("WeakerAccess")
-    fun randomShipData(random: Random = Random.Default): ShipData {
+    fun randomShipData(random: Random = defaultRandom): ShipData {
         return ShipData(
             shipUUID = UUID.randomUUID(),
             name = randomString(random, random.nextInt(10)),
@@ -156,7 +168,7 @@ internal object VSRandomUtils {
     }
 
     @Suppress("WeakerAccess")
-    fun randomQueryableShipData(random: Random = Random.Default, size: Int): QueryableShipData {
+    fun randomQueryableShipData(random: Random = defaultRandom, size: Int): QueryableShipData {
         val queryableShipData = QueryableShipData()
         for (i in 1 .. size) {
             queryableShipData.addShipData(randomShipData(random))
@@ -165,7 +177,7 @@ internal object VSRandomUtils {
     }
 
     @Suppress("WeakerAccess")
-    fun randomShipActiveChunkSet(random: Random = Random.Default, size: Int): ShipActiveChunksSet {
+    fun randomShipActiveChunkSet(random: Random = defaultRandom, size: Int): ShipActiveChunksSet {
         val shipActiveChunkSet = ShipActiveChunksSet.create()
         for (i in 1 .. size) {
             shipActiveChunkSet.addChunkPos(randomIntegerNotCloseToLimit(random), randomIntegerNotCloseToLimit(random))

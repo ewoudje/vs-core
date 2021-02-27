@@ -11,7 +11,6 @@ import org.valkyrienskies.core.VSRandomUtils;
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil;
 
 import java.io.IOException;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -19,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SmallBlockPosSetTest {
 
-    private static final ObjectMapper serializer = VSJacksonUtil.Companion.getDefaultMapper();
+    private static final ObjectMapper serializer = VSJacksonUtil.INSTANCE.getDefaultMapper();
 
     @ParameterizedTest
     @MethodSource("coordsAndCenterGenerator")
@@ -31,7 +30,7 @@ public class SmallBlockPosSetTest {
 
     private static Stream<Arguments> coordsAndCenterGenerator() {
         final int testIterations = 500;
-        final ThreadLocalRandom random = ThreadLocalRandom.current();
+        final Random random = VSRandomUtils.INSTANCE.getDefaultRandom();
         return IntStream.range(0, testIterations)
             .mapToObj(ignore -> {
                 int centerX = random.nextInt(Integer.MIN_VALUE + 2048, Integer.MAX_VALUE - 2047);
@@ -48,9 +47,9 @@ public class SmallBlockPosSetTest {
      */
     @RepeatedTest(25)
     public void testSerializationAndDeSerialization() throws IOException {
-        final ThreadLocalRandom random = ThreadLocalRandom.current();
+        final Random random = VSRandomUtils.INSTANCE.getDefaultRandom();
 
-        final SmallBlockPosSet blockPosSet = VSRandomUtils.INSTANCE.randomBlockPosSet(Random.Default, random.nextInt(500));
+        final SmallBlockPosSet blockPosSet = VSRandomUtils.INSTANCE.randomBlockPosSet(kotlin.random.Random.Default, random.nextInt(500));
 
         // Now serialize and deserialize and verify that they are the same
         final byte[] blockPosSetSerialized = serializer.writeValueAsBytes(blockPosSet);

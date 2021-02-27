@@ -10,13 +10,12 @@ import org.valkyrienskies.core.VSRandomUtils;
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil;
 
 import java.io.IOException;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SmallBlockPosSetAABBTest {
 
-    private static final ObjectMapper serializer = VSJacksonUtil.Companion.getDefaultMapper();
+    private static final ObjectMapper serializer = VSJacksonUtil.INSTANCE.getDefaultMapper();
 
     @Test
     public void testSmallBlockPosSetAABB() {
@@ -82,7 +81,7 @@ public class SmallBlockPosSetAABBTest {
      */
     @RepeatedTest(25)
     public void testSerializationAndDeSerialization() throws IOException {
-        final ThreadLocalRandom random = ThreadLocalRandom.current();
+        final Random random = VSRandomUtils.INSTANCE.getDefaultRandom();
 
         final SmallBlockPosSetAABB blockPosSet = VSRandomUtils.INSTANCE.randomBlockPosSetAABB(Random.Default, random.nextInt(500));
 

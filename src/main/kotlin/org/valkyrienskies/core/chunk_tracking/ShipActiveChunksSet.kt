@@ -1,20 +1,10 @@
 package org.valkyrienskies.core.chunk_tracking
 
-import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.DeserializationContext
-import com.fasterxml.jackson.databind.SerializerProvider
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize
-import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer
-import com.fasterxml.jackson.databind.ser.std.StdSerializer
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet
 import org.valkyrienskies.core.chunk_tracking.IShipActiveChunksSet.Companion.chunkPosToLong
 import org.valkyrienskies.core.chunk_tracking.IShipActiveChunksSet.Companion.longToChunkX
 import org.valkyrienskies.core.chunk_tracking.IShipActiveChunksSet.Companion.longToChunkZ
 
-@JsonDeserialize(using = ShipActiveChunksSet.Companion.ShipActiveChunksSetDeserializer::class)
-@JsonSerialize(using = ShipActiveChunksSet.Companion.ShipActiveChunksSetSerializer::class)
 class ShipActiveChunksSet private constructor(
     private val chunkClaimSet: LongOpenHashSet
 ) : IShipActiveChunksSet {
@@ -53,32 +43,6 @@ class ShipActiveChunksSet private constructor(
     companion object {
         fun create(): ShipActiveChunksSet {
             return ShipActiveChunksSet(LongOpenHashSet())
-        }
-
-        class ShipActiveChunksSetSerializer : StdSerializer<ShipActiveChunksSet>(ShipActiveChunksSet::class.java) {
-            override fun serialize(value: ShipActiveChunksSet, gen: JsonGenerator, provider: SerializerProvider) {
-                gen.writeStartArray()
-                value.iterateChunkPos { chunkX, chunkZ ->
-                    run {
-                        gen.writeNumber(chunkX)
-                        gen.writeNumber(chunkZ)
-                    }
-                }
-                gen.writeEndArray()
-            }
-        }
-
-        class ShipActiveChunksSetDeserializer : StdDeserializer<ShipActiveChunksSet>(ShipActiveChunksSet::class.java) {
-            override fun deserialize(p: JsonParser, ctxt: DeserializationContext): ShipActiveChunksSet {
-                val shipActiveChunkSet = create()
-                val chunkPositionArray = p.readValueAs(Array<Int>::class.java)
-                for (i in 0 until (chunkPositionArray.size / 2)) {
-                    val chunkX = chunkPositionArray[i * 2]
-                    val chunkZ = chunkPositionArray[i * 2 + 1]
-                    shipActiveChunkSet.addChunkPos(chunkX, chunkZ)
-                }
-                return shipActiveChunkSet
-            }
         }
     }
 }

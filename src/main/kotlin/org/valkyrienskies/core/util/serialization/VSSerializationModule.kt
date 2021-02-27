@@ -10,8 +10,12 @@ import org.valkyrienskies.core.datastructures.SmallBlockPosSetAABB
 
 class VSSerializationModule: SimpleModule() {
     init {
-        super.addAbstractTypeMapping(IBlockPosSet::class.java, SmallBlockPosSet::class.java)
-        super.addAbstractTypeMapping(IBlockPosSetAABB::class.java, SmallBlockPosSetAABB::class.java)
-        super.addAbstractTypeMapping(IShipActiveChunksSet::class.java, ShipActiveChunksSet::class.java)
+        addAbstractTypeMapping<IBlockPosSet, SmallBlockPosSet>()
+        addAbstractTypeMapping<IBlockPosSetAABB, SmallBlockPosSetAABB>()
+        addAbstractTypeMapping<IShipActiveChunksSet, ShipActiveChunksSet>()
+    }
+
+    private inline fun <reified A, reified B : A> addAbstractTypeMapping() {
+        super.addAbstractTypeMapping(A::class.java, B::class.java)
     }
 }
