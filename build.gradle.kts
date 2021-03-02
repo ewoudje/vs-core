@@ -4,6 +4,7 @@ plugins {
     java
     maven
     checkstyle
+    id("org.sonarqube") version "3.1.1"
 }
 
 group = "org.valkyrienskies.core"
@@ -69,5 +70,13 @@ tasks {
         testLogging {
             events("passed", "skipped", "failed")
         }
+    }
+}
+
+sonarqube {
+    properties {
+        property("sonar.projectKey", "ValkyrienSkies_vs-core")
+        property("sonar.organization", "valkyrienskies")
+        property("sonar.host.url", "https://sonarcloud.io")
     }
 }
