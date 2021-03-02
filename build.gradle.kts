@@ -1,7 +1,9 @@
 plugins {
     kotlin("jvm") version "1.4.21"
+    id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
     java
     maven
+    checkstyle
 }
 
 group = "org.valkyrienskies.core"
@@ -48,7 +50,14 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
 
+checkstyle {
+    toolVersion = "8.41"
+    configFile = file("${rootDir}/.checkstyle/checkstyle.xml")
+    isIgnoreFailures = false
+}
+
 tasks {
+
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
