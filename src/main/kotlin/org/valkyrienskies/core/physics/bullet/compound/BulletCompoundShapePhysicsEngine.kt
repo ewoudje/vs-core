@@ -242,4 +242,3 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
         val compoundShape: btCompoundShape
     ) : RigidBodyData
 }
-

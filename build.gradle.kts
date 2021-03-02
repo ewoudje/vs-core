@@ -15,11 +15,11 @@ repositories {
     maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
 }
 
-val gdxVersion = "1.9.11"
-val jacksonVersion = "2.12.1"
-val nettyVersion = "4.1.25.Final"
-
 dependencies {
+    val gdxVersion = "1.9.11"
+    val jacksonVersion = "2.12.1"
+    val nettyVersion = "4.1.25.Final"
+
     // Kotlin
     implementation(kotlin("stdlib-jdk8"))
 
@@ -53,12 +53,18 @@ dependencies {
 
 checkstyle {
     toolVersion = "8.41"
-    configFile = file("${rootDir}/.checkstyle/checkstyle.xml")
+    configFile = file("$rootDir/.checkstyle/checkstyle.xml")
     isIgnoreFailures = false
 }
 
-tasks {
+ktlint {
+    ignoreFailures.set(true)
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+    }
+}
 
+tasks {
     compileKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }

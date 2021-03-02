@@ -38,4 +38,3 @@ class RigidBody<T : CollisionShape>(
     internal val _totalForce = Vector3d()
     val totalForce: Vector3dc = _totalForce
 }
-

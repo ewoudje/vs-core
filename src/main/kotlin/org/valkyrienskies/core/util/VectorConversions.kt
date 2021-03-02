@@ -73,4 +73,3 @@ infix fun Vector3i.set(v: Vector3): Vector3i = also {
 // Matrix4
 
 infix fun Matrix4.set(m: Matrix4dc): Matrix4 = also { m.get(values) }
-
