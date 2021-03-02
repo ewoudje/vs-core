@@ -2,8 +2,11 @@ package org.valkyrienskies.core.physics.nodes.control
 
 import org.joml.Vector3dc
 import org.valkyrienskies.core.physics.RigidBody
-import org.valkyrienskies.core.util.*
-import java.util.*
+import org.valkyrienskies.core.util.x
+import org.valkyrienskies.core.util.y
+import org.valkyrienskies.core.util.z
+import java.util.ArrayDeque
+import java.util.Deque
 import kotlin.math.abs
 import kotlin.math.sin
 
@@ -37,7 +40,7 @@ class PIDVelocityControlLoop(
 
         // this error function is just some random crap I came up with
         val error = absoluteDifference(rigidBody.angularVelocity, target.angularVelocity) +
-                absoluteDifference(rigidBody.linearVelocity, target.linearVelocity)
+            absoluteDifference(rigidBody.linearVelocity, target.linearVelocity)
         val time = lastTimeNs + deltaNs
 
         errorHistory.push(IntegralTerm(time, error))
@@ -59,7 +62,6 @@ class PIDVelocityControlLoop(
         errorHistory.fold(0.0) { acc, term -> acc + (term.error * (term.timeNs - firstTimeNs)) }
 
     data class IntegralTerm(val timeNs: Long, val error: Double)
-
 }
 
 private fun absoluteDifference(v1: Vector3dc, v2: Vector3dc): Double {

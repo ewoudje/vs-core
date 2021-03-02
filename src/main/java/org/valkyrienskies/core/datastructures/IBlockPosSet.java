@@ -1,12 +1,11 @@
 package org.valkyrienskies.core.datastructures;
 
-import org.joml.Vector3ic;
-import org.valkyrienskies.core.util.VSIterationUtils;
-
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import org.joml.Vector3ic;
+import org.valkyrienskies.core.util.VSIterationUtils;
 
 /**
  * Acts just like a <code>Set&lt;Vector3ic&gt;</code>, but it can store the data however it wants to.
@@ -20,25 +19,25 @@ public interface IBlockPosSet extends Set<Vector3ic> {
     boolean contains(int x, int y, int z);
 
     /**
-     * The IBlockPosSet is not guaranteed to be able to store everything. Call canStore() to know what can be stored
-     * and what cannot.
+     * The IBlockPosSet is not guaranteed to be able to store everything. Call canStore() to know what can be stored and
+     * what cannot.
      */
     boolean canStore(int x, int y, int z);
 
     void clear();
 
     /**
-     * Fast way to iterate over all BlockPos in this Set that does not require us to create BlockPos objects.
-     * Although this default implementation is still slow, it should be accelerated by the data structure.
+     * Fast way to iterate over all BlockPos in this Set that does not require us to create BlockPos objects. Although
+     * this default implementation is still slow, it should be accelerated by the data structure.
      */
     default void forEach(@Nonnull VSIterationUtils.IntTernaryConsumer action) {
         forEach(blockPos -> action.accept(blockPos.x(), blockPos.y(), blockPos.z()));
     }
 
     /**
-     * Allows other threads (for example physics threads) to iterate over the elements in this list unsafely.
-     * Though the iteration is almost always correct, it is possible to iterate over an element more than once, or not
-     * all. But the chances of these events occurring is very small.
+     * Allows other threads (for example physics threads) to iterate over the elements in this list unsafely. Though the
+     * iteration is almost always correct, it is possible to iterate over an element more than once, or not all. But the
+     * chances of these events occurring is very small.
      */
     default void forEachUnsafe(@Nonnull VSIterationUtils.IntTernaryConsumer action) {
         throw new UnsupportedOperationException();

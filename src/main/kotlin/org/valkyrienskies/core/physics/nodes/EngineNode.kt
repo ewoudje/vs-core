@@ -1,7 +1,7 @@
 package org.valkyrienskies.core.physics.nodes
 
 import org.joml.Vector3dc
-import org.valkyrienskies.core.util.*
+import org.valkyrienskies.core.util.assertIsPhysicsThread
 
 data class EngineNode(
     /**

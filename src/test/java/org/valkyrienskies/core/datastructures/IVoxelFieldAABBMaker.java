@@ -1,17 +1,21 @@
 package org.valkyrienskies.core.datastructures;
 
-import org.joml.Vector3ic;
-import org.joml.primitives.AABBd;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import org.joml.Vector3ic;
+import org.joml.primitives.AABBd;
 
 /**
  * This class enables the updating of ship AABBs in O(1) time
  */
 public interface IVoxelFieldAABBMaker {
 
-    int MIN_X = -512, MAX_X = 511, MIN_Y = 0, MAX_Y = 255, MIN_Z = -512, MAX_Z = 511;
+    int MIN_X = -512;
+    int MAX_X = 511;
+    int MIN_Y = 0;
+    int MAX_Y = 255;
+    int MIN_Z = -512;
+    int MAX_Z = 511;
 
     /**
      * Creates an AABB in world space.

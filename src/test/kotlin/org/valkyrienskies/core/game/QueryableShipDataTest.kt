@@ -33,14 +33,14 @@ internal class QueryableShipDataTest {
         val shipChunkClaim = shipData.chunkClaim
 
         // Test chunks inside of the claim
-        for (count in 1 .. 1000) {
+        for (count in 1..1000) {
             val chunkX = Random.nextInt(shipChunkClaim.xStart, shipChunkClaim.xEnd + 1)
             val chunkZ = Random.nextInt(shipChunkClaim.zStart, shipChunkClaim.zEnd + 1)
             assertEquals(shipData, queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ))
         }
 
         // Test chunks outside of the claim
-        for (count in 1 .. 1000) {
+        for (count in 1..1000) {
             val chunkX = if (Random.nextBoolean()) {
                 shipChunkClaim.xStart - Random.nextInt(1, 1000)
             } else {
@@ -107,10 +107,11 @@ internal class QueryableShipDataTest {
      */
     @RepeatedTest(25)
     fun testSerializationAndDeSerialization() {
-        val queryableShipData = VSRandomUtils.randomQueryableShipData(size=Random.nextInt(20))
+        val queryableShipData = VSRandomUtils.randomQueryableShipData(size = Random.nextInt(20))
         // Now serialize and deserialize and verify that they are the same
         val queryableShipDataSerialized = VSJacksonUtil.defaultMapper.writeValueAsBytes(queryableShipData.toList())
-        val queryableShipDataDeserialized = QueryableShipData(VSJacksonUtil.defaultMapper.readValue(queryableShipDataSerialized))
+        val queryableShipDataDeserialized =
+            QueryableShipData(VSJacksonUtil.defaultMapper.readValue(queryableShipDataSerialized))
         // Verify that both are equal
         assertEquals(queryableShipData, queryableShipDataDeserialized)
     }

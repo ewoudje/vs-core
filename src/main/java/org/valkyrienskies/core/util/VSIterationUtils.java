@@ -1,20 +1,19 @@
 package org.valkyrienskies.core.util;
 
-import org.joml.Vector2i;
-import org.joml.Vector3i;
-import org.joml.Vector3ic;
-
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.Consumer;
+import org.joml.Vector2i;
+import org.joml.Vector3i;
+import org.joml.Vector3ic;
 
 public class VSIterationUtils {
 
     // region METHODS
 
     /**
-     * Iterates 3d space from the start position (inclusive) to the end position (inclusive). End
-     * position must always be greater than start position, otherwise they will be swapped.
+     * Iterates 3d space from the start position (inclusive) to the end position (inclusive). End position must always
+     * be greater than start position, otherwise they will be swapped.
      *
      * @param consumer The consumer to call with each iteration
      */
@@ -73,8 +72,8 @@ public class VSIterationUtils {
     }
 
     /**
-     * Iterates 2d space from the start position (inclusive) to the end position (inclusive). End
-     * position must always be greater than start position, otherwise they will be swapped.
+     * Iterates 2d space from the start position (inclusive) to the end position (inclusive). End position must always
+     * be greater than start position, otherwise they will be swapped.
      *
      * @param consumer The consumer to call with each iteration
      */
@@ -139,13 +138,16 @@ public class VSIterationUtils {
     // region CLASSES
 
     /**
-     * Iterates 2d space from the start position (inclusive) to the end position (inclusive). End
-     * position must always be greater than start position, otherwise they will be swapped.
+     * Iterates 2d space from the start position (inclusive) to the end position (inclusive). End position must always
+     * be greater than start position, otherwise they will be swapped.
      */
     public static class Int2dIterator implements Iterator<Vector2i> {
 
         int index = 0;
-        final int startX, startY, maxX, maxY;
+        final int startX;
+        final int startY;
+        final int maxX;
+        final int maxY;
 
         public Int2dIterator(int startX, int startY, int endX, int endY) {
             int temp;
@@ -187,13 +189,18 @@ public class VSIterationUtils {
     }
 
     /**
-     * Iterates 3d space from the start position (inclusive) to the end position (inclusive). End
-     * position must always be greater than start position, otherwise they will be swapped.
+     * Iterates 3d space from the start position (inclusive) to the end position (inclusive). End position must always
+     * be greater than start position, otherwise they will be swapped.
      */
     public static class Int3dIterator implements Iterator<Vector3i> {
 
         int index = 0;
-        final int startX, startY, startZ, maxX, maxY, maxZ;
+        final int startX;
+        final int startY;
+        final int startZ;
+        final int maxX;
+        final int maxY;
+        final int maxZ;
 
         public Int3dIterator(int startX, int startY, int startZ, int endX, int endY, int endZ) {
             int temp;

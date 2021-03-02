@@ -86,5 +86,4 @@ class VSPacketRegistry<P> {
 
         handler.handlePacket(vsPacket, sender)
     }
-
 }

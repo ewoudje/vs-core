@@ -24,5 +24,4 @@ internal class ShipDataTest {
         // Verify that both are equal
         Assertions.assertEquals(shipData, blockPosSetDeserialized)
     }
-
 }

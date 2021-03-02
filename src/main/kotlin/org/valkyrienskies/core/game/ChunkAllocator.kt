@@ -17,7 +17,7 @@ data class ChunkAllocator(
          * Remember that [ChunkClaim] coordinates aren't the same as block or chunk coordinates.
          *
          * The following block positions are calculated assuming that [ChunkClaim.DIAMETER]=256. See [ChunkClaim] for more information.
-          */
+         */
         private const val X_INDEX_START = -7000 // Start at X=-28672000 block coordinates
         private const val X_INDEX_END = 7000 // End at X=28672000 block coordinates
         private const val Z_INDEX_START = 3000 // Start at Z=12288000 block coordinates
@@ -35,7 +35,7 @@ data class ChunkAllocator(
         val claimXIndex = ChunkClaim.getClaimXIndex(chunkX)
         val claimZIndex = ChunkClaim.getClaimZIndex(chunkZ)
 
-        return (claimXIndex in X_INDEX_START .. X_INDEX_END) and (claimZIndex in Z_INDEX_START .. Z_INDEX_END)
+        return (claimXIndex in X_INDEX_START..X_INDEX_END) and (claimZIndex in Z_INDEX_START..Z_INDEX_END)
     }
 
     /**
@@ -81,11 +81,10 @@ data class ChunkAllocator(
         }
 
         // Sanity check
-        if (nextClaimZ !in Z_INDEX_START .. Z_INDEX_END) {
+        if (nextClaimZ !in Z_INDEX_START..Z_INDEX_END) {
             throw IllegalStateException("We ran out of chunk claims to allocate!")
         }
 
         return nextClaim
     }
-
 }

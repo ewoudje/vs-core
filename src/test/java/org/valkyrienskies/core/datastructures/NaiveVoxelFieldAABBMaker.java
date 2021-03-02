@@ -1,12 +1,11 @@
 package org.valkyrienskies.core.datastructures;
 
+import java.util.TreeMap;
+import java.util.TreeSet;
+import javax.annotation.Nonnull;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.joml.primitives.AABBd;
-
-import javax.annotation.Nonnull;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 /**
  * Do not serialize.
@@ -14,8 +13,11 @@ import java.util.TreeSet;
 public class NaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
 
     private final Vector3ic centerPos;
-    private final TreeMap<Integer, TreeSet<TwoInts>> xMap, yMap, zMap;
-    private Vector3ic minCoords, maxCoords;
+    private final TreeMap<Integer, TreeSet<TwoInts>> xMap;
+    private final TreeMap<Integer, TreeSet<TwoInts>> yMap;
+    private final TreeMap<Integer, TreeSet<TwoInts>> zMap;
+    private Vector3ic minCoords;
+    private Vector3ic maxCoords;
     private int voxelCount;
 
     public NaiveVoxelFieldAABBMaker(int x, int z) {
@@ -33,7 +35,8 @@ public class NaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
         if (voxelCount == 0) {
             return null;
         }
-        AABBd inLocal = new AABBd(minCoords.x(), minCoords.y(), minCoords.z(), maxCoords.x(), maxCoords.y(), maxCoords.z());
+        AABBd inLocal =
+            new AABBd(minCoords.x(), minCoords.y(), minCoords.z(), maxCoords.x(), maxCoords.y(), maxCoords.z());
         return inLocal.translate(centerPos.x(), centerPos.y(), centerPos.z());
     }
 
@@ -246,7 +249,8 @@ public class NaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
      */
     private static class TwoInts implements Comparable<TwoInts> {
 
-        final int first, second;
+        final int first;
+        final int second;
 
         TwoInts(int first, int second) {
             this.first = first;

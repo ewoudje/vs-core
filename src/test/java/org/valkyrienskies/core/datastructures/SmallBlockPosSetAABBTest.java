@@ -1,6 +1,10 @@
 package org.valkyrienskies.core.datastructures;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import kotlin.random.Random;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
@@ -8,10 +12,6 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.valkyrienskies.core.VSRandomUtils;
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil;
-
-import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SmallBlockPosSetAABBTest {
 
@@ -83,11 +83,13 @@ public class SmallBlockPosSetAABBTest {
     public void testSerializationAndDeSerialization() throws IOException {
         final Random random = VSRandomUtils.INSTANCE.getDefaultRandom();
 
-        final SmallBlockPosSetAABB blockPosSet = VSRandomUtils.INSTANCE.randomBlockPosSetAABB(Random.Default, random.nextInt(500));
+        final SmallBlockPosSetAABB blockPosSet =
+            VSRandomUtils.INSTANCE.randomBlockPosSetAABB(Random.Default, random.nextInt(500));
 
         // Now serialize and deserialize and verify that they are the same
         final byte[] blockPosSetSerialized = serializer.writeValueAsBytes(blockPosSet);
-        final SmallBlockPosSetAABB blockPosSetDeserialized = serializer.readValue(blockPosSetSerialized, SmallBlockPosSetAABB.class);
+        final SmallBlockPosSetAABB blockPosSetDeserialized =
+            serializer.readValue(blockPosSetSerialized, SmallBlockPosSetAABB.class);
 
         // Verify both sets are equal
         assertEquals(blockPosSet, blockPosSetDeserialized);

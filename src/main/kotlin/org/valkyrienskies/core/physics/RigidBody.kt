@@ -5,7 +5,7 @@ import org.joml.Vector3dc
 
 // TODO: make 'RigidBodyShape' class for static objects
 
-class RigidBody<T: CollisionShape>(
+class RigidBody<T : CollisionShape>(
     val shape: T,
     /**
      * If inertia data is null, then this rigid body

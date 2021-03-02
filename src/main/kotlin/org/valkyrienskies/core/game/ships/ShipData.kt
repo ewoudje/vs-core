@@ -12,7 +12,7 @@ import org.valkyrienskies.core.datastructures.IBlockPosSetAABB
 import org.valkyrienskies.core.datastructures.SmallBlockPosSetAABB
 import org.valkyrienskies.core.game.ChunkClaim
 import org.valkyrienskies.core.game.VSBlockType
-import java.util.*
+import java.util.UUID
 
 /**
  * The purpose of [ShipData] is to keep track of the state of a ship; it does not manage the behavior of a ship.

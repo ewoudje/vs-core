@@ -37,7 +37,6 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
                 func(x, y, z, b)
             }
         }
-
     }
 
     private val _rigidBodies = HashSet<RigidBody<*>>()
@@ -211,7 +210,8 @@ class BulletCompoundShapePhysicsEngine : PhysicsEngine {
         requestingUpdate.removeAll { body ->
             when (body.shape) {
                 is VoxelShape -> updateVoxelRigidBody(body as RigidBody<VoxelShape>)
-                is CuboidShape -> {}
+                is CuboidShape -> {
+                }
             }
 
             val bulletBody = getBullet(body)

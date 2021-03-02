@@ -9,8 +9,12 @@ import org.valkyrienskies.core.datastructures.IBlockPosSet
 import org.valkyrienskies.core.datastructures.SmallBlockPosSet
 import org.valkyrienskies.core.datastructures.SmallBlockPosSetAABB
 import org.valkyrienskies.core.game.ChunkClaim
-import org.valkyrienskies.core.game.ships.*
-import java.util.*
+import org.valkyrienskies.core.game.ships.QueryableShipData
+import org.valkyrienskies.core.game.ships.ShipData
+import org.valkyrienskies.core.game.ships.ShipInertiaData
+import org.valkyrienskies.core.game.ships.ShipPhysicsData
+import org.valkyrienskies.core.game.ships.ShipTransform
+import java.util.UUID
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -50,7 +54,11 @@ internal object VSRandomUtils {
 
     @Suppress("WeakerAccess")
     fun randomVector3d(random: Random = defaultRandom): Vector3d {
-        return Vector3d(randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random))
+        return Vector3d(
+            randomDoubleNotCloseToLimit(random),
+            randomDoubleNotCloseToLimit(random),
+            randomDoubleNotCloseToLimit(random)
+        )
     }
 
     /**
@@ -90,9 +98,9 @@ internal object VSRandomUtils {
 
     @Suppress("WeakerAccess")
     fun randomString(random: Random = defaultRandom, length: Int): String {
-        val charPool : List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+        val charPool: List<Char> = ('a'..'z') + ('A'..'Z') + ('0'..'9')
         return (1..length)
-            .map{random.nextInt(0, charPool.size)}
+            .map { random.nextInt(0, charPool.size) }
             .map(charPool::get)
             .joinToString("")
     }
@@ -115,13 +123,24 @@ internal object VSRandomUtils {
     @Suppress("WeakerAccess")
     fun randomShipTransform(random: Random = defaultRandom): ShipTransform {
         val scalingMaxMagnitude = 10.0
-        val randomScaling = Vector3d(random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude), random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude), random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude))
+        val randomScaling = Vector3d(
+            random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude),
+            random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude),
+            random.nextDouble(-scalingMaxMagnitude, scalingMaxMagnitude)
+        )
         return ShipTransform(randomVector3d(random), randomVector3d(random), randomQuaterniond(random), randomScaling)
     }
 
     @Suppress("WeakerAccess")
     fun randomAABBd(random: Random = defaultRandom): AABBd {
-        return AABBd(randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random), randomDoubleNotCloseToLimit(random)).correctBounds()
+        return AABBd(
+            randomDoubleNotCloseToLimit(random),
+            randomDoubleNotCloseToLimit(random),
+            randomDoubleNotCloseToLimit(random),
+            randomDoubleNotCloseToLimit(random),
+            randomDoubleNotCloseToLimit(random),
+            randomDoubleNotCloseToLimit(random)
+        ).correctBounds()
     }
 
     @Suppress("WeakerAccess")
@@ -142,7 +161,13 @@ internal object VSRandomUtils {
         return blockPosSet
     }
 
-    private fun fillBlockPosSet(random: Random = defaultRandom, blockPosSet: IBlockPosSet, centerX: Int, centerZ: Int, size: Int) {
+    private fun fillBlockPosSet(
+        random: Random = defaultRandom,
+        blockPosSet: IBlockPosSet,
+        centerX: Int,
+        centerZ: Int,
+        size: Int
+    ) {
         for (i in 1 until size) {
             val x = random.nextInt(-2048, 2047) + centerX
             val y = random.nextInt(0, 255)
@@ -170,7 +195,7 @@ internal object VSRandomUtils {
     @Suppress("WeakerAccess")
     fun randomQueryableShipData(random: Random = defaultRandom, size: Int): QueryableShipData {
         val queryableShipData = QueryableShipData()
-        for (i in 1 .. size) {
+        for (i in 1..size) {
             queryableShipData.addShipData(randomShipData(random))
         }
         return queryableShipData
@@ -179,10 +204,9 @@ internal object VSRandomUtils {
     @Suppress("WeakerAccess")
     fun randomShipActiveChunkSet(random: Random = defaultRandom, size: Int): ShipActiveChunksSet {
         val shipActiveChunkSet = ShipActiveChunksSet.create()
-        for (i in 1 .. size) {
+        for (i in 1..size) {
             shipActiveChunkSet.addChunkPos(randomIntegerNotCloseToLimit(random), randomIntegerNotCloseToLimit(random))
         }
         return shipActiveChunkSet
     }
-
 }

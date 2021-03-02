@@ -1,12 +1,11 @@
 package org.valkyrienskies.core.datastructures;
 
+import java.util.HashSet;
+import java.util.Set;
+import javax.annotation.Nonnull;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.joml.primitives.AABBd;
-
-import javax.annotation.Nonnull;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Only used for testing, don't actually use this ever. Its inefficient.
@@ -23,7 +22,12 @@ public class ExtremelyNaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
 
     @Override
     public AABBd makeVoxelFieldAABB() {
-        int minX, minY, minZ, maxX, maxY, maxZ;
+        int minX;
+        int minY;
+        int minZ;
+        int maxX;
+        int maxY;
+        int maxZ;
         minX = minY = minZ = Integer.MAX_VALUE;
         maxX = maxY = maxZ = Integer.MIN_VALUE;
         if (blockPosSet.isEmpty()) {

@@ -14,7 +14,6 @@ inline fun Byte.iterateBits(func: (Boolean, Int) -> Unit) {
     }
 }
 
-
 inline fun Int.iterateBits(func: (Boolean, Int) -> Unit) {
     for (i in 32 downTo 0) {
         val masked = this and (1 shl i)
@@ -57,7 +56,6 @@ fun wrapIndex(x: Int, y: Int, z: Int, dimensions: Vector3ic): Int =
 fun wrapIndex(point: Vector3ic, dimensions: Vector3ic): Int =
     wrapIndex(point.x, point.y, point.z, dimensions)
 
-
 inline fun timeNanos(func: () -> Unit): Long {
     val start = System.nanoTime()
     func()
@@ -73,7 +71,7 @@ inline fun timeMillis(func: () -> Unit): Long {
 inline fun tryAndPrint(func: () -> Unit) {
     try {
         func()
-    } catch(ex: Exception) {
+    } catch (ex: Exception) {
         ex.printStackTrace()
     }
 }

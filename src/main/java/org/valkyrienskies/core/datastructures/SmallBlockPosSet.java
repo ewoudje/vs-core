@@ -9,22 +9,24 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import it.unimi.dsi.fastutil.ints.*;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntIterator;
+import it.unimi.dsi.fastutil.ints.IntList;
+import java.io.IOException;
+import java.util.Iterator;
+import javax.annotation.Nonnull;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.valkyrienskies.core.game.ChunkClaim;
 import org.valkyrienskies.core.util.VSIterationUtils;
 
-import javax.annotation.Nonnull;
-import java.io.IOException;
-import java.util.Iterator;
-
 /**
  * An implementation of IBlockPosSet that stores block positions as 1 integer. This is accomplished by storing each
- * position as its relative coordinates to the centerX and centerZ values of this set. In this implementation the x
- * and z positions are 12 bits each, so they can range anywhere from -2048 to + 2047 relative to centerX and centerZ.
- * This leaves 8 bits for storing the y coordinate, which allows it the range of 0 to 255, exactly the same as
- * Minecraft.
+ * position as its relative coordinates to the centerX and centerZ values of this set. In this implementation the x and
+ * z positions are 12 bits each, so they can range anywhere from -2048 to + 2047 relative to centerX and centerZ. This
+ * leaves 8 bits for storing the y coordinate, which allows it the range of 0 to 255, exactly the same as Minecraft.
  */
 @JsonDeserialize(using = SmallBlockPosSet.SmallBlockPosSetDeserializer.class)
 @JsonSerialize(using = SmallBlockPosSet.SmallBlockPosSetSerializer.class)
@@ -37,7 +39,8 @@ public class SmallBlockPosSet implements IBlockPosSet {
     private final IntList compressedBlockPosList;
     @Nonnull
     private final Int2IntMap listValueToIndex;
-    private final int centerX, centerZ;
+    private final int centerX;
+    private final int centerZ;
 
     public SmallBlockPosSet(ChunkClaim chunkClaim) {
         final Vector3ic centerCoordinates = chunkClaim.getCenterBlockCoordinates(new Vector3i());

@@ -10,7 +10,8 @@ fun btCollisionShape.getLocalInertia(mass: Float, inertia: Vector3): Vector3 {
     return inertia
 }
 
-val btPersistentManifold.contactPoints get() =
-    this.attached.computeIfAbsent {
-        bulletArrayToList({ numContacts }, { getContactPoint(it) })
-    }
+val btPersistentManifold.contactPoints
+    get() =
+        this.attached.computeIfAbsent {
+            bulletArrayToList({ numContacts }, { getContactPoint(it) })
+        }

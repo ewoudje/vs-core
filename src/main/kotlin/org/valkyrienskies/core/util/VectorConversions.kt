@@ -3,7 +3,13 @@ package org.valkyrienskies.core.util
 import com.badlogic.gdx.math.Matrix3
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector3
-import org.joml.*
+import org.joml.Matrix3dc
+import org.joml.Matrix4d
+import org.joml.Matrix4dc
+import org.joml.Vector3d
+import org.joml.Vector3dc
+import org.joml.Vector3i
+import org.joml.Vector3ic
 
 // region JOML
 
@@ -40,7 +46,6 @@ fun Vector3dc.addTerms() = x + y + z
 // Matrix4dc
 fun Matrix4dc.toGDX() = Matrix4() set this
 infix fun Matrix4d.set(m: Matrix4) = also { set(m.values) }
-
 
 // Matrix3dc
 

@@ -109,6 +109,7 @@ data class ShipInertiaData(
          * Consider 2 doubles to be equal if the distance between them is less than this.
          */
         private const val EPSILON = 1.0e-6
+
         /**
          * We define the inertia of a cube as being 8 point masses within a cube.
          *

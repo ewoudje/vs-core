@@ -2,15 +2,20 @@ package org.valkyrienskies.core.physics.nodes.control
 
 import org.apache.commons.math3.optim.MaxIter
 import org.apache.commons.math3.optim.PointValuePair
-import org.apache.commons.math3.optim.linear.*
+import org.apache.commons.math3.optim.linear.LinearConstraint
+import org.apache.commons.math3.optim.linear.LinearConstraintSet
+import org.apache.commons.math3.optim.linear.LinearObjectiveFunction
 import org.apache.commons.math3.optim.linear.Relationship.GEQ
 import org.apache.commons.math3.optim.linear.Relationship.LEQ
+import org.apache.commons.math3.optim.linear.SimplexSolver
 import org.apache.commons.math3.optim.nonlinear.scalar.GoalType
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.core.physics.RigidBody
 import org.valkyrienskies.core.physics.nodes.EngineNode
-import org.valkyrienskies.core.util.*
+import org.valkyrienskies.core.util.x
+import org.valkyrienskies.core.util.y
+import org.valkyrienskies.core.util.z
 import java.util.stream.DoubleStream
 
 /**
@@ -159,5 +164,4 @@ class ForceAndTorqueLPControlLoop(
         coefficients[offset] = -1.0
         constraints += LinearConstraint(coefficients, LEQ, ideal)
     }
-
 }

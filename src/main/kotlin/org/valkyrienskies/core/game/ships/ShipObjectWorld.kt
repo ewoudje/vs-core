@@ -10,8 +10,10 @@ import org.valkyrienskies.core.game.ChunkAllocator
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.util.names.NounListNameGenerator
-import java.util.*
-import kotlin.collections.HashMap
+import java.util.Collections
+import java.util.Spliterator
+import java.util.TreeSet
+import java.util.UUID
 
 /**
  * Manages all the [ShipObject]s in a world.
@@ -128,5 +130,4 @@ class ShipObjectWorld(
         // TODO: Update the physics voxel world here
         // voxelWorld.onSetBlock(posX, posY, posZ, blockType)
     }
-
 }

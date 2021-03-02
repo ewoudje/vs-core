@@ -1,6 +1,6 @@
 package org.valkyrienskies.core.physics
 
-import java.util.*
+import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 
 // The number of physics ticks to be considered in the average tick time.
@@ -117,5 +117,4 @@ class ServerPhysicsWorld(
 
         physicsEngine.tick(deltaNs)
     }
-
 }

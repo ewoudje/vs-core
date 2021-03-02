@@ -1,15 +1,14 @@
 package org.valkyrienskies.core.datastructures;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
 /**
- * Naive implementation of IBlockPosSet, basically just a wrapper around a HashSet<BlockPos>.
+ * Naive implementation of IBlockPosSet, basically just a wrapper around a HashSet&lt;BlockPos&gt;.
  * Used for testing purposes only.
  */
 public class NaiveBlockPosSet implements IBlockPosSet {

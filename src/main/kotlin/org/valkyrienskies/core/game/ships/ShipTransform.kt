@@ -1,6 +1,11 @@
 package org.valkyrienskies.core.game.ships
 
-import org.joml.*
+import org.joml.Matrix4d
+import org.joml.Matrix4dc
+import org.joml.Quaterniond
+import org.joml.Quaterniondc
+import org.joml.Vector3d
+import org.joml.Vector3dc
 
 /**
  * The [ShipTransform] class is responsible for transforming position and direction vectors between ship coordinates and world coordinates.
@@ -23,6 +28,7 @@ data class ShipTransform(
      * Transforms positions and directions from ship coordinates to world coordinates
      */
     val shipToWorldMatrix: Matrix4dc
+
     /**
      * Transforms positions and directions from world coordinates to ships coordinates
      */
@@ -33,25 +39,42 @@ data class ShipTransform(
             .translate(shipPositionInWorldCoordinates)
             .rotate(shipCoordinatesToWorldCoordinatesRotation)
             .scale(shipCoordinatesToWorldCoordinatesScaling)
-            .translate(-shipPositionInShipCoordinates.x(), -shipPositionInShipCoordinates.y(), -shipPositionInShipCoordinates.z())
+            .translate(
+                -shipPositionInShipCoordinates.x(),
+                -shipPositionInShipCoordinates.y(),
+                -shipPositionInShipCoordinates.z()
+            )
         worldToShipMatrix = shipToWorldMatrix.invert(Matrix4d())
     }
 
     companion object {
         // The quaternion that represents no rotation
         private val ZERO_ROTATION: Quaterniondc = Quaterniond()
+
         // The vector that represents no scaling
         private val UNIT_SCALING: Vector3dc = Vector3d(1.0, 1.0, 1.0)
 
-        fun createFromCoordinates(centerCoordinateInWorld: Vector3dc, centerCoordinateInShip: Vector3dc): ShipTransform {
+        fun createFromCoordinates(
+            centerCoordinateInWorld: Vector3dc,
+            centerCoordinateInShip: Vector3dc
+        ): ShipTransform {
             return createFromCoordinatesAndRotation(centerCoordinateInWorld, centerCoordinateInShip, ZERO_ROTATION)
         }
 
-        fun createFromCoordinatesAndRotation(centerCoordinateInWorld: Vector3dc, centerCoordinateInShip: Vector3dc, shipRotation: Quaterniondc): ShipTransform {
+        fun createFromCoordinatesAndRotation(
+            centerCoordinateInWorld: Vector3dc,
+            centerCoordinateInShip: Vector3dc,
+            shipRotation: Quaterniondc
+        ): ShipTransform {
             return ShipTransform(centerCoordinateInWorld, centerCoordinateInShip, shipRotation, UNIT_SCALING)
         }
 
-        fun createFromCoordinatesAndRotationAndScaling(centerCoordinateInWorld: Vector3dc, centerCoordinateInShip: Vector3dc, shipRotation: Quaterniondc, shipScaling: Vector3dc): ShipTransform {
+        fun createFromCoordinatesAndRotationAndScaling(
+            centerCoordinateInWorld: Vector3dc,
+            centerCoordinateInShip: Vector3dc,
+            shipRotation: Quaterniondc,
+            shipScaling: Vector3dc
+        ): ShipTransform {
             return ShipTransform(centerCoordinateInWorld, centerCoordinateInShip, shipRotation, shipScaling)
         }
     }
@@ -63,5 +86,4 @@ data class ShipTransform(
     fun transformDirectionNoScalingFromWorldToShip(directionInWorld: Vector3dc, dest: Vector3d): Vector3d {
         return shipCoordinatesToWorldCoordinatesRotation.transformInverse(directionInWorld, dest)
     }
-
 }

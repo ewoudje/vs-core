@@ -1,29 +1,31 @@
 package org.valkyrienskies.core.datastructures;
 
 /**
- * This is effectively a Map<Integer, Integer> with all the entries stored as "Nodes" in a LinkedList.
- * To get O(1) runtime, these LinkedList nodes are stored in an array.
+ * This is effectively a Map&lt;Integer, Integer&gt; with all the entries stored as "Nodes" in a LinkedList. To get O(1)
+ * runtime, these LinkedList nodes are stored in an array.
  *
- * Unlike a Map<Integer, Integer>, we are only allowed to increment/decrement the value of a given key. Values below 0
- * are not allowed.
+ * <p>Unlike a Map&lt;Integer, Integer&gt;, we are only allowed to increment/decrement the value of a given key. Values
+ * below 0 are not allowed.
  *
- * We also cannot directly view the value of a key, we can only get the minimum and maximum keys that have non-zero
- * values.
+ * <p>We also cannot directly view the value of a key, we can only get the minimum and maximum keys that have non-zero
+ * values.</p>
  */
 public class FastMinMaxMap {
 
     /**
      * The "Node struct" is defined as follows:
+     * <pre>
      * struct Node {
      *     unsigned int value;
      *     Node* prev, next;
      * }
-     *
+     * </pre>
      * However, since this is Java not C we emulate this behavior as 3 integers in an int[] array.
      */
     private final int[] backing;
     private final int capacity;
-    private int front, back;
+    private int front;
+    private int back;
     private int size;
 
     /**

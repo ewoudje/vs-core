@@ -1,7 +1,7 @@
 package org.valkyrienskies.core.game
 
 import org.joml.Vector3d
-import java.util.*
+import java.util.UUID
 
 /**
  * An interface that represents players.
@@ -13,5 +13,4 @@ interface IPlayer {
     fun getPosition(dest: Vector3d): Vector3d
 
     val uuid: UUID
-
 }

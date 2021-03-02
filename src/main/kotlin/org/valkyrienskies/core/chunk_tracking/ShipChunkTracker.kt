@@ -131,5 +131,4 @@ class ShipChunkTracker(
         playersWatchingChunk.removeAll(removedWatchingPlayers)
         if (playersWatchingChunk.isEmpty()) playersWatchingChunkMap.remove(chunkPos)
     }
-
 }

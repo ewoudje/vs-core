@@ -12,6 +12,7 @@ interface PhysicsEngine {
 
     fun applyForce(body: RigidBody<*>, force: Vector3dc, position: Vector3dc)
     fun addCentralForce(body: RigidBody<*>, force: Vector3dc)
+
     /**
      * Call this if you want the physics engine to
      * check the parameters of the rigid body again next tick, like if you changed

@@ -39,5 +39,4 @@ class ChunkClaimMap<T> {
         val chunkPosToClaimAsLong = ChunkClaim.getClaimThenToLong(chunkX, chunkZ)
         return backingMap[chunkPosToClaimAsLong]
     }
-
 }

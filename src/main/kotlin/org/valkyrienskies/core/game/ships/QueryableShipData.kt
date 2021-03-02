@@ -3,7 +3,8 @@ package org.valkyrienskies.core.game.ships
 import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
 import org.valkyrienskies.core.datastructures.ChunkClaimMap
-import java.util.*
+import java.util.HashMap
+import java.util.UUID
 
 /**
  * This object stores all the [ShipData] in a world. It can quickly query [ShipData] by their [UUID] and chunk positions
