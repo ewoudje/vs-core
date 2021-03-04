@@ -38,5 +38,5 @@ jobs:
       - uses: jwgmeligmeyling/checkstyle-github-action@master # show checkstyle/ktlint report
         with:
           path: |
-            */build/reports/checkstyle/*.xml
-            */build/reports/ktlint/*/*.xml
+            build/reports/checkstyle/*.xml
+            build/reports/ktlint/*/*.xml
