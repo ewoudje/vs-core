@@ -65,18 +65,18 @@ data class ShipInertiaData(
         val rx: Double = x - getCenterOfMassInShipSpace().x()
         val ry: Double = y - getCenterOfMassInShipSpace().y()
         val rz: Double = z - getCenterOfMassInShipSpace().z()
-        gameMoITensor[0] =
-            gameMoITensor[0] + (cmShiftY * cmShiftY + cmShiftZ * cmShiftZ) * gameTickMass + (ry * ry + rz * rz) * addedMass
+        gameMoITensor[0] = gameMoITensor[0] + (cmShiftY * cmShiftY + cmShiftZ * cmShiftZ) * gameTickMass +
+            (ry * ry + rz * rz) * addedMass
         gameMoITensor[1] = gameMoITensor[1] - cmShiftX * cmShiftY * gameTickMass - rx * ry * addedMass
         gameMoITensor[2] = gameMoITensor[2] - cmShiftX * cmShiftZ * gameTickMass - rx * rz * addedMass
         gameMoITensor[3] = gameMoITensor[1]
-        gameMoITensor[4] =
-            gameMoITensor[4] + (cmShiftX * cmShiftX + cmShiftZ * cmShiftZ) * gameTickMass + (rx * rx + rz * rz) * addedMass
+        gameMoITensor[4] = gameMoITensor[4] + (cmShiftX * cmShiftX + cmShiftZ * cmShiftZ) * gameTickMass +
+            (rx * rx + rz * rz) * addedMass
         gameMoITensor[5] = gameMoITensor[5] - cmShiftY * cmShiftZ * gameTickMass - ry * rz * addedMass
         gameMoITensor[6] = gameMoITensor[2]
         gameMoITensor[7] = gameMoITensor[5]
-        gameMoITensor[8] =
-            gameMoITensor[8] + (cmShiftX * cmShiftX + cmShiftY * cmShiftY) * gameTickMass + (rx * rx + ry * ry) * addedMass
+        gameMoITensor[8] = gameMoITensor[8] + (cmShiftX * cmShiftX + cmShiftY * cmShiftY) * gameTickMass +
+            (rx * rx + ry * ry) * addedMass
         momentOfInertiaTensor.set(gameMoITensor).transpose()
 
         // Do this to avoid a mass of zero, which runs the risk of dividing by zero and
