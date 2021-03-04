@@ -51,6 +51,15 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
 
+tasks.withType<Checkstyle> {
+    reports {
+        // Do not output html reports
+        html.isEnabled = false
+        // Output xml reports
+        xml.isEnabled = true
+    }
+}
+
 checkstyle {
     toolVersion = "8.41"
     configFile = file("$rootDir/.checkstyle/checkstyle.xml")
