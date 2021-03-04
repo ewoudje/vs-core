@@ -62,7 +62,9 @@ class ShipObjectWorld(
      * It only returns the tasks, it is up to the caller to execute the tasks; however they do not have to execute all of them.
      * It is up to the caller to decide which tasks to execute, and which ones to skip.
      */
-    fun tickShipChunkLoading(currentPlayers: Iterable<IPlayer>): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
+    fun tickShipChunkLoading(
+        currentPlayers: Iterable<IPlayer>
+    ): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
         val removedPlayers = lastPlayersSet - currentPlayers
         lastPlayersSet = currentPlayers.toHashSet()
 

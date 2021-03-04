@@ -39,7 +39,7 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
     private final FastMinMaxMap yMap;
     private final FastMinMaxMap zMap; // Only non-final so we can clear() quickly.
 
-    public SmallBlockPosSetAABB(ChunkClaim chunkClaim) {
+    public SmallBlockPosSetAABB(final ChunkClaim chunkClaim) {
         final Vector3ic centerCoordinates = chunkClaim.getCenterBlockCoordinates(new Vector3i());
         final Vector3ic claimSize = chunkClaim.getBlockSize(new Vector3i());
 
@@ -55,12 +55,14 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
         this.zMap = new FastMinMaxMap(zSize);
     }
 
-    public SmallBlockPosSetAABB(int centerX, int centerY, int centerZ, int xSize, int ySize, int zSize) {
+    public SmallBlockPosSetAABB(final int centerX, final int centerY, final int centerZ, final int xSize,
+        final int ySize, final int zSize) {
         this(new SmallBlockPosSet(centerX, centerZ), centerX, centerY, centerZ, xSize, ySize, zSize);
     }
 
-    private SmallBlockPosSetAABB(SmallBlockPosSet blockPosSet, int centerX, int centerY, int centerZ, int xSize,
-        int ySize, int zSize) {
+    private SmallBlockPosSetAABB(final SmallBlockPosSet blockPosSet, final int centerX, final int centerY,
+        final int centerZ, final int xSize,
+        final int ySize, final int zSize) {
         this.blockPosSet = blockPosSet;
         this.centerX = centerX;
         this.centerY = centerY;
@@ -81,8 +83,8 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
         } else {
             int minX = xMap.getFront() - (xSize / 2);
             int maxX = xMap.getBack() - (xSize / 2);
-            int minY = yMap.getFront() - (ySize / 2);
-            int maxY = yMap.getBack() - (ySize / 2);
+            final int minY = yMap.getFront() - (ySize / 2);
+            final int maxY = yMap.getBack() - (ySize / 2);
             int minZ = zMap.getFront() - (zSize / 2);
             int maxZ = zMap.getBack() - (zSize / 2);
             minX += blockPosSet.getCenterX();
@@ -94,42 +96,42 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
     }
 
     @Override
-    public boolean add(int x, int y, int z) throws IllegalArgumentException {
-        boolean setResult = blockPosSet.add(x, y, z);
+    public boolean add(final int x, final int y, final int z) throws IllegalArgumentException {
+        final boolean setResult = blockPosSet.add(x, y, z);
         if (setResult) {
             incrementAABBMaker(x, y, z);
         }
         return setResult;
     }
 
-    private void incrementAABBMaker(int x, int y, int z) {
+    private void incrementAABBMaker(final int x, final int y, final int z) {
         xMap.increment(x - blockPosSet.getCenterX() + (xSize / 2));
         yMap.increment(y + (ySize / 2));
         zMap.increment(z - blockPosSet.getCenterZ() + (zSize / 2));
     }
 
     @Override
-    public boolean remove(int x, int y, int z) {
-        boolean setResult = blockPosSet.remove(x, y, z);
+    public boolean remove(final int x, final int y, final int z) {
+        final boolean setResult = blockPosSet.remove(x, y, z);
         if (setResult) {
             decrementAABBMaker(x, y, z);
         }
         return setResult;
     }
 
-    private void decrementAABBMaker(int x, int y, int z) {
+    private void decrementAABBMaker(final int x, final int y, final int z) {
         xMap.decrement(x - blockPosSet.getCenterX() + (xSize / 2));
         yMap.decrement(y + (ySize / 2));
         zMap.decrement(z - blockPosSet.getCenterZ() + (zSize / 2));
     }
 
     @Override
-    public boolean contains(int x, int y, int z) {
+    public boolean contains(final int x, final int y, final int z) {
         return blockPosSet.contains(x, y, z);
     }
 
     @Override
-    public boolean canStore(int x, int y, int z) {
+    public boolean canStore(final int x, final int y, final int z) {
         return blockPosSet.canStore(x, y, z);
     }
 
@@ -153,12 +155,12 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
     }
 
     @Override
-    public void forEach(@Nonnull VSIterationUtils.IntTernaryConsumer action) {
+    public void forEach(@Nonnull final VSIterationUtils.IntTernaryConsumer action) {
         blockPosSet.forEach(action);
     }
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         if (other instanceof IBlockPosSetAABB) {
             return (((IBlockPosSetAABB) other).size() == size()) && ((IBlockPosSetAABB) other).containsAll(this);
         }
@@ -172,8 +174,8 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
         }
 
         @Override
-        public void serialize(SmallBlockPosSetAABB value, JsonGenerator gen,
-            SerializerProvider provider) throws IOException {
+        public void serialize(final SmallBlockPosSetAABB value, final JsonGenerator gen,
+            final SerializerProvider provider) throws IOException {
             gen.writeStartObject();
             gen.writeObjectField("blockPosSet", value.blockPosSet);
             gen.writeNumberField("centerX", value.centerX);
@@ -195,17 +197,19 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
         }
 
         @Override
-        public SmallBlockPosSetAABB deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
-            JsonNode node = p.getCodec().readTree(p);
+        public SmallBlockPosSetAABB deserialize(final JsonParser p, final DeserializationContext ctxt)
+            throws IOException {
+            final JsonNode node = p.getCodec().readTree(p);
             // The blockPosSet gets loaded
-            SmallBlockPosSet blockPosSet = objectMapper.treeToValue(node.get("blockPosSet"), SmallBlockPosSet.class);
-            int centerX = node.get("centerX").asInt();
-            int centerY = node.get("centerY").asInt();
-            int centerZ = node.get("centerZ").asInt();
-            int xSize = node.get("xSize").asInt();
-            int ySize = node.get("ySize").asInt();
-            int zSize = node.get("zSize").asInt();
-            SmallBlockPosSetAABB wrapper =
+            final SmallBlockPosSet blockPosSet =
+                objectMapper.treeToValue(node.get("blockPosSet"), SmallBlockPosSet.class);
+            final int centerX = node.get("centerX").asInt();
+            final int centerY = node.get("centerY").asInt();
+            final int centerZ = node.get("centerZ").asInt();
+            final int xSize = node.get("xSize").asInt();
+            final int ySize = node.get("ySize").asInt();
+            final int zSize = node.get("zSize").asInt();
+            final SmallBlockPosSetAABB wrapper =
                 new SmallBlockPosSetAABB(blockPosSet, centerX, centerY, centerZ, xSize, ySize, zSize);
             // The AABB maker is a derivative of the blockPosSet.
             blockPosSet.forEach(wrapper::incrementAABBMaker);

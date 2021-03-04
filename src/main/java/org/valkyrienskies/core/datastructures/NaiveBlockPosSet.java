@@ -8,8 +8,8 @@ import org.joml.Vector3i;
 import org.joml.Vector3ic;
 
 /**
- * Naive implementation of IBlockPosSet, basically just a wrapper around a HashSet&lt;BlockPos&gt;.
- * Used for testing purposes only.
+ * Naive implementation of IBlockPosSet, basically just a wrapper around a HashSet&lt;BlockPos&gt;. Used for testing
+ * purposes only.
  */
 public class NaiveBlockPosSet implements IBlockPosSet {
 
@@ -20,22 +20,22 @@ public class NaiveBlockPosSet implements IBlockPosSet {
     }
 
     @Override
-    public boolean add(int x, int y, int z) {
+    public boolean add(final int x, final int y, final int z) {
         return blockPosSet.add(new Vector3i(x, y, z));
     }
 
     @Override
-    public boolean remove(int x, int y, int z) {
+    public boolean remove(final int x, final int y, final int z) {
         return blockPosSet.remove(new Vector3i(x, y, z));
     }
 
     @Override
-    public boolean contains(int x, int y, int z) {
+    public boolean contains(final int x, final int y, final int z) {
         return blockPosSet.contains(new Vector3i(x, y, z));
     }
 
     @Override
-    public boolean canStore(int x, int y, int z) {
+    public boolean canStore(final int x, final int y, final int z) {
         return true;
     }
 

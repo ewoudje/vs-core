@@ -30,7 +30,7 @@ public interface IBlockPosSet extends Set<Vector3ic> {
      * Fast way to iterate over all BlockPos in this Set that does not require us to create BlockPos objects. Although
      * this default implementation is still slow, it should be accelerated by the data structure.
      */
-    default void forEach(@Nonnull VSIterationUtils.IntTernaryConsumer action) {
+    default void forEach(@Nonnull final VSIterationUtils.IntTernaryConsumer action) {
         forEach(blockPos -> action.accept(blockPos.x(), blockPos.y(), blockPos.z()));
     }
 
@@ -39,28 +39,28 @@ public interface IBlockPosSet extends Set<Vector3ic> {
      * iteration is almost always correct, it is possible to iterate over an element more than once, or not all. But the
      * chances of these events occurring is very small.
      */
-    default void forEachUnsafe(@Nonnull VSIterationUtils.IntTernaryConsumer action) {
+    default void forEachUnsafe(@Nonnull final VSIterationUtils.IntTernaryConsumer action) {
         throw new UnsupportedOperationException();
     }
 
-    default boolean add(@Nonnull Vector3ic pos) throws IllegalArgumentException {
+    default boolean add(@Nonnull final Vector3ic pos) throws IllegalArgumentException {
         return add(pos.x(), pos.y(), pos.z());
     }
 
-    default boolean remove(@Nonnull Vector3ic pos) {
+    default boolean remove(@Nonnull final Vector3ic pos) {
         return remove(pos.x(), pos.y(), pos.z());
     }
 
-    default boolean contains(@Nonnull Vector3ic pos) {
+    default boolean contains(@Nonnull final Vector3ic pos) {
         return contains(pos.x(), pos.y(), pos.z());
     }
 
-    default boolean canStore(@Nonnull Vector3ic pos) {
+    default boolean canStore(@Nonnull final Vector3ic pos) {
         return canStore(pos.x(), pos.y(), pos.z());
     }
 
-    default boolean containsAll(@Nonnull Collection<?> c) {
-        for (Object o : c) {
+    default boolean containsAll(@Nonnull final Collection<?> c) {
+        for (final Object o : c) {
             if (!contains(o)) {
                 return false;
             }
@@ -68,25 +68,25 @@ public interface IBlockPosSet extends Set<Vector3ic> {
         return true;
     }
 
-    default boolean addAll(@Nonnull Collection<? extends Vector3ic> c) throws IllegalArgumentException {
+    default boolean addAll(@Nonnull final Collection<? extends Vector3ic> c) throws IllegalArgumentException {
         boolean modified = false;
-        for (Vector3ic pos : c) {
+        for (final Vector3ic pos : c) {
             modified |= add(pos);
         }
         return modified;
     }
 
-    default boolean removeAll(@Nonnull Collection<?> c) {
+    default boolean removeAll(@Nonnull final Collection<?> c) {
         boolean modified = false;
-        for (Object o : c) {
+        for (final Object o : c) {
             modified |= remove(o);
         }
         return modified;
     }
 
-    default boolean retainAll(@Nonnull Collection<?> c) {
+    default boolean retainAll(@Nonnull final Collection<?> c) {
         boolean modified = false;
-        for (Vector3ic pos : this) {
+        for (final Vector3ic pos : this) {
             if (!c.contains(pos)) {
                 remove(pos);
                 modified = true;
@@ -99,7 +99,7 @@ public interface IBlockPosSet extends Set<Vector3ic> {
         return size() == 0;
     }
 
-    default boolean remove(@Nonnull Object o) throws IllegalArgumentException {
+    default boolean remove(@Nonnull final Object o) throws IllegalArgumentException {
         if (o instanceof Vector3ic) {
             return remove((Vector3ic) o);
         } else {
@@ -107,7 +107,7 @@ public interface IBlockPosSet extends Set<Vector3ic> {
         }
     }
 
-    default boolean contains(@Nonnull Object o) {
+    default boolean contains(@Nonnull final Object o) {
         if (o instanceof Vector3ic) {
             return contains((Vector3ic) o);
         } else {
@@ -120,8 +120,8 @@ public interface IBlockPosSet extends Set<Vector3ic> {
      */
     @Nonnull
     default Object[] toArray() {
-        Vector3ic[] arr = new Vector3ic[size()];
-        Iterator<Vector3ic> iter = iterator();
+        final Vector3ic[] arr = new Vector3ic[size()];
+        final Iterator<Vector3ic> iter = iterator();
         for (int i = 0; i < size(); i++) {
             arr[i] = iter.next();
         }
@@ -134,7 +134,7 @@ public interface IBlockPosSet extends Set<Vector3ic> {
     @Nonnull
     @Override
     @SuppressWarnings("unchecked")
-    default <T> T[] toArray(@Nonnull T[] a) {
+    default <T> T[] toArray(@Nonnull final T[] a) {
         return (T[]) toArray();
     }
 

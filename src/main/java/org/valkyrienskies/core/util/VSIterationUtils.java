@@ -18,7 +18,7 @@ public class VSIterationUtils {
      * @param consumer The consumer to call with each iteration
      */
     public static void iterate3d(int startX, int startY, int startZ, int endX, int endY, int endZ,
-        IntTernaryConsumer consumer) {
+        final IntTernaryConsumer consumer) {
         // Ensure that the start positions aren't greater than the end positions
         int temp;
         if (startX > endX) {
@@ -52,8 +52,8 @@ public class VSIterationUtils {
      *
      * @param consumer The consumer to call with each iteration
      */
-    public static void expand3d(int originX, int originY, int originZ,
-        IntTernaryConsumer consumer) {
+    public static void expand3d(final int originX, final int originY, final int originZ,
+        final IntTernaryConsumer consumer) {
 
         expand3d(originX, originY, originZ, 1, consumer);
     }
@@ -64,8 +64,8 @@ public class VSIterationUtils {
      * @param toExpand The amount to expand about the origin position
      * @param consumer The consumer to call with each iteration
      */
-    public static void expand3d(int originX, int originY, int originZ, int toExpand,
-        IntTernaryConsumer consumer) {
+    public static void expand3d(final int originX, final int originY, final int originZ, final int toExpand,
+        final IntTernaryConsumer consumer) {
 
         iterate3d(originX - toExpand, originY - toExpand, originZ - toExpand,
             originX + toExpand, originY + toExpand, originZ + toExpand, consumer);
@@ -78,7 +78,7 @@ public class VSIterationUtils {
      * @param consumer The consumer to call with each iteration
      */
     public static void iterate2d(int startX, int startY, int endX, int endY,
-        IntBinaryConsumer consumer) {
+        final IntBinaryConsumer consumer) {
 
         int temp;
         if (startX > endX) {
@@ -104,7 +104,7 @@ public class VSIterationUtils {
      *
      * @param consumer The consumer to call with each iteration
      */
-    public static void expand2d(int originX, int originY, IntBinaryConsumer consumer) {
+    public static void expand2d(final int originX, final int originY, final IntBinaryConsumer consumer) {
         expand2d(originX, originY, 1, consumer);
     }
 
@@ -114,8 +114,8 @@ public class VSIterationUtils {
      * @param toExpand The amount to expand about the origin position
      * @param consumer The consumer to call with each iteration
      */
-    public static void expand2d(int originX, int originY, int toExpand,
-        IntBinaryConsumer consumer) {
+    public static void expand2d(final int originX, final int originY, final int toExpand,
+        final IntBinaryConsumer consumer) {
         iterate2d(originX - toExpand, originY - toExpand, originX + toExpand,
             originY + toExpand, consumer);
     }
@@ -127,8 +127,9 @@ public class VSIterationUtils {
     /**
      * @see #iterate3d(int, int, int, int, int, int, IntTernaryConsumer)
      */
-    public static void iterate3d(int startX, int startY, int startZ, int endX, int endY, int endZ,
-        Consumer<? super Vector3ic> consumer) {
+    public static void iterate3d(final int startX, final int startY, final int startZ, final int endX, final int endY,
+        final int endZ,
+        final Consumer<? super Vector3ic> consumer) {
         iterate3d(startX, startY, startZ, endX, endY, endZ, (x, y, z) ->
             consumer.accept(new Vector3i(x, y, z)));
     }
@@ -179,8 +180,8 @@ public class VSIterationUtils {
                 throw new NoSuchElementException();
             }
 
-            int x = index % maxX;
-            int y = index / maxY;
+            final int x = index % maxX;
+            final int y = index / maxY;
 
             index++;
 
@@ -239,9 +240,9 @@ public class VSIterationUtils {
                 throw new NoSuchElementException();
             }
 
-            int x = index % maxX;
-            int y = (index / maxX) % maxY;
-            int z = index / (maxX * maxY);
+            final int x = index % maxX;
+            final int y = (index / maxX) % maxY;
+            final int z = index / (maxX * maxY);
 
             index++;
 

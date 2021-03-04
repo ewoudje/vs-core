@@ -18,7 +18,9 @@ class ChunkClaimMap<T> {
         val claimAsLong = chunkClaim.toLong()
         if (backingMap.containsKey(claimAsLong)) {
             // There is already data at this claim, throw exception
-            throw IllegalArgumentException("Tried adding $data at $chunkClaim, but a value already exists at $chunkClaim")
+            throw IllegalArgumentException(
+                "Tried adding $data at $chunkClaim, but a value already exists at $chunkClaim"
+            )
         }
         backingMap.put(claimAsLong, data)
     }
@@ -27,7 +29,9 @@ class ChunkClaimMap<T> {
         val claimAsLong = chunkClaim.toLong()
         if (backingMap.remove(claimAsLong) == null) {
             // Throw exception if we didn't remove anything
-            throw IllegalArgumentException("Tried to remove data at $chunkClaim, but that claim wasn't in the chunk claim map!")
+            throw IllegalArgumentException(
+                "Tried to remove data at $chunkClaim, but that claim wasn't in the chunk claim map!"
+            )
         }
     }
 

@@ -42,7 +42,7 @@ public class SmallBlockPosSet implements IBlockPosSet {
     private final int centerX;
     private final int centerZ;
 
-    public SmallBlockPosSet(ChunkClaim chunkClaim) {
+    public SmallBlockPosSet(final ChunkClaim chunkClaim) {
         final Vector3ic centerCoordinates = chunkClaim.getCenterBlockCoordinates(new Vector3i());
         this.compressedBlockPosList = new IntArrayList();
         this.listValueToIndex = new Int2IntOpenHashMap();
@@ -50,7 +50,7 @@ public class SmallBlockPosSet implements IBlockPosSet {
         this.centerZ = centerCoordinates.z();
     }
 
-    public SmallBlockPosSet(int centerX, int centerZ) {
+    public SmallBlockPosSet(final int centerX, final int centerZ) {
         this.compressedBlockPosList = new IntArrayList();
         this.listValueToIndex = new Int2IntOpenHashMap();
         this.centerX = centerX;
@@ -58,11 +58,11 @@ public class SmallBlockPosSet implements IBlockPosSet {
     }
 
     @Override
-    public boolean add(int x, int y, int z) throws IllegalArgumentException {
+    public boolean add(final int x, final int y, final int z) throws IllegalArgumentException {
         if (!canStore(x, y, z)) {
             throw new IllegalArgumentException("Cannot store block position at <" + x + "," + y + "," + z + ">");
         }
-        int compressedPos = compress(x, y, z);
+        final int compressedPos = compress(x, y, z);
         if (listValueToIndex.containsKey(compressedPos)) {
             return false;
         }
@@ -72,23 +72,23 @@ public class SmallBlockPosSet implements IBlockPosSet {
     }
 
     @Override
-    public boolean remove(int x, int y, int z) {
+    public boolean remove(final int x, final int y, final int z) {
         if (!canStore(x, y, z)) {
             throw new IllegalArgumentException("Cannot remove block position at <" + x + "," + y + "," + z + ">");
         }
-        int compressedPos = compress(x, y, z);
+        final int compressedPos = compress(x, y, z);
         if (!listValueToIndex.containsKey(compressedPos)) {
             return false;
         }
 
-        int elementIndex = listValueToIndex.get(compressedPos);
+        final int elementIndex = listValueToIndex.get(compressedPos);
 
         if (elementIndex == compressedBlockPosList.size() - 1) {
             // If the element we're removing is at the end then its EZ
             compressedBlockPosList.removeInt(elementIndex);
         } else {
             // Otherwise, swap the last element with the one we're removing, and then remove the end
-            int lastElementValue = compressedBlockPosList.removeInt(compressedBlockPosList.size() - 1);
+            final int lastElementValue = compressedBlockPosList.removeInt(compressedBlockPosList.size() - 1);
             compressedBlockPosList.set(elementIndex, lastElementValue);
             listValueToIndex.put(lastElementValue, elementIndex);
         }
@@ -98,7 +98,7 @@ public class SmallBlockPosSet implements IBlockPosSet {
     }
 
     @Override
-    public boolean contains(int x, int y, int z) {
+    public boolean contains(final int x, final int y, final int z) {
         if (!canStore(x, y, z)) {
             // This pos cannot exist in this set
             return false;
@@ -107,9 +107,9 @@ public class SmallBlockPosSet implements IBlockPosSet {
     }
 
     @Override
-    public boolean canStore(int x, int y, int z) {
-        int xLocal = x - centerX;
-        int zLocal = z - centerZ;
+    public boolean canStore(final int x, final int y, final int z) {
+        final int xLocal = x - centerX;
+        final int zLocal = z - centerZ;
         return !(y < 0 | y > 255 | xLocal < -2048 | xLocal > 2047 | zLocal < -2048 | zLocal > 2047);
     }
 
@@ -125,16 +125,16 @@ public class SmallBlockPosSet implements IBlockPosSet {
     }
 
     @Override
-    public void forEach(@Nonnull VSIterationUtils.IntTernaryConsumer action) {
-        IntIterator iterator = compressedBlockPosList.iterator();
+    public void forEach(@Nonnull final VSIterationUtils.IntTernaryConsumer action) {
+        final IntIterator iterator = compressedBlockPosList.iterator();
         while (iterator.hasNext()) {
-            int compressed = iterator.nextInt();
+            final int compressed = iterator.nextInt();
             // Repeated code from decompress() because java has no output parameters.
-            int z = compressed >> 20;
-            int y = (compressed >> 12) & BOT_8_BITS;
+            final int z = compressed >> 20;
+            final int y = (compressed >> 12) & BOT_8_BITS;
             // this basically left-pads the int when casting so that the sign is preserved
             // not sure if there is a better way
-            int x = (compressed & BOT_12_BITS) << 20 >> 20;
+            final int x = (compressed & BOT_12_BITS) << 20 >> 20;
             action.accept(x + centerX, y, z + centerZ);
         }
     }
@@ -146,39 +146,39 @@ public class SmallBlockPosSet implements IBlockPosSet {
     }
 
     @Nonnull
-    private Vector3ic decompress(int compressed) {
+    private Vector3ic decompress(final int compressed) {
         return decompressMutable(compressed, new Vector3i());
     }
 
-    private Vector3i decompressMutable(int compressed, Vector3i mutableBlockPos) {
-        int z = compressed >> 20;
-        int y = (compressed >> 12) & BOT_8_BITS;
+    private Vector3i decompressMutable(final int compressed, final Vector3i mutableBlockPos) {
+        final int z = compressed >> 20;
+        final int y = (compressed >> 12) & BOT_8_BITS;
         // this basically left-pads the int when casting so that the sign is preserved
         // not sure if there is a better way
-        int x = (compressed & BOT_12_BITS) << 20 >> 20;
+        final int x = (compressed & BOT_12_BITS) << 20 >> 20;
         mutableBlockPos.set(x + centerX, y, z + centerZ);
         return mutableBlockPos;
     }
 
-    private int compress(int x, int y, int z) {
+    private int compress(final int x, final int y, final int z) {
         // Allocate 12 bits for x, 12 bits for z, and 8 bits for y.
-        int xBits = (x - centerX) & BOT_12_BITS;
-        int yBits = y & BOT_8_BITS;
-        int zBits = (z - centerZ) & BOT_12_BITS;
+        final int xBits = (x - centerX) & BOT_12_BITS;
+        final int yBits = y & BOT_8_BITS;
+        final int zBits = (z - centerZ) & BOT_12_BITS;
         return xBits | (yBits << 12) | (zBits << 20);
     }
 
     @Override
-    public void forEachUnsafe(@Nonnull VSIterationUtils.IntTernaryConsumer action) {
+    public void forEachUnsafe(@Nonnull final VSIterationUtils.IntTernaryConsumer action) {
         int curIndex = 0;
-        Vector3i mutableBlockPos = new Vector3i();
+        final Vector3i mutableBlockPos = new Vector3i();
         while (compressedBlockPosList.size() >= curIndex) {
             try {
-                int currentValue = compressedBlockPosList.get(curIndex);
+                final int currentValue = compressedBlockPosList.get(curIndex);
                 curIndex++;
                 decompressMutable(currentValue, mutableBlockPos);
                 action.accept(mutableBlockPos.x(), mutableBlockPos.y(), mutableBlockPos.z());
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 // Catch concurrent read/write race condition
                 return;
             }
@@ -194,7 +194,7 @@ public class SmallBlockPosSet implements IBlockPosSet {
     }
 
     @Override
-    public boolean equals(Object other) {
+    public boolean equals(final Object other) {
         if (other instanceof IBlockPosSet) {
             return (((IBlockPosSet) other).size() == size()) && ((IBlockPosSet) other).containsAll(this);
         }
@@ -205,7 +205,7 @@ public class SmallBlockPosSet implements IBlockPosSet {
 
         private final IntIterator iterator;
 
-        SmallBlockPosIterator(IntIterator intIterator) {
+        SmallBlockPosIterator(final IntIterator intIterator) {
             this.iterator = intIterator;
         }
 
@@ -228,14 +228,14 @@ public class SmallBlockPosSet implements IBlockPosSet {
         }
 
         @Override
-        public void serialize(SmallBlockPosSet value, JsonGenerator gen,
-            SerializerProvider provider) throws IOException {
+        public void serialize(final SmallBlockPosSet value, final JsonGenerator gen,
+            final SerializerProvider provider) throws IOException {
 
             gen.writeStartObject();
 
             gen.writeFieldName("positions");
             gen.writeStartArray(value.compressedBlockPosList, value.compressedBlockPosList.size());
-            IntIterator iter = value.compressedBlockPosList.iterator();
+            final IntIterator iter = value.compressedBlockPosList.iterator();
 
             while (iter.hasNext()) {
                 gen.writeNumber(iter.nextInt());
@@ -257,17 +257,17 @@ public class SmallBlockPosSet implements IBlockPosSet {
         }
 
         @Override
-        public SmallBlockPosSet deserialize(JsonParser p, DeserializationContext ctxt)
+        public SmallBlockPosSet deserialize(final JsonParser p, final DeserializationContext ctxt)
             throws IOException {
-            JsonNode node = p.getCodec().readTree(p);
+            final JsonNode node = p.getCodec().readTree(p);
 
-            int centerX = node.get("centerX").asInt();
-            int centerZ = node.get("centerZ").asInt();
+            final int centerX = node.get("centerX").asInt();
+            final int centerZ = node.get("centerZ").asInt();
 
-            SmallBlockPosSet set = new SmallBlockPosSet(centerX, centerZ);
+            final SmallBlockPosSet set = new SmallBlockPosSet(centerX, centerZ);
 
-            for (JsonNode elem : node.get("positions")) {
-                int positionInt = elem.asInt();
+            for (final JsonNode elem : node.get("positions")) {
+                final int positionInt = elem.asInt();
                 set.compressedBlockPosList.add(positionInt);
                 set.listValueToIndex.put(positionInt, set.compressedBlockPosList.size() - 1);
             }

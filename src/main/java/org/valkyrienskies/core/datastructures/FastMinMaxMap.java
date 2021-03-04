@@ -31,7 +31,7 @@ public class FastMinMaxMap {
     /**
      * @param capacity The capacity of this map.
      */
-    public FastMinMaxMap(int capacity) {
+    public FastMinMaxMap(final int capacity) {
         this.backing = new int[capacity * 3];
         this.capacity = capacity;
         this.front = -1;
@@ -40,8 +40,8 @@ public class FastMinMaxMap {
         clear();
     }
 
-    public void increment(int key) throws IllegalArgumentException {
-        int curValue = getValue(key);
+    public void increment(final int key) throws IllegalArgumentException {
+        final int curValue = getValue(key);
         // Update the pointers
         if (size == 0) {
             front = back = key;
@@ -65,7 +65,7 @@ public class FastMinMaxMap {
                         break;
                     }
                 }
-                int leftsNext = getNext(leftKey);
+                final int leftsNext = getNext(leftKey);
                 setNext(key, leftsNext);
                 setPrev(key, leftKey);
 
@@ -78,11 +78,11 @@ public class FastMinMaxMap {
         size++;
     }
 
-    public void decrement(int key) throws IllegalArgumentException {
+    public void decrement(final int key) throws IllegalArgumentException {
         if (size <= 0) {
             throw new IllegalArgumentException("Cannot decrement when list is empty");
         }
-        int curValue = getValue(key);
+        final int curValue = getValue(key);
         if (curValue <= 0) {
             throw new IllegalArgumentException("Cannot store negative values");
         } else if (curValue == 1) {
@@ -94,19 +94,19 @@ public class FastMinMaxMap {
                 front = -1;
                 back = -1;
             } else if (key == front) {
-                int frontNext = getNext(front);
+                final int frontNext = getNext(front);
                 setNext(front, -1);
                 setPrev(frontNext, -1);
                 front = frontNext;
             } else if (key == back) {
-                int backPrev = getPrev(back);
+                final int backPrev = getPrev(back);
                 setPrev(back, -1);
                 setNext(backPrev, -1);
                 back = backPrev;
             } else {
                 // Generic case
-                int prevPtr = getPrev(key);
-                int nextPtr = getNext(key);
+                final int prevPtr = getPrev(key);
+                final int nextPtr = getNext(key);
                 setNext(prevPtr, nextPtr);
                 setPrev(nextPtr, prevPtr);
             }
@@ -118,37 +118,37 @@ public class FastMinMaxMap {
         size--;
     }
 
-    private void setValue(int key, int value) {
+    private void setValue(final int key, final int value) {
         ensureCapacity(key * 3);
         backing[key * 3] = value;
     }
 
-    private void setPrev(int key, int prev) {
+    private void setPrev(final int key, final int prev) {
         ensureCapacity(key * 3 + 1);
         backing[key * 3 + 1] = prev;
     }
 
-    private void setNext(int key, int next) {
+    private void setNext(final int key, final int next) {
         ensureCapacity(key * 3 + 2);
         backing[key * 3 + 2] = next;
     }
 
-    private int getValue(int key) {
+    private int getValue(final int key) {
         ensureCapacity(key * 3);
         return backing[key * 3];
     }
 
-    private int getPrev(int key) {
+    private int getPrev(final int key) {
         ensureCapacity(key * 3 + 1);
         return backing[key * 3 + 1];
     }
 
-    private int getNext(int key) {
+    private int getNext(final int key) {
         ensureCapacity(key * 3 + 2);
         return backing[key * 3 + 2];
     }
 
-    private void ensureCapacity(int key) {
+    private void ensureCapacity(final int key) {
         if (key < 0 || key > capacity * 3) {
             throw new IllegalArgumentException("Cannot store key of value " + key);
         }
