@@ -2,7 +2,6 @@ package org.valkyrienskies.core.datastructures;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.stream.IntStream;
@@ -22,8 +21,8 @@ public class SmallBlockPosSetTest {
 
     @ParameterizedTest
     @MethodSource("coordsAndCenterGenerator")
-    public void testDeHash(int x, int y, int z, int centerX, int centerZ) {
-        SmallBlockPosSet set = new SmallBlockPosSet(centerX, centerZ);
+    public void testDeHash(final int x, final int y, final int z, final int centerX, final int centerZ) {
+        final SmallBlockPosSet set = new SmallBlockPosSet(centerX, centerZ);
         set.add(x, y, z);
         assertEquals(set.iterator().next(), new Vector3i(x, y, z));
     }
@@ -33,11 +32,11 @@ public class SmallBlockPosSetTest {
         final Random random = VSRandomUtils.INSTANCE.getDefaultRandom();
         return IntStream.range(0, testIterations)
             .mapToObj(ignore -> {
-                int centerX = random.nextInt(Integer.MIN_VALUE + 2048, Integer.MAX_VALUE - 2047);
-                int centerZ = random.nextInt(Integer.MIN_VALUE + 2048, Integer.MAX_VALUE - 2047);
-                int x = random.nextInt(-2048, 2047);
-                int y = random.nextInt(0, 255);
-                int z = random.nextInt(-2048, 2047);
+                final int centerX = random.nextInt(Integer.MIN_VALUE + 2048, Integer.MAX_VALUE - 2047);
+                final int centerZ = random.nextInt(Integer.MIN_VALUE + 2048, Integer.MAX_VALUE - 2047);
+                final int x = random.nextInt(-2048, 2047);
+                final int y = random.nextInt(0, 255);
+                final int z = random.nextInt(-2048, 2047);
                 return Arguments.arguments(centerX + x, y, centerZ + z, centerX, centerZ);
             });
     }

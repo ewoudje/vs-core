@@ -2,15 +2,42 @@ package org.valkyrienskies.core.physics.bullet.compound
 
 import com.badlogic.gdx.math.Matrix4
 import com.badlogic.gdx.math.Vector3
-import com.badlogic.gdx.physics.bullet.collision.*
-import com.badlogic.gdx.physics.bullet.dynamics.*
+import com.badlogic.gdx.physics.bullet.collision.btBoxShape
+import com.badlogic.gdx.physics.bullet.collision.btCollisionConfiguration
+import com.badlogic.gdx.physics.bullet.collision.btCollisionDispatcher
+import com.badlogic.gdx.physics.bullet.collision.btCollisionShape
+import com.badlogic.gdx.physics.bullet.collision.btCompoundShape
+import com.badlogic.gdx.physics.bullet.collision.btDbvtBroadphase
+import com.badlogic.gdx.physics.bullet.collision.btDefaultCollisionConfiguration
+import com.badlogic.gdx.physics.bullet.collision.btGImpactCollisionAlgorithm
+import com.badlogic.gdx.physics.bullet.collision.btGhostObject
+import com.badlogic.gdx.physics.bullet.dynamics.btConstraintSolver
+import com.badlogic.gdx.physics.bullet.dynamics.btDiscreteDynamicsWorld
+import com.badlogic.gdx.physics.bullet.dynamics.btDynamicsWorld
+import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody
 import com.badlogic.gdx.physics.bullet.dynamics.btRigidBody.btRigidBodyConstructionInfo
+import com.badlogic.gdx.physics.bullet.dynamics.btSequentialImpulseConstraintSolver
 import com.google.common.primitives.Floats
 import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.Vector3ic
-import org.valkyrienskies.core.physics.*
-import org.valkyrienskies.core.util.*
+import org.valkyrienskies.core.physics.CollisionShape
+import org.valkyrienskies.core.physics.CuboidShape
+import org.valkyrienskies.core.physics.PenetrationAndNormal
+import org.valkyrienskies.core.physics.PhysicsEngine
+import org.valkyrienskies.core.physics.RigidBody
+import org.valkyrienskies.core.physics.VoxelShape
+import org.valkyrienskies.core.util.VectorTemps
+import org.valkyrienskies.core.util.attached
+import org.valkyrienskies.core.util.component1
+import org.valkyrienskies.core.util.component2
+import org.valkyrienskies.core.util.component3
+import org.valkyrienskies.core.util.iterateBits
+import org.valkyrienskies.core.util.multiplyTerms
+import org.valkyrienskies.core.util.set
+import org.valkyrienskies.core.util.toGDX
+import org.valkyrienskies.core.util.unwrapIndex
+import org.valkyrienskies.core.util.wrapIndex
 import java.nio.ByteBuffer
 
 /**

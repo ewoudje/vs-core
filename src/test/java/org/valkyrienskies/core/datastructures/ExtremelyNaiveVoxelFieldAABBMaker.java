@@ -15,7 +15,7 @@ public class ExtremelyNaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
     private final Set<Vector3ic> blockPosSet;
     private final Vector3ic voxelFieldWorldCenter;
 
-    public ExtremelyNaiveVoxelFieldAABBMaker(int x, int z) {
+    public ExtremelyNaiveVoxelFieldAABBMaker(final int x, final int z) {
         this.blockPosSet = new HashSet<>();
         this.voxelFieldWorldCenter = new Vector3i(x, 0, z);
     }
@@ -34,7 +34,7 @@ public class ExtremelyNaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
             return null;
         }
 
-        for (Vector3ic pos : blockPosSet) {
+        for (final Vector3ic pos : blockPosSet) {
             minX = Math.min(minX, pos.x());
             minY = Math.min(minY, pos.y());
             minZ = Math.min(minZ, pos.z());
@@ -46,14 +46,14 @@ public class ExtremelyNaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
     }
 
     @Override
-    public boolean addVoxel(int x, int y, int z) {
+    public boolean addVoxel(final int x, final int y, final int z) {
         assertValidInputs(x - getFieldCenter().x(), y - getFieldCenter().y(),
             z - getFieldCenter().z());
         return blockPosSet.add(new Vector3i(x, y, z));
     }
 
     @Override
-    public boolean removeVoxel(int x, int y, int z) {
+    public boolean removeVoxel(final int x, final int y, final int z) {
         assertValidInputs(x - getFieldCenter().x(), y - getFieldCenter().y(),
             z - getFieldCenter().z());
         return blockPosSet.remove(new Vector3i(x, y, z));
@@ -75,7 +75,7 @@ public class ExtremelyNaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
         return blockPosSet.size();
     }
 
-    private void assertValidInputs(int x, int y, int z) throws IllegalArgumentException {
+    private void assertValidInputs(final int x, final int y, final int z) throws IllegalArgumentException {
         if (x < MIN_X || x > MAX_X || y < MIN_Y || y > MAX_Y || z < MIN_Z || z > MAX_Z) {
             throw new IllegalArgumentException(
                 x + ":" + y + ":" + z + " is out of range from " + getFieldCenter());

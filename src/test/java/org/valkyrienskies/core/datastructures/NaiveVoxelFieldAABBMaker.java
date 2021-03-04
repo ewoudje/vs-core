@@ -20,7 +20,7 @@ public class NaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
     private Vector3ic maxCoords;
     private int voxelCount;
 
-    public NaiveVoxelFieldAABBMaker(int x, int z) {
+    public NaiveVoxelFieldAABBMaker(final int x, final int z) {
         this.centerPos = new Vector3i(x, 0, z);
         this.xMap = new TreeMap<>();
         this.yMap = new TreeMap<>();
@@ -35,7 +35,7 @@ public class NaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
         if (voxelCount == 0) {
             return null;
         }
-        AABBd inLocal =
+        final AABBd inLocal =
             new AABBd(minCoords.x(), minCoords.y(), minCoords.z(), maxCoords.x(), maxCoords.y(), maxCoords.z());
         return inLocal.translate(centerPos.x(), centerPos.y(), centerPos.z());
     }
@@ -54,21 +54,21 @@ public class NaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
         if (!xMap.containsKey(x)) {
             xMap.put(x, new TreeSet<>());
         }
-        TwoInts yz = new TwoInts(y, z);
+        final TwoInts yz = new TwoInts(y, z);
         if (xMap.get(x).add(yz)) {
             isVoxelNew = true;
         }
         if (!yMap.containsKey(y)) {
             yMap.put(y, new TreeSet<>());
         }
-        TwoInts xz = new TwoInts(x, z);
+        final TwoInts xz = new TwoInts(x, z);
         if (yMap.get(y).add(xz)) {
             isVoxelNew = true;
         }
         if (!zMap.containsKey(z)) {
             zMap.put(z, new TreeSet<>());
         }
-        TwoInts xy = new TwoInts(x, y);
+        final TwoInts xy = new TwoInts(x, y);
         if (zMap.get(z).add(xy)) {
             isVoxelNew = true;
         }
@@ -111,21 +111,21 @@ public class NaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
         if (!xMap.containsKey(x)) {
             xMap.put(x, new TreeSet<>());
         }
-        TwoInts yz = new TwoInts(y, z);
+        final TwoInts yz = new TwoInts(y, z);
         if (xMap.get(x).remove(yz)) {
             isVoxelRemoved = true;
         }
         if (!yMap.containsKey(y)) {
             yMap.put(y, new TreeSet<>());
         }
-        TwoInts xz = new TwoInts(x, z);
+        final TwoInts xz = new TwoInts(x, z);
         if (yMap.get(y).remove(xz)) {
             isVoxelRemoved = true;
         }
         if (!zMap.containsKey(z)) {
             zMap.put(z, new TreeSet<>());
         }
-        TwoInts xy = new TwoInts(x, y);
+        final TwoInts xy = new TwoInts(x, y);
         if (zMap.get(z).remove(xy)) {
             isVoxelRemoved = true;
         }
@@ -237,7 +237,7 @@ public class NaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
         return voxelCount;
     }
 
-    private void assertValidInputs(int x, int y, int z) throws IllegalArgumentException {
+    private void assertValidInputs(final int x, final int y, final int z) throws IllegalArgumentException {
         if (x < MIN_X || x > MAX_X || y < MIN_Y || y > MAX_Y || z < MIN_Z || z > MAX_Z) {
             throw new IllegalArgumentException(
                 x + ":" + y + ":" + z + " is out of range from " + getFieldCenter());
@@ -252,14 +252,14 @@ public class NaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
         final int first;
         final int second;
 
-        TwoInts(int first, int second) {
+        TwoInts(final int first, final int second) {
             this.first = first;
             this.second = second;
         }
 
         // This needs to be sortable to work with TreeSet.
         @Override
-        public int compareTo(TwoInts other) {
+        public int compareTo(final TwoInts other) {
             if (first != other.first) {
                 return first - other.first;
             } else {
@@ -268,11 +268,11 @@ public class NaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
         }
 
         @Override
-        public boolean equals(Object other) {
+        public boolean equals(final Object other) {
             if (!(other instanceof TwoInts)) {
                 return false;
             }
-            TwoInts otherInts = (TwoInts) other;
+            final TwoInts otherInts = (TwoInts) other;
             return first == otherInts.first && second == otherInts.second;
         }
 

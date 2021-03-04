@@ -2,7 +2,6 @@ package org.valkyrienskies.core.datastructures;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,40 +16,40 @@ public class VoxelFieldAABBMakerTest {
 
     @RepeatedTest(25)
     public void naiveTest1() {
-        NaiveVoxelFieldAABBMaker naive = new NaiveVoxelFieldAABBMaker(0, 0);
-        ExtremelyNaiveVoxelFieldAABBMaker extreme = new ExtremelyNaiveVoxelFieldAABBMaker(0, 0);
-        Random random = VSRandomUtils.INSTANCE.getDefaultRandomJava();
+        final NaiveVoxelFieldAABBMaker naive = new NaiveVoxelFieldAABBMaker(0, 0);
+        final ExtremelyNaiveVoxelFieldAABBMaker extreme = new ExtremelyNaiveVoxelFieldAABBMaker(0, 0);
+        final Random random = VSRandomUtils.INSTANCE.getDefaultRandomJava();
         for (int i = 0; i < 100; i++) {
-            int randomX = random.nextInt(512) - 256;
-            int randomY = random.nextInt(256);
-            int randomZ = random.nextInt(512) - 256;
+            final int randomX = random.nextInt(512) - 256;
+            final int randomY = random.nextInt(256);
+            final int randomZ = random.nextInt(512) - 256;
             assertEquals(extreme.addVoxel(randomX, randomY, randomZ),
                 naive.addVoxel(randomX, randomY, randomZ));
             assertEquals(extreme.makeVoxelFieldAABB(), naive.makeVoxelFieldAABB());
         }
 
         for (int i = 0; i < 10000; i++) {
-            int randomX = random.nextInt(512) - 256;
-            int randomY = random.nextInt(256);
-            int randomZ = random.nextInt(512) - 256;
+            final int randomX = random.nextInt(512) - 256;
+            final int randomY = random.nextInt(256);
+            final int randomZ = random.nextInt(512) - 256;
             naive.removeVoxel(randomX, randomY, randomZ);
             extreme.removeVoxel(randomX, randomY, randomZ);
             assertEquals(extreme.makeVoxelFieldAABB(), naive.makeVoxelFieldAABB());
         }
 
         for (int i = 0; i < 100; i++) {
-            int randomX = random.nextInt(512) - 256;
-            int randomY = random.nextInt(256);
-            int randomZ = random.nextInt(512) - 256;
+            final int randomX = random.nextInt(512) - 256;
+            final int randomY = random.nextInt(256);
+            final int randomZ = random.nextInt(512) - 256;
             assertEquals(extreme.addVoxel(randomX, randomY, randomZ),
                 naive.addVoxel(randomX, randomY, randomZ));
             assertEquals(extreme.makeVoxelFieldAABB(), naive.makeVoxelFieldAABB());
         }
 
         for (int i = 0; i < 1000; i++) {
-            int randomX = random.nextInt(512) - 256;
-            int randomY = random.nextInt(256);
-            int randomZ = random.nextInt(512) - 256;
+            final int randomX = random.nextInt(512) - 256;
+            final int randomY = random.nextInt(256);
+            final int randomZ = random.nextInt(512) - 256;
             if (random.nextBoolean()) {
                 assertEquals(extreme.addVoxel(randomX, randomY, randomZ),
                     naive.addVoxel(randomX, randomY, randomZ));
@@ -64,19 +63,19 @@ public class VoxelFieldAABBMakerTest {
 
     @RepeatedTest(100)
     public void naiveTest2() {
-        Random random = VSRandomUtils.INSTANCE.getDefaultRandomJava();
-        Vector3ic centerPos = new Vector3i(random.nextInt() / 100, 0, random.nextInt() / 100);
+        final Random random = VSRandomUtils.INSTANCE.getDefaultRandomJava();
+        final Vector3ic centerPos = new Vector3i(random.nextInt() / 100, 0, random.nextInt() / 100);
 
-        NaiveVoxelFieldAABBMaker naive = new NaiveVoxelFieldAABBMaker(centerPos.x(),
+        final NaiveVoxelFieldAABBMaker naive = new NaiveVoxelFieldAABBMaker(centerPos.x(),
             centerPos.z());
-        ExtremelyNaiveVoxelFieldAABBMaker extreme = new ExtremelyNaiveVoxelFieldAABBMaker(
+        final ExtremelyNaiveVoxelFieldAABBMaker extreme = new ExtremelyNaiveVoxelFieldAABBMaker(
             centerPos.x(), centerPos.z());
 
-        List<Vector3ic> blockPosList = new ArrayList<>();
+        final List<Vector3ic> blockPosList = new ArrayList<>();
         for (int i = 0; i < 100; i++) {
-            int randomX = random.nextInt(512) - 256 + centerPos.x();
-            int randomY = random.nextInt(256) + centerPos.y();
-            int randomZ = random.nextInt(512) - 256 + centerPos.z();
+            final int randomX = random.nextInt(512) - 256 + centerPos.x();
+            final int randomY = random.nextInt(256) + centerPos.y();
+            final int randomZ = random.nextInt(512) - 256 + centerPos.z();
 
             assertEquals(extreme.addVoxel(randomX, randomY, randomZ),
                 naive.addVoxel(randomX, randomY, randomZ));
@@ -86,10 +85,10 @@ public class VoxelFieldAABBMakerTest {
 
         Collections.shuffle(blockPosList);
 
-        for (Vector3ic pos : blockPosList) {
-            int x = pos.x();
-            int y = pos.y();
-            int z = pos.z();
+        for (final Vector3ic pos : blockPosList) {
+            final int x = pos.x();
+            final int y = pos.y();
+            final int z = pos.z();
             assertEquals(extreme.removeVoxel(x, y, z),
                 naive.removeVoxel(x, y, z));
 

@@ -53,11 +53,11 @@ public interface IVoxelFieldAABBMaker {
 
     // region OVERLOADS
 
-    default boolean addVoxel(Vector3ic vec) {
+    default boolean addVoxel(final Vector3ic vec) {
         return this.addVoxel(vec.x(), vec.y(), vec.z());
     }
 
-    default boolean removeVoxel(Vector3ic vec) {
+    default boolean removeVoxel(final Vector3ic vec) {
         return this.removeVoxel(vec.x(), vec.y(), vec.z());
     }
 
