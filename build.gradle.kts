@@ -40,6 +40,9 @@ dependencies {
     // Jackson Binary Dataformat for Object Serialization
     api("com.fasterxml.jackson.module", "jackson-module-kotlin", jacksonVersion)
     api("com.fasterxml.jackson.dataformat", "jackson-dataformat-cbor", jacksonVersion)
+    api("com.fasterxml.jackson.datatype", "jackson-datatype-guava", jacksonVersion)
+
+    implementation("com.flipkart.zjsonpatch", "zjsonpatch", "0.4.11")
 
     // FastUtil for Fast Primitive Collections
     implementation("it.unimi.dsi", "fastutil", "8.2.1")
@@ -67,6 +70,7 @@ checkstyle {
 }
 
 ktlint {
+    disabledRules.set(setOf("parameter-list-wrapping"))
     reporters {
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
     }

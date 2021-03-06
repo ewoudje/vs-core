@@ -26,16 +26,17 @@ data class ChunkAllocator(
         fun create(): ChunkAllocator {
             return ChunkAllocator(X_INDEX_START, Z_INDEX_START)
         }
-    }
 
-    /**
-     * A quick way of determining if a Chunk is within the "shipyard", which is the region where ship chunks are stored
-     */
-    fun isChunkInShipyard(chunkX: Int, chunkZ: Int): Boolean {
-        val claimXIndex = ChunkClaim.getClaimXIndex(chunkX)
-        val claimZIndex = ChunkClaim.getClaimZIndex(chunkZ)
+        /**
+         * A quick way of determining if a Chunk is within the "shipyard", which is the region where ship chunks are stored
+         */
+        @JvmStatic
+        fun isChunkInShipyard(chunkX: Int, chunkZ: Int): Boolean {
+            val claimXIndex = ChunkClaim.getClaimXIndex(chunkX)
+            val claimZIndex = ChunkClaim.getClaimZIndex(chunkZ)
 
-        return (claimXIndex in X_INDEX_START..X_INDEX_END) and (claimZIndex in Z_INDEX_START..Z_INDEX_END)
+            return (claimXIndex in X_INDEX_START..X_INDEX_END) and (claimZIndex in Z_INDEX_START..Z_INDEX_END)
+        }
     }
 
     /**

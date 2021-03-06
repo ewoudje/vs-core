@@ -9,7 +9,8 @@ import org.valkyrienskies.core.datastructures.IBlockPosSet
 import org.valkyrienskies.core.datastructures.SmallBlockPosSet
 import org.valkyrienskies.core.datastructures.SmallBlockPosSetAABB
 import org.valkyrienskies.core.game.ChunkClaim
-import org.valkyrienskies.core.game.ships.QueryableShipData
+import org.valkyrienskies.core.game.ships.MutableQueryableShipDataServer
+import org.valkyrienskies.core.game.ships.QueryableShipDataImpl
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipInertiaData
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
@@ -187,14 +188,13 @@ internal object VSRandomUtils {
             shipTransform = randomShipTransform(random),
             prevTickShipTransform = randomShipTransform(random),
             shipAABB = randomAABBd(random),
-            blockPositionSet = randomBlockPosSetAABB(random, random.nextInt(100)),
             shipActiveChunksSet = randomShipActiveChunkSet(random, random.nextInt(100))
         )
     }
 
     @Suppress("WeakerAccess")
-    fun randomQueryableShipData(random: Random = defaultRandom, size: Int): QueryableShipData {
-        val queryableShipData = QueryableShipData()
+    fun randomQueryableShipData(random: Random = defaultRandom, size: Int): MutableQueryableShipDataServer {
+        val queryableShipData = QueryableShipDataImpl<ShipData>()
         for (i in 1..size) {
             queryableShipData.addShipData(randomShipData(random))
         }
