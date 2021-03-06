@@ -6,11 +6,11 @@ import org.valkyrienskies.core.datastructures.ChunkClaimMap
 import java.util.UUID
 
 typealias QueryableShipDataServer = QueryableShipData<ShipData>
-typealias QueryableShipDataClient = QueryableShipData<ShipDataClient>
+typealias QueryableShipDataClient = QueryableShipData<ShipDataCommon>
 typealias MutableQueryableShipDataServer = MutableQueryableShipData<ShipData>
-typealias MutableQueryableShipDataClient = MutableQueryableShipData<ShipDataClient>
+typealias MutableQueryableShipDataClient = MutableQueryableShipData<ShipDataCommon>
 
-interface QueryableShipData<out ShipDataType : ShipDataClient> : Iterable<ShipDataType> {
+interface QueryableShipData<out ShipDataType : ShipDataCommon> : Iterable<ShipDataType> {
     val uuidToShipData: Map<UUID, ShipDataType>
     override fun iterator(): Iterator<ShipDataType>
     fun getShipDataFromUUID(uuid: UUID): ShipDataType?
@@ -18,12 +18,12 @@ interface QueryableShipData<out ShipDataType : ShipDataClient> : Iterable<ShipDa
     fun getShipDataIntersecting(aabb: AABBdc): Iterator<ShipDataType>
 }
 
-interface MutableQueryableShipData<ShipDataType : ShipDataClient> : QueryableShipData<ShipDataType> {
+interface MutableQueryableShipData<ShipDataType : ShipDataCommon> : QueryableShipData<ShipDataType> {
     fun addShipData(shipData: ShipDataType)
     fun removeShipData(shipData: ShipDataType)
 }
 
-open class QueryableShipDataImpl<ShipDataType : ShipDataClient>(
+open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
     data: Iterable<ShipDataType> = emptyList()
 ) : MutableQueryableShipData<ShipDataType> {
 

@@ -28,7 +28,7 @@ class ShipData(
     prevTickShipTransform: ShipTransform,
     shipAABB: AABBdc,
     shipActiveChunksSet: IShipActiveChunksSet
-) : ShipDataClient(
+) : ShipDataCommon(
     shipUUID, name, chunkClaim, physicsData, shipTransform, prevTickShipTransform,
     shipAABB, shipActiveChunksSet
 ) {

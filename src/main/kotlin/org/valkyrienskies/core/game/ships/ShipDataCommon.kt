@@ -13,10 +13,7 @@ import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.util.serialization.VSPacketIgnore
 import java.util.UUID
 
-/**
- * Despite the name, this [ShipDataClient] is available on both the client and the server.
- */
-open class ShipDataClient(
+open class ShipDataCommon(
     val shipUUID: UUID,
     var name: String,
     val chunkClaim: ChunkClaim,
@@ -62,7 +59,7 @@ open class ShipDataClient(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as ShipDataClient
+        other as ShipDataCommon
 
         if (shipUUID != other.shipUUID) return false
         if (name != other.name) return false
@@ -98,7 +95,7 @@ open class ShipDataClient(
             chunkClaim: ChunkClaim,
             shipCenterInWorldCoordinates: Vector3dc,
             shipCenterInShipCoordinates: Vector3dc
-        ): ShipDataClient {
+        ): ShipDataCommon {
             val shipTransform = ShipTransform.createFromCoordinatesAndRotationAndScaling(
                 shipCenterInWorldCoordinates,
                 shipCenterInShipCoordinates,
@@ -106,7 +103,7 @@ open class ShipDataClient(
                 Vector3d(.5, .5, .5)
             )
 
-            return ShipDataClient(
+            return ShipDataCommon(
                 shipUUID = UUID.randomUUID(),
                 name = name,
                 chunkClaim = chunkClaim,

@@ -7,8 +7,8 @@ package org.valkyrienskies.core.game.ships
  * a rigid body to the physics engine.
  */
 open class ShipObject(
-    shipData: ShipDataClient
+    shipData: ShipDataCommon
 ) {
     @Suppress("CanBePrimaryConstructorProperty") // don't want to refer to open val in constructor
-    open val shipData: ShipDataClient = shipData
+    open val shipData: ShipDataCommon = shipData
 }
