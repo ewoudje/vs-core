@@ -4,35 +4,16 @@ import org.joml.Matrix4dc
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBdc
-import java.lang.Double.max
-import java.lang.Double.min
 
 /**
  * A convex polygon consists of points and normals.
  *
  * Note that we do not assign a specific normal for each points, because we do not need them for SAT collision.
  */
-class ConvexPolygon private constructor(private val points: List<Vector3dc>, private val normals: List<Vector3dc>) :
+class ConvexPolygon private constructor(private val _points: List<Vector3dc>, private val _normals: List<Vector3dc>) :
     ConvexPolygonc {
-    override fun getProjectionAlongAxis(normalAxis: Vector3dc, output: CollisionRange): CollisionRange {
-        var minProjection = Double.MAX_VALUE
-        var maxProjection = Double.MIN_VALUE
-
-        for (point in points) {
-            val projection = point.dot(normalAxis)
-            minProjection = min(minProjection, projection)
-            maxProjection = max(maxProjection, projection)
-        }
-
-        output.min = minProjection
-        output.max = maxProjection
-
-        return output
-    }
-
-    override fun getNormals(): Iterator<Vector3dc> {
-        return normals.iterator()
-    }
+    override val points: Iterable<Vector3dc> get() = _points
+    override val normals: Iterable<Vector3dc> get() = _normals
 
     companion object {
         private val UNIT_NORMALS: List<Vector3dc> =
