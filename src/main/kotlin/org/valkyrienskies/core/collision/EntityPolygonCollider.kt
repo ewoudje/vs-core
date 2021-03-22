@@ -23,19 +23,9 @@ object EntityPolygonCollider {
     ): Vector3dc {
         val originalMovement: Vector3dc = movement
 
-        // Determine if the entity is standing on the polygons
-        val isEntityStandingOnPolygons =
-            isEntityStandingOnPolygons(
-                TransformedCuboidPolygon.createFromAABB(entityBoundingBox, null), originalMovement, collidingPolygons
-            )
-
         // Compute the collision response assuming the entity can't step
-        val collisionResponseAssumingNoStep: Vector3dc = if (isEntityStandingOnPolygons) {
+        val collisionResponseAssumingNoStep: Vector3dc =
             adjustMovementComponentWise(entityBoundingBox, originalMovement, collidingPolygons)
-        } else {
-            // If not standing use "sticky" to prevent entity climbing up walls
-            adjustMovementComponentWiseSticky(entityBoundingBox, originalMovement, collidingPolygons)
-        }
 
         // If [entityStepHeight] is 0 then it can't step
         if (entityStepHeight == 0.0) {
@@ -46,6 +36,12 @@ object EntityPolygonCollider {
         if (movement.horizontalLengthSq() < 1e-4) {
             return collisionResponseAssumingNoStep
         }
+
+        // Determine if the entity is standing on the polygons
+        val isEntityStandingOnPolygons =
+            isEntityStandingOnPolygons(
+                TransformedCuboidPolygon.createFromAABB(entityBoundingBox, null), originalMovement, collidingPolygons
+            )
 
         // If the entity is not standing on the polygons then it can't step
         if (!isEntityStandingOnPolygons) {
@@ -82,7 +78,7 @@ object EntityPolygonCollider {
             val fixStepUpResponse = adjustMovement(
                 entityAfterSteppingFullyPolygon,
                 Vector3d(0.0, originalMovement.y() - collisionResponseAssumingFullStep.y(), 0.0),
-                collidingPolygons, true, UNIT_NORMALS[1]
+                collidingPolygons, UNIT_NORMALS[1]
             )
 
             return fixStepUpResponse.add(collisionResponseAssumingFullStep, Vector3d())
@@ -102,7 +98,7 @@ object EntityPolygonCollider {
 
         // First collide along the y-axis
         val yOnlyResponse = adjustMovement(
-            entityPolygon, Vector3d(0.0, entityVelocity.y(), 0.0), collidingPolygons, true, UNIT_NORMALS[1]
+            entityPolygon, Vector3d(0.0, entityVelocity.y(), 0.0), collidingPolygons, UNIT_NORMALS[1]
         )
 
         entityPolygon.points.forEach {
@@ -112,49 +108,10 @@ object EntityPolygonCollider {
 
         // Then collide along the x-axis
         val horizontalResponse = adjustMovement(
-            entityPolygon, Vector3d(entityVelocity.x(), 0.0, entityVelocity.z()), collidingPolygons, true
+            entityPolygon, Vector3d(entityVelocity.x(), 0.0, entityVelocity.z()), collidingPolygons
         )
 
-        return Vector3d(horizontalResponse.x(), yOnlyResponse.y(), horizontalResponse.z())
-    }
-
-    /**
-     * Similar to [adjustMovementComponentWise], except its sticky because entities get stuck along the wall
-     */
-    private fun adjustMovementComponentWiseSticky(
-        entityBoundingBox: AABBdc, entityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>
-    ): Vector3dc {
-        val entityPolygon: ConvexPolygonc = TransformedCuboidPolygon.createFromAABB(entityBoundingBox, null)
-
-        // First collide along the y-axis
-        val yOnlyResponse = adjustMovement(
-            entityPolygon, Vector3d(0.0, entityVelocity.y(), 0.0), collidingPolygons, true, UNIT_NORMALS[1]
-        )
-
-        entityPolygon.points.forEach {
-            it as Vector3d
-            it.add(yOnlyResponse)
-        }
-
-        // Then collide along the x-axis
-        val xOnlyResponse = adjustMovement(
-            entityPolygon, Vector3d(entityVelocity.x(), 0.0, 0.0), collidingPolygons, true,
-            UNIT_NORMALS[0]
-        )
-
-        entityPolygon.points.forEach {
-            it as Vector3d
-            it.add(xOnlyResponse)
-        }
-
-        // Finally collide along the z-axis
-        val zOnlyResponse =
-            adjustMovement(
-                entityPolygon, Vector3d(0.0, 0.0, entityVelocity.z()), collidingPolygons,
-                true, UNIT_NORMALS[2]
-            )
-
-        return Vector3d(xOnlyResponse.x(), yOnlyResponse.y(), zOnlyResponse.z())
+        return Vector3d(horizontalResponse.x(), yOnlyResponse.y() + horizontalResponse.y(), horizontalResponse.z())
     }
 
     /**
@@ -212,18 +169,10 @@ object EntityPolygonCollider {
      */
     private fun adjustMovement(
         entityPolygon: ConvexPolygonc, entityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>,
-        forceReduceVelocity: Boolean,
         forcedResponseNormal: Vector3dc? = null
     ): Vector3dc {
         val newEntityVelocity = Vector3d(entityVelocity)
         val collisionResult = CollisionResult.create()
-
-        val originalVelX = entityVelocity.x()
-        val originalVelY = entityVelocity.y()
-        val originalVelZ = entityVelocity.z()
-
-        // Higher values make polygons push entities out more
-        val velocityChangeTolerance = .1
 
         // region declare temp objects
         val temp1 = CollisionRange.create()
@@ -273,34 +222,7 @@ object EntityPolygonCollider {
                         collisionResult.getCollisionResponse(temp3)
                     }
 
-                if (!forceReduceVelocity) {
-                    newEntityVelocity.add(collisionResponse)
-                } else {
-                    val collisionNormal = collisionResult.collisionAxis
-
-                    // The velocity of the player along [collisionNormal], assuming we add [collisionResponse]
-                    val netVelocityAlongNormal = collisionNormal.dot(
-                        newEntityVelocity.x() + collisionResponse.x(), newEntityVelocity.y() + collisionResponse.y(),
-                        newEntityVelocity.z() + collisionResponse.z()
-                    )
-
-                    // The original velocity of the player along [collisionNormal]
-                    val originalVelocityAlongNormal = collisionNormal.dot(originalVelX, originalVelY, originalVelZ)
-
-                    if (originalVelocityAlongNormal < 0) {
-                        if (netVelocityAlongNormal < velocityChangeTolerance &&
-                            netVelocityAlongNormal > originalVelocityAlongNormal - velocityChangeTolerance
-                        ) {
-                            newEntityVelocity.add(collisionResponse)
-                        }
-                    } else {
-                        if (netVelocityAlongNormal > -velocityChangeTolerance &&
-                            netVelocityAlongNormal < originalVelocityAlongNormal + velocityChangeTolerance
-                        ) {
-                            newEntityVelocity.add(collisionResponse)
-                        }
-                    }
-                }
+                newEntityVelocity.add(collisionResponse)
             }
         }
         return newEntityVelocity
