@@ -13,19 +13,21 @@ version = "1.0"
 repositories {
     mavenCentral()
     maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
+    maven {
+        name = "Valkyrien Skies Internal"
+        setUrl("https://maven.valkyrienskies.org/repository/internal/")
+    }
 }
 
 dependencies {
-    val gdxVersion = "1.9.11"
     val jacksonVersion = "2.12.1"
     val nettyVersion = "4.1.25.Final"
 
     // Kotlin
     implementation(kotlin("stdlib-jdk8"))
 
-    // Bullet for Physics
-    implementation("com.badlogicgames.gdx:gdx-bullet:$gdxVersion")
-    implementation("com.badlogicgames.gdx:gdx-bullet-platform:$gdxVersion:natives-desktop")
+    // VS Physics
+    implementation("org.valkyrienskies:physics_api_krunch:1.0.0+53ae46a363")
 
     // JOML for Math
     api("org.joml:joml:1.10.0")

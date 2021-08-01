@@ -1,12 +1,6 @@
 package org.valkyrienskies.core.util
 
-import com.badlogic.gdx.math.Matrix4
-import com.badlogic.gdx.math.Vector3
-import org.joml.Matrix3d
-import org.joml.Matrix4d
-import org.joml.Matrix4f
-import org.joml.Vector3d
-import org.joml.Vector3i
+import org.joml.*
 
 /**
  * Class the lazily initializes a bunch of vector types,
@@ -14,13 +8,11 @@ import org.joml.Vector3i
  */
 class VectorTemps {
 
-    val v3GDX = LazyList { Vector3() }
     val v3d = LazyList { Vector3d() }
     val v3i = LazyList { Vector3i() }
     val m3d = LazyList { Matrix3d() }
     val m4f = LazyList { Matrix4f() }
     val m4d = LazyList { Matrix4d() }
-    val m4GDX = LazyList { Matrix4() }
 }
 
 class LazyList<T>(private inline val supplier: () -> T) {
