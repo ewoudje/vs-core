@@ -1,5 +1,7 @@
 package org.valkyrienskies.core.game.ships
 
+import org.joml.Quaterniond
+import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3i
@@ -8,7 +10,11 @@ import org.valkyrienskies.core.chunk_tracking.ChunkUnwatchTask
 import org.valkyrienskies.core.chunk_tracking.ChunkWatchTask
 import org.valkyrienskies.core.game.ChunkAllocator
 import org.valkyrienskies.core.game.IPlayer
+import org.valkyrienskies.core.physics.VSPhysicsTask
+import org.valkyrienskies.core.physics.VSPhysicsWorld
 import org.valkyrienskies.core.util.names.NounListNameGenerator
+import org.valkyrienskies.physics_api.RigidBody
+import org.valkyrienskies.physics_api.VoxelRigidBody
 import java.util.Collections
 import java.util.Spliterator
 import java.util.TreeSet
@@ -24,12 +30,72 @@ class ShipObjectServerWorld(
     private val shipObjectMap = HashMap<UUID, ShipObjectServer>()
     override val shipObjects: Map<UUID, ShipObjectServer> = shipObjectMap
 
+    private val vsPhysicsTask = VSPhysicsTask(VSPhysicsWorld())
+    private val vsPhysicsThread = Thread(vsPhysicsTask)
+
+    private val groundRigidBody: VoxelRigidBody
+
+    init {
+        groundRigidBody = vsPhysicsTask.physicsWorld.createVoxelRigidBody()
+        groundRigidBody.isStatic = true
+        for (x in -100..100) {
+            for (z in -100..100) {
+                groundRigidBody.collisionShape.addVoxel(x, 5, z)
+            }
+        }
+        vsPhysicsTask.physicsWorld.addRigidBody(groundRigidBody)
+
+        // Run [vsPhysicsTask] in [vsPhysicsThread]
+        vsPhysicsThread.start()
+    }
+
     fun tickShips() {
+        val newRigidBodies = ArrayList<RigidBody<*>>()
         // For now, just make a [ShipObject] for every [ShipData]
         for (shipData in queryableShipData) {
             val shipID = shipData.shipUUID
-            shipObjectMap.computeIfAbsent(shipID) { ShipObjectServer(shipData) }
+            shipObjectMap.computeIfAbsent(shipID) {
+                val shipObjectServer = ShipObjectServer(shipData, vsPhysicsTask.physicsWorld.createVoxelRigidBody())
+                shipObjectServer.rigidBody.collisionShape.setScaling(
+                    shipData.shipTransform.shipCoordinatesToWorldCoordinatesScaling.x()
+                )
+                shipObjectServer.rigidBody.collisionShape.addVoxel(0, 0, 0)
+                shipObjectServer.rigidBody.setRigidBodyTransform(
+                    shipData.shipTransform.shipPositionInWorldCoordinates,
+                    shipData.shipTransform.shipCoordinatesToWorldCoordinatesRotation
+                )
+
+                newRigidBodies.add(shipObjectServer.rigidBody)
+
+                shipObjectServer
+            }
         }
+        vsPhysicsTask.queueTask {
+            newRigidBodies.forEach { vsPhysicsTask.physicsWorld.addRigidBody(it) }
+        }
+
+        for (shipObject in shipObjectMap.values) {
+            shipObject.shipData.prevTickShipTransform = shipObject.shipData.shipTransform
+
+            val newTransform = voxelRigidBodyToShipTransform(shipObject)
+
+            shipObject.shipData.shipTransform = newTransform
+        }
+    }
+
+    private fun voxelRigidBodyToShipTransform(shipObjectServer: ShipObjectServer): ShipTransform {
+        val scalingVector: Vector3dc =
+            Vector3d(shipObjectServer.shipData.shipTransform.shipCoordinatesToWorldCoordinatesScaling)
+        val shipPositionInWorld: Vector3dc = Vector3d(shipObjectServer.rigidBody.rigidBodyTransform.position)
+        val shipRotationInWorld: Quaterniondc = Quaterniond(shipObjectServer.rigidBody.rigidBodyTransform.rotation)
+        val shipPositionInShipCoordinates: Vector3dc =
+            Vector3d(shipObjectServer.shipData.inertiaData.getCenterOfMassInShipSpace()).add(.5, .5, .5)
+        return ShipTransform(
+            shipPositionInWorldCoordinates = shipPositionInWorld,
+            shipPositionInShipCoordinates = shipPositionInShipCoordinates,
+            shipCoordinatesToWorldCoordinatesRotation = shipRotationInWorld,
+            shipCoordinatesToWorldCoordinatesScaling = scalingVector
+        )
     }
 
     /**
@@ -112,5 +178,10 @@ class ShipObjectServerWorld(
         }
 
         return newShipData
+    }
+
+    override fun destroyWorld() {
+        // Tell the physics task to kill itself on the next physics tick
+        vsPhysicsTask.tellTaskToKillItself()
     }
 }

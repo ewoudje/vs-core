@@ -16,4 +16,8 @@ class ShipObjectClientWorld(
             shipObjectMap.computeIfAbsent(shipID) { ShipObjectClient(shipData) }
         }
     }
+
+    override fun destroyWorld() {
+        // Do nothing for now
+    }
 }

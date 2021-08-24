@@ -27,4 +27,6 @@ abstract class ShipObjectWorld(
         // TODO: Update the physics voxel world here
         // voxelWorld.onSetBlock(posX, posY, posZ, blockType)
     }
+
+    abstract fun destroyWorld()
 }

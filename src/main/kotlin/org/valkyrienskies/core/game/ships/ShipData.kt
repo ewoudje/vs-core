@@ -22,8 +22,7 @@ class ShipData(
     name: String,
     chunkClaim: ChunkClaim,
     physicsData: ShipPhysicsData,
-    @VSPacketIgnore
-    private val inertiaData: ShipInertiaData,
+    @VSPacketIgnore val inertiaData: ShipInertiaData,
     shipTransform: ShipTransform,
     prevTickShipTransform: ShipTransform,
     shipAABB: AABBdc,
@@ -75,7 +74,7 @@ class ShipData(
                 shipCenterInWorldCoordinates,
                 shipCenterInShipCoordinates,
                 Quaterniond().fromAxisAngleDeg(0.0, 1.0, 0.0, 45.0),
-                Vector3d(.5, .5, .5)
+                Vector3d(1.0, 1.0, 1.0)
             )
 
             return ShipData(

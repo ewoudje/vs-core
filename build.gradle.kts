@@ -16,6 +16,9 @@ repositories {
     maven {
         name = "Valkyrien Skies Internal"
         setUrl("https://maven.valkyrienskies.org/repository/internal/")
+        content {
+            includeGroup("org.valkyrienskies")
+        }
     }
 }
 
@@ -27,7 +30,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 
     // VS Physics
-    implementation("org.valkyrienskies:physics_api_krunch:1.0.0+ea2dd3edb6")
+    implementation("org.valkyrienskies:physics_api_krunch:1.0.0+fdc82664b7")
 
     // JOML for Math
     api("org.joml:joml:1.10.0")
