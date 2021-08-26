@@ -21,6 +21,7 @@ import java.util.Collections
 import java.util.Spliterator
 import java.util.TreeSet
 import java.util.UUID
+import kotlin.math.floor
 
 class ShipObjectServerWorld(
     override val queryableShipData: MutableQueryableShipDataServer,
@@ -84,7 +85,18 @@ class ShipObjectServerWorld(
                 shipObjectServer.rigidBody.collisionShape.setScaling(
                     shipData.shipTransform.shipCoordinatesToWorldCoordinatesScaling.x()
                 )
-                shipObjectServer.rigidBody.collisionShape.addVoxel(0, 0, 0)
+
+                val centerOfMass = shipData.inertiaData.getCenterOfMassInShipSpace()
+                shipObjectServer.rigidBody.collisionShape.setVoxelOffset(
+                    -centerOfMass.x(), -centerOfMass.y(), -centerOfMass.z()
+                )
+
+                // Add all ship voxels here
+                shipObjectServer.rigidBody.collisionShape.addVoxel(
+                    floor(shipData.shipTransform.shipPositionInShipCoordinates.x()).toInt(),
+                    floor(shipData.shipTransform.shipPositionInShipCoordinates.y()).toInt(),
+                    floor(shipData.shipTransform.shipPositionInShipCoordinates.z()).toInt()
+                )
                 shipObjectServer.rigidBody.setRigidBodyTransform(
                     shipData.shipTransform.shipPositionInWorldCoordinates,
                     shipData.shipTransform.shipCoordinatesToWorldCoordinatesRotation
@@ -100,6 +112,30 @@ class ShipObjectServerWorld(
         }
         vsPhysicsTask.queueTask {
             newRigidBodies.forEach { vsPhysicsTask.physicsWorld.addRigidBody(it) }
+        }
+
+        val tasks = ArrayList<Runnable>()
+
+        for (shipObject in shipObjectMap.values) {
+            val inertiaDataCopy = shipObject.shipData.inertiaData.copy()
+            val centerOfMass = inertiaDataCopy.getCenterOfMassInShipSpace()
+            val rigidBody = shipObject.rigidBody
+            tasks.add {
+                val oldOffset = rigidBody.collisionShape.getVoxelOffset()
+                rigidBody.collisionShape.setVoxelOffset(-centerOfMass.x(), -centerOfMass.y(), -centerOfMass.z())
+
+                val offsetDif = rigidBody.rigidBodyTransform.rotation.transform(Vector3d(centerOfMass).add(oldOffset))
+                
+                (rigidBody.rigidBodyTransform.position as Vector3d).add(offsetDif)
+
+                rigidBody.inertiaData.mass = inertiaDataCopy.getShipMass()
+                // For now, just use the inertia tensor of a solid cube
+                rigidBody.inertiaData.momentOfInertia.set(inertiaDataCopy.getShipMass() / 12.0)
+            }
+        }
+
+        vsPhysicsTask.queueTask {
+            tasks.forEach { it.run() }
         }
 
         for (shipObject in shipObjectMap.values) {
