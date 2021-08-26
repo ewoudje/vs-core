@@ -10,6 +10,8 @@ import org.valkyrienskies.core.chunk_tracking.ChunkUnwatchTask
 import org.valkyrienskies.core.chunk_tracking.ChunkWatchTask
 import org.valkyrienskies.core.game.ChunkAllocator
 import org.valkyrienskies.core.game.IPlayer
+import org.valkyrienskies.core.game.VSBlockType
+import org.valkyrienskies.core.game.VSBlockType.SOLID
 import org.valkyrienskies.core.physics.VSPhysicsTask
 import org.valkyrienskies.core.physics.VSPhysicsWorld
 import org.valkyrienskies.core.util.names.NounListNameGenerator
@@ -33,11 +35,12 @@ class ShipObjectServerWorld(
     private val vsPhysicsTask = VSPhysicsTask(VSPhysicsWorld())
     private val vsPhysicsThread = Thread(vsPhysicsTask)
 
-    private val groundRigidBody: VoxelRigidBody
+    private val groundRigidBody: VoxelRigidBody = vsPhysicsTask.physicsWorld.createVoxelRigidBody()
 
     init {
-        groundRigidBody = vsPhysicsTask.physicsWorld.createVoxelRigidBody()
+        groundRigidBody.setRigidBodyTransform(Vector3d(.5, .5, .5), Quaterniond())
         groundRigidBody.isStatic = true
+
         for (x in -100..100) {
             for (z in -100..100) {
                 groundRigidBody.collisionShape.addVoxel(x, 5, z)
@@ -47,6 +50,28 @@ class ShipObjectServerWorld(
 
         // Run [vsPhysicsTask] in [vsPhysicsThread]
         vsPhysicsThread.start()
+    }
+
+    override fun onSetBlock(
+        posX: Int, posY: Int, posZ: Int, oldBlockType: VSBlockType, newBlockType: VSBlockType, oldBlockMass: Double,
+        newBlockMass: Double
+    ) {
+        super.onSetBlock(posX, posY, posZ, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
+
+        if (oldBlockType != newBlockType) {
+            if (!chunkAllocator.isBlockInShipyard(posX, posY, posZ)) {
+                // Update the ground rigid body
+                if (newBlockType == SOLID) {
+                    vsPhysicsTask.queueTask {
+                        groundRigidBody.collisionShape.addVoxel(posX, posY, posZ)
+                    }
+                } else {
+                    vsPhysicsTask.queueTask {
+                        groundRigidBody.collisionShape.removeVoxel(posX, posY, posZ)
+                    }
+                }
+            }
+        }
     }
 
     fun tickShips() {
@@ -64,6 +89,9 @@ class ShipObjectServerWorld(
                     shipData.shipTransform.shipPositionInWorldCoordinates,
                     shipData.shipTransform.shipCoordinatesToWorldCoordinatesRotation
                 )
+                shipObjectServer.rigidBody.inertiaData.mass = shipData.inertiaData.getShipMass()
+                shipObjectServer.rigidBody.inertiaData.momentOfInertia =
+                    Vector3d(shipObjectServer.rigidBody.inertiaData.mass / 12.0)
 
                 newRigidBodies.add(shipObjectServer.rigidBody)
 
