@@ -89,16 +89,16 @@ class ShipObjectServerWorld(
             when (voxelShapeUpdate) {
                 is SparseVoxelShapeUpdate -> {
                     // Add the update to the sparse voxel update
-                    voxelShapeUpdate.addUpdate(posX and 16, posY and 16, posZ and 16, isVoxelSolid)
+                    voxelShapeUpdate.addUpdate(posX and 15, posY and 15, posZ and 15, isVoxelSolid)
                 }
                 is DenseVoxelShapeUpdate -> {
                     // Add the update to the dense voxel update
-                    voxelShapeUpdate.setVoxel(posX and 16, posY and 16, posZ and 16, isVoxelSolid)
+                    voxelShapeUpdate.setVoxel(posX and 15, posY and 15, posZ and 15, isVoxelSolid)
                 }
                 is EmptyVoxelShapeUpdate -> {
                     // Replace the empty voxel update with a sparse update
                     val newVoxelShapeUpdate = SparseVoxelShapeUpdate.createSparseVoxelShapeUpdate(chunkPos)
-                    newVoxelShapeUpdate.addUpdate(posX and 16, posY and 16, posZ and 16, isVoxelSolid)
+                    newVoxelShapeUpdate.addUpdate(posX and 15, posY and 15, posZ and 15, isVoxelSolid)
                     voxelUpdates[chunkPos] = newVoxelShapeUpdate
                 }
             }
