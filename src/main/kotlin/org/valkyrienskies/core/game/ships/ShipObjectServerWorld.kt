@@ -278,7 +278,9 @@ class ShipObjectServerWorld(
      *
      * If [createShipObjectImmediately] is true then a [ShipObject] will be created immediately.
      */
-    fun createNewShipAtBlock(blockPosInWorldCoordinates: Vector3ic, createShipObjectImmediately: Boolean): ShipData {
+    fun createNewShipAtBlock(
+        blockPosInWorldCoordinates: Vector3ic, createShipObjectImmediately: Boolean, scaling: Double = 1.0
+    ): ShipData {
         val chunkClaim = chunkAllocator.allocateNewChunkClaim()
         val shipName = NounListNameGenerator.generateName()
 
@@ -290,7 +292,8 @@ class ShipObjectServerWorld(
             name = shipName,
             chunkClaim = chunkClaim,
             shipCenterInWorldCoordinates = shipCenterInWorldCoordinates,
-            shipCenterInShipCoordinates = shipCenterInShipCoordinates
+            shipCenterInShipCoordinates = shipCenterInShipCoordinates,
+            scaling = scaling
         )
 
         queryableShipData.addShipData(newShipData)

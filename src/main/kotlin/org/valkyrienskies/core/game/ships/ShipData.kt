@@ -74,13 +74,14 @@ class ShipData(
             name: String,
             chunkClaim: ChunkClaim,
             shipCenterInWorldCoordinates: Vector3dc,
-            shipCenterInShipCoordinates: Vector3dc
+            shipCenterInShipCoordinates: Vector3dc,
+            scaling: Double = 1.0
         ): ShipData {
             val shipTransform = ShipTransform.createFromCoordinatesAndRotationAndScaling(
                 shipCenterInWorldCoordinates,
                 shipCenterInShipCoordinates,
                 Quaterniond().fromAxisAngleDeg(0.0, 1.0, 0.0, 0.0),
-                Vector3d(1.0, 1.0, 1.0)
+                Vector3d(scaling)
             )
 
             return ShipData(
