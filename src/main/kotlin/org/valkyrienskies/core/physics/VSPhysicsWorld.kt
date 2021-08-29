@@ -3,6 +3,7 @@ package org.valkyrienskies.core.physics
 import org.joml.Vector3d
 import org.valkyrienskies.physics_api.RigidBody
 import org.valkyrienskies.physics_api.VoxelRigidBody
+import org.valkyrienskies.physics_api.voxel_updates.VoxelRigidBodyShapeUpdates
 import org.valkyrienskies.physics_api_krunch.KrunchBootstrap
 
 class VSPhysicsWorld {
@@ -25,5 +26,9 @@ class VSPhysicsWorld {
      */
     fun addRigidBody(rigidBody: RigidBody<*>) {
         physicsWorld.addRigidBody(rigidBody)
+    }
+
+    fun queueShapeUpdates(updates: List<VoxelRigidBodyShapeUpdates>) {
+        physicsWorld.queueVoxelShapeUpdates(updates)
     }
 }

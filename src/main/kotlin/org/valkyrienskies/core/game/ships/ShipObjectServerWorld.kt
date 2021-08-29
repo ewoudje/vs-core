@@ -11,12 +11,16 @@ import org.valkyrienskies.core.chunk_tracking.ChunkWatchTask
 import org.valkyrienskies.core.game.ChunkAllocator
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.VSBlockType
-import org.valkyrienskies.core.game.VSBlockType.SOLID
 import org.valkyrienskies.core.physics.VSPhysicsTask
 import org.valkyrienskies.core.physics.VSPhysicsWorld
 import org.valkyrienskies.core.util.names.NounListNameGenerator
 import org.valkyrienskies.physics_api.RigidBody
 import org.valkyrienskies.physics_api.VoxelRigidBody
+import org.valkyrienskies.physics_api.voxel_updates.DenseVoxelShapeUpdate
+import org.valkyrienskies.physics_api.voxel_updates.EmptyVoxelShapeUpdate
+import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
+import org.valkyrienskies.physics_api.voxel_updates.SparseVoxelShapeUpdate
+import org.valkyrienskies.physics_api.voxel_updates.VoxelRigidBodyShapeUpdates
 import java.util.Collections
 import java.util.Spliterator
 import java.util.TreeSet
@@ -38,21 +42,32 @@ class ShipObjectServerWorld(
 
     private val groundRigidBody: VoxelRigidBody = vsPhysicsTask.physicsWorld.createVoxelRigidBody()
 
+    /**
+     * A map of voxel updates pending to be applied to ships.
+     *
+     * These updates will be sent to the physics engine, however they are not applied immediately. The physics engine
+     * has full control of when the updates are applied.
+     */
+    private val shipToVoxelUpdates: MutableMap<ShipData?, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
+
     init {
         groundRigidBody.setRigidBodyTransform(Vector3d(.5, .5, .5), Quaterniond())
         groundRigidBody.isStatic = true
 
-        for (x in -100..100) {
-            for (z in -100..100) {
-                groundRigidBody.collisionShape.addVoxel(x, 5, z)
-            }
-        }
+        // for (x in -100..100) {
+        //     for (z in -100..100) {
+        //         groundRigidBody.collisionShape.addVoxel(x, 5, z)
+        //     }
+        // }
         vsPhysicsTask.physicsWorld.addRigidBody(groundRigidBody)
 
         // Run [vsPhysicsTask] in [vsPhysicsThread]
         vsPhysicsThread.start()
     }
 
+    /**
+     * Add the update to [shipToVoxelUpdates].
+     */
     override fun onSetBlock(
         posX: Int, posY: Int, posZ: Int, oldBlockType: VSBlockType, newBlockType: VSBlockType, oldBlockMass: Double,
         newBlockMass: Double
@@ -60,22 +75,37 @@ class ShipObjectServerWorld(
         super.onSetBlock(posX, posY, posZ, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
 
         if (oldBlockType != newBlockType) {
-            if (!chunkAllocator.isBlockInShipyard(posX, posY, posZ)) {
-                // Update the ground rigid body
-                if (newBlockType == SOLID) {
-                    vsPhysicsTask.queueTask {
-                        groundRigidBody.collisionShape.addVoxel(posX, posY, posZ)
-                    }
-                } else {
-                    vsPhysicsTask.queueTask {
-                        groundRigidBody.collisionShape.removeVoxel(posX, posY, posZ)
-                    }
+            val chunkPos: Vector3ic = Vector3i(posX shr 4, posY shr 4, posZ shr 4)
+
+            val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
+
+            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData) { HashMap() }
+
+            val voxelShapeUpdate =
+                voxelUpdates.getOrPut(chunkPos) { SparseVoxelShapeUpdate.createSparseVoxelShapeUpdate(chunkPos) }
+
+            val isVoxelSolid = (newBlockType == VSBlockType.SOLID)
+
+            when (voxelShapeUpdate) {
+                is SparseVoxelShapeUpdate -> {
+                    // Add the update to the sparse voxel update
+                    voxelShapeUpdate.addUpdate(posX and 16, posY and 16, posZ and 16, isVoxelSolid)
+                }
+                is DenseVoxelShapeUpdate -> {
+                    // Add the update to the dense voxel update
+                    voxelShapeUpdate.setVoxel(posX and 16, posY and 16, posZ and 16, isVoxelSolid)
+                }
+                is EmptyVoxelShapeUpdate -> {
+                    // Replace the empty voxel update with a sparse update
+                    val newVoxelShapeUpdate = SparseVoxelShapeUpdate.createSparseVoxelShapeUpdate(chunkPos)
+                    newVoxelShapeUpdate.addUpdate(posX and 16, posY and 16, posZ and 16, isVoxelSolid)
+                    voxelUpdates[chunkPos] = newVoxelShapeUpdate
                 }
             }
         }
     }
 
-    fun tickShips() {
+    fun tickShips(newLoadedChunks: List<IVoxelShapeUpdate>) {
         val newRigidBodies = ArrayList<RigidBody<*>>()
         // For now, just make a [ShipObject] for every [ShipData]
         for (shipData in queryableShipData) {
@@ -114,6 +144,34 @@ class ShipObjectServerWorld(
             newRigidBodies.forEach { vsPhysicsTask.physicsWorld.addRigidBody(it) }
         }
 
+        // region Add voxel shape updates for chunks that loaded this tick
+        for (newLoadedChunk in newLoadedChunks) {
+            val chunkPos: Vector3ic = Vector3i(newLoadedChunk.regionX, newLoadedChunk.regionY, newLoadedChunk.regionZ)
+            val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
+            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData) { HashMap() }
+            voxelUpdates[chunkPos] = newLoadedChunk
+        }
+        // endregion
+
+        // region Send voxel shape updates to the physics engine
+        val updatesList = ArrayList<VoxelRigidBodyShapeUpdates>()
+        shipToVoxelUpdates.forEach { (shipData, updates) ->
+            val rigidBodyToUpdate: VoxelRigidBody = if (shipData != null) {
+                // For now, just assume this is always not null
+                val shipObjectServer: ShipObjectServer = shipObjects[shipData.shipUUID]!!
+                shipObjectServer.rigidBody
+            } else {
+                groundRigidBody
+            }
+
+            val update = VoxelRigidBodyShapeUpdates(rigidBodyToUpdate, updates.values.toList())
+            updatesList.add(update)
+        }
+        shipToVoxelUpdates.clear()
+
+        vsPhysicsTask.physicsWorld.queueShapeUpdates(updatesList)
+        // endregion
+
         val tasks = ArrayList<Runnable>()
 
         for (shipObject in shipObjectMap.values) {
@@ -125,7 +183,7 @@ class ShipObjectServerWorld(
                 rigidBody.collisionShape.setVoxelOffset(-centerOfMass.x(), -centerOfMass.y(), -centerOfMass.z())
 
                 val offsetDif = rigidBody.rigidBodyTransform.rotation.transform(Vector3d(centerOfMass).add(oldOffset))
-                
+
                 (rigidBody.rigidBodyTransform.position as Vector3d).add(offsetDif)
 
                 rigidBody.inertiaData.mass = inertiaDataCopy.getShipMass()
