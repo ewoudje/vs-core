@@ -309,4 +309,6 @@ class ShipObjectServerWorld(
         // Tell the physics task to kill itself on the next physics tick
         vsPhysicsTask.tellTaskToKillItself()
     }
+    
+    fun getPhysicsTPS(): Double = vsPhysicsTask.computePhysicsTPS()
 }

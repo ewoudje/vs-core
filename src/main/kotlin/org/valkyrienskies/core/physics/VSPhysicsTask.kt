@@ -1,5 +1,7 @@
 package org.valkyrienskies.core.physics
 
+import java.util.LinkedList
+import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.min
 
@@ -16,6 +18,8 @@ class VSPhysicsTask(val physicsWorld: VSPhysicsWorld) : Runnable {
 
     private var runPhysics = true
 
+    private val prevPhysTicksTimeMillis: Queue<Long> = LinkedList()
+
     override fun run() {
         while (true) {
             if (killTask) break // Stop looping
@@ -30,6 +34,14 @@ class VSPhysicsTask(val physicsWorld: VSPhysicsWorld) : Runnable {
             physicsWorld.tick(timeToSimulateNs / 1e9)
 
             val timeToRunPhysTick = System.nanoTime() - timeBeforePhysicsTick
+
+            // Keep track of when physics tick finished
+            val currentTimeMillis = System.currentTimeMillis()
+            prevPhysTicksTimeMillis.add(currentTimeMillis)
+            // Remove physics ticks that were over [PHYS_TICK_AVERAGE_WINDOW_MS] ms ago
+            while (prevPhysTicksTimeMillis.isNotEmpty() && (prevPhysTicksTimeMillis.peek() + PHYS_TICK_AVERAGE_WINDOW_MS < currentTimeMillis)) {
+                prevPhysTicksTimeMillis.remove()
+            }
 
             // Ideal time minus actual time to run physics tick
             val timeDif = timeToSimulateNs - timeToRunPhysTick
@@ -59,7 +71,12 @@ class VSPhysicsTask(val physicsWorld: VSPhysicsWorld) : Runnable {
         queuedTasksQueue.add(task)
     }
 
+    fun computePhysicsTPS(): Double {
+        return prevPhysTicksTimeMillis.size.toDouble() / (PHYS_TICK_AVERAGE_WINDOW_MS.toDouble() / 1000.0)
+    }
+
     companion object {
         private const val MAX_LOST_TIME: Long = 1e9.toLong()
+        private const val PHYS_TICK_AVERAGE_WINDOW_MS = 5000
     }
 }
