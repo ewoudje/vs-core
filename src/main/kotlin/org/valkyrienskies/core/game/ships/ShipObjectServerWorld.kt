@@ -174,15 +174,24 @@ class ShipObjectServerWorld(
 
         val tasks = ArrayList<Runnable>()
 
+        // Update the center of mass in the physics engine for ships
         for (shipObject in shipObjectMap.values) {
             val inertiaDataCopy = shipObject.shipData.inertiaData.copy()
             val centerOfMass = inertiaDataCopy.getCenterOfMassInShipSpace()
             val rigidBody = shipObject.rigidBody
+
+            val prevScaling =
+                Vector3d(shipObject.shipData.prevTickShipTransform.shipCoordinatesToWorldCoordinatesScaling)
+            val newScaling =
+                Vector3d(shipObject.shipData.shipTransform.shipCoordinatesToWorldCoordinatesScaling)
+
             tasks.add {
-                val oldOffset = rigidBody.collisionShape.getVoxelOffset()
+                val oldOffset: Vector3dc = Vector3d(rigidBody.collisionShape.getVoxelOffset()).mul(prevScaling)
+                val newOffset: Vector3dc = Vector3d(centerOfMass).mul(newScaling)
+
                 rigidBody.collisionShape.setVoxelOffset(-centerOfMass.x(), -centerOfMass.y(), -centerOfMass.z())
 
-                val offsetDif = rigidBody.rigidBodyTransform.rotation.transform(Vector3d(centerOfMass).add(oldOffset))
+                val offsetDif = rigidBody.rigidBodyTransform.rotation.transform(Vector3d(newOffset).add(oldOffset))
 
                 (rigidBody.rigidBodyTransform.position as Vector3d).add(offsetDif)
 
@@ -309,6 +318,6 @@ class ShipObjectServerWorld(
         // Tell the physics task to kill itself on the next physics tick
         vsPhysicsTask.tellTaskToKillItself()
     }
-    
+
     fun getPhysicsTPS(): Double = vsPhysicsTask.computePhysicsTPS()
 }
