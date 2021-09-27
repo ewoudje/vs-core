@@ -15,12 +15,13 @@ class VSPhysicsWorld {
     init {
         physicsWorld = KrunchBootstrap.createKrunchPhysicsWorld()
         // Use 5 iterations to get good results
-        settingsWrapper.setIterations(5)
+        settingsWrapper.setIterations(2)
         // Set compliance to 1e-4 to limit the max force of constraints, and prevent the solver from blowing up
         settingsWrapper.setCollisionCompliance(1e-4)
         settingsWrapper.setCollisionRestitutionCompliance(1e-4)
-        settingsWrapper.setDynamicFrictionCompliance(1e-4)
+        settingsWrapper.setDynamicFrictionCompliance(0.0)
         settingsWrapper.setMaxCollisionPoints(4)
+        settingsWrapper.setMaxCollisionPointDepth(.05)
         KrunchBootstrap.setKrunchSettings(physicsWorld, settingsWrapper)
     }
 
@@ -33,7 +34,10 @@ class VSPhysicsWorld {
      * Thread safe, creates a new rigid body.
      */
     fun createVoxelRigidBody(): VoxelRigidBody {
-        return physicsWorld.createVoxelRigidBody()
+        val body = physicsWorld.createVoxelRigidBody()
+        body.dynamicFrictionCoefficient = 1.0
+        body.staticFrictionCoefficient = 1.0
+        return body
     }
 
     /**
