@@ -14,18 +14,17 @@ class VSPhysicsWorld {
 
     init {
         physicsWorld = KrunchBootstrap.createKrunchPhysicsWorld()
-        // Use 5 iterations to get good results
-        settingsWrapper.setIterations(2)
-        // Set compliance to 1e-4 to limit the max force of constraints, and prevent the solver from blowing up
-        settingsWrapper.setCollisionCompliance(1e-4)
-        settingsWrapper.setCollisionRestitutionCompliance(1e-4)
-        settingsWrapper.setDynamicFrictionCompliance(0.0)
-        settingsWrapper.setMaxCollisionPoints(4)
-        settingsWrapper.setMaxCollisionPointDepth(.05)
         KrunchBootstrap.setKrunchSettings(physicsWorld, settingsWrapper)
     }
 
     fun tick(timeStep: Double) {
+        settingsWrapper.setCollisionCompliance(1e-5)
+        settingsWrapper.setCollisionRestitutionCompliance(1e-5)
+        settingsWrapper.setSolverIterationWeight(.05)
+        settingsWrapper.setIterations(2)
+        settingsWrapper.setMaxCollisionPoints(4)
+        settingsWrapper.setSolverType("jacobi")
+        settingsWrapper.setMaxCollisionPointDepth(5e-2)
         val gravity = Vector3d(0.0, -10.0, 0.0)
         physicsWorld.tick(gravity, timeStep)
     }
