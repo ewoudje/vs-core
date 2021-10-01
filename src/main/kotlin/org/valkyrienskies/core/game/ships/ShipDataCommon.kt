@@ -33,7 +33,8 @@ open class ShipDataCommon(
         posX: Int,
         posY: Int,
         posZ: Int,
-        blockType: VSBlockType,
+        oldBlockType: VSBlockType,
+        newBlockType: VSBlockType,
         oldBlockMass: Double,
         newBlockMass: Double
     ) {

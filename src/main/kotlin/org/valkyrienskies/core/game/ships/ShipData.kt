@@ -22,8 +22,7 @@ class ShipData(
     name: String,
     chunkClaim: ChunkClaim,
     physicsData: ShipPhysicsData,
-    @VSPacketIgnore
-    private val inertiaData: ShipInertiaData,
+    @VSPacketIgnore val inertiaData: ShipInertiaData,
     shipTransform: ShipTransform,
     prevTickShipTransform: ShipTransform,
     shipAABB: AABBdc,
@@ -34,9 +33,15 @@ class ShipData(
 ) {
 
     override fun onSetBlock(
-        posX: Int, posY: Int, posZ: Int, blockType: VSBlockType, oldBlockMass: Double, newBlockMass: Double
+        posX: Int,
+        posY: Int,
+        posZ: Int,
+        oldBlockType: VSBlockType,
+        newBlockType: VSBlockType,
+        oldBlockMass: Double,
+        newBlockMass: Double
     ) {
-        super.onSetBlock(posX, posY, posZ, blockType, oldBlockMass, newBlockMass)
+        super.onSetBlock(posX, posY, posZ, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
 
         // Update [inertiaData]
         inertiaData.onSetBlock(posX, posY, posZ, oldBlockMass, newBlockMass)
@@ -69,13 +74,14 @@ class ShipData(
             name: String,
             chunkClaim: ChunkClaim,
             shipCenterInWorldCoordinates: Vector3dc,
-            shipCenterInShipCoordinates: Vector3dc
+            shipCenterInShipCoordinates: Vector3dc,
+            scaling: Double = 1.0
         ): ShipData {
             val shipTransform = ShipTransform.createFromCoordinatesAndRotationAndScaling(
                 shipCenterInWorldCoordinates,
                 shipCenterInShipCoordinates,
-                Quaterniond().fromAxisAngleDeg(0.0, 1.0, 0.0, 45.0),
-                Vector3d(.5, .5, .5)
+                Quaterniond().fromAxisAngleDeg(0.0, 1.0, 0.0, 0.0),
+                Vector3d(scaling)
             )
 
             return ShipData(
