@@ -18,12 +18,16 @@ class VSPhysicsWorld {
     }
 
     fun tick(timeStep: Double) {
+        // Set compliance to 1e-5 to loosen the collision and restitution constraints
         settingsWrapper.setCollisionCompliance(1e-5)
         settingsWrapper.setCollisionRestitutionCompliance(1e-5)
+        // Only partially update the constraints
         settingsWrapper.setSolverIterationWeight(.05)
         settingsWrapper.setIterations(2)
+        // Use 4 collision points to stabilize post shapes
         settingsWrapper.setMaxCollisionPoints(4)
         settingsWrapper.setSolverType("jacobi")
+        // Limit the max depth of collision points we use to prevent explosions
         settingsWrapper.setMaxCollisionPointDepth(5e-2)
         val gravity = Vector3d(0.0, -10.0, 0.0)
         physicsWorld.tick(gravity, timeStep)

@@ -54,11 +54,6 @@ class ShipObjectServerWorld(
         groundRigidBody.setRigidBodyTransform(Vector3d(.5, .5, .5), Quaterniond())
         groundRigidBody.isStatic = true
 
-        // for (x in -100..100) {
-        //     for (z in -100..100) {
-        //         groundRigidBody.collisionShape.addVoxel(x, 5, z)
-        //     }
-        // }
         vsPhysicsTask.physicsWorld.addRigidBody(groundRigidBody)
 
         // Run [vsPhysicsTask] in [vsPhysicsThread]
