@@ -1,8 +1,7 @@
 plugins {
-    kotlin("jvm") version "1.5.0"
+    kotlin("jvm") version "1.6.10"
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
     java
-    maven
     checkstyle
     id("org.sonarqube") version "3.1.1"
 }
@@ -10,15 +9,13 @@ plugins {
 group = "org.valkyrienskies.core"
 version = "1.0"
 
+val vs_maven_url: String by project
+
 repositories {
     mavenCentral()
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
     maven {
-        name = "Valkyrien Skies Internal"
-        setUrl("https://maven.valkyrienskies.org/repository/internal/")
-        content {
-            includeGroup("org.valkyrienskies")
-        }
+        name = "VS Maven"
+        url = uri(vs_maven_url)
     }
 }
 
