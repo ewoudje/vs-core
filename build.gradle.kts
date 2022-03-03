@@ -10,7 +10,6 @@ group = "org.valkyrienskies.core"
 version = "1.0"
 
 val vs_maven_url: String by project
-
 repositories {
     mavenCentral()
     maven {
@@ -22,9 +21,6 @@ repositories {
 dependencies {
     val jacksonVersion = "2.12.1"
     val nettyVersion = "4.1.25.Final"
-
-    // Kotlin
-    implementation(kotlin("stdlib-jdk8"))
 
     // VS Physics
     api("org.valkyrienskies:physics_api_krunch:1.0.0+533c50e409")
@@ -80,18 +76,18 @@ ktlint {
 
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "17"
     }
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions.jvmTarget = "17"
     }
     compileJava {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
     }
     compileTestJava {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
     }
     test {
         useJUnitPlatform()
