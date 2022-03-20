@@ -12,6 +12,7 @@ version = "1.0"
 val vs_maven_url: String by project
 repositories {
     mavenCentral()
+    maven { setUrl("https://jitpack.io") }
     maven {
         name = "VS Maven"
         url = uri(vs_maven_url)
@@ -23,7 +24,8 @@ dependencies {
     val nettyVersion = "4.1.25.Final"
 
     // VS Physics
-    api("org.valkyrienskies:physics_api_krunch:1.0.0+533c50e409")
+    api("com.github.ValkyrienSkies:Valkyrien-Skies-Physics-API:c84f1419e606de702e43d5417dd1c925bf0eefd8")
+    api("com.github.ValkyrienSkies:Valkyrien-Skies-Krunch-Physics-API:9782703dfb15e5eec490a7b2122489f01b8b35e0")
 
     // JOML for Math
     api("org.joml:joml:1.10.0")

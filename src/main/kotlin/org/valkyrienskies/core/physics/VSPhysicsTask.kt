@@ -1,10 +1,10 @@
 package org.valkyrienskies.core.physics
 
-import java.util.LinkedList
-import java.util.Queue
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.min
 
+// TODO: Probably make this consume a [VSPipelineStagePhysics]
 class VSPhysicsTask(val physicsWorld: VSPhysicsWorld) : Runnable {
     // When this is set to true, this task will kill itself at the next opportunity
     private var killTask = false

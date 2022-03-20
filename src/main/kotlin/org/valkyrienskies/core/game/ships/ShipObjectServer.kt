@@ -2,11 +2,10 @@ package org.valkyrienskies.core.game.ships
 
 import org.valkyrienskies.core.chunk_tracking.IShipChunkTracker
 import org.valkyrienskies.core.chunk_tracking.ShipChunkTracker
-import org.valkyrienskies.physics_api.VoxelRigidBody
 
 class ShipObjectServer(
     override val shipData: ShipData,
-    val rigidBody: VoxelRigidBody
+    // val rigidBody: RigidBodyReference TODO: Put something else here, we don't want references accidentally being used in the wrong thread
 ) : ShipObject(shipData) {
 
     internal val shipChunkTracker: IShipChunkTracker =
