@@ -4,8 +4,7 @@ import org.valkyrienskies.core.chunk_tracking.IShipChunkTracker
 import org.valkyrienskies.core.chunk_tracking.ShipChunkTracker
 
 class ShipObjectServer(
-    override val shipData: ShipData,
-    // val rigidBody: RigidBodyReference TODO: Put something else here, we don't want references accidentally being used in the wrong thread
+    override val shipData: ShipData
 ) : ShipObject(shipData) {
 
     internal val shipChunkTracker: IShipChunkTracker =

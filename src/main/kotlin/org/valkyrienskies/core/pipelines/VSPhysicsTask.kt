@@ -1,11 +1,10 @@
-package org.valkyrienskies.core.physics
+package org.valkyrienskies.core.pipelines
 
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.min
 
-// TODO: Probably make this consume a [VSPipelineStagePhysics]
-class VSPhysicsTask(val physicsWorld: VSPhysicsWorld) : Runnable {
+class VSPhysicsPipelineBackgroundTask(private val physicsStage: VSPhysicsPipelineStage, private var idealPhysicsTps: Int = 60) : Runnable {
     // When this is set to true, this task will kill itself at the next opportunity
     private var killTask = false
 
@@ -13,10 +12,6 @@ class VSPhysicsTask(val physicsWorld: VSPhysicsWorld) : Runnable {
     private val queuedTasksQueue = ConcurrentLinkedQueue<() -> Unit>()
 
     private var lostTime: Long = 0
-
-    private var idealPhysicsTps = 100
-
-    private var runPhysics = true
 
     private val prevPhysTicksTimeMillis: Queue<Long> = LinkedList()
 
@@ -30,8 +25,11 @@ class VSPhysicsTask(val physicsWorld: VSPhysicsWorld) : Runnable {
 
             // Execute queued tasks
             while (!queuedTasksQueue.isEmpty()) queuedTasksQueue.remove()()
+
+            val timeStep = timeToSimulateNs / 1e9
+
             // Run the physics tick
-            physicsWorld.tick(timeToSimulateNs / 1e9)
+            physicsStage.tickPhysics(physicsStage.getPhysicsGravity(), timeStep, physicsStage.arePhysicsRunning())
 
             val timeToRunPhysTick = System.nanoTime() - timeBeforePhysicsTick
 

@@ -49,6 +49,7 @@ class VSPipeline private constructor() {
         }
 
         fun deleteVSPipeline() {
+            INSTANCE?.physicsStage?.deleteResources()
             INSTANCE = null
         }
 

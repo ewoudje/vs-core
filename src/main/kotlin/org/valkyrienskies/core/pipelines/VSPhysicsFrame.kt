@@ -1,8 +1,8 @@
 package org.valkyrienskies.core.pipelines
 
 import org.joml.Vector3dc
-import org.valkyrienskies.core.game.ships.ShipInertiaData
-import org.valkyrienskies.core.game.ships.ShipTransform
+import org.valkyrienskies.physics_api.RigidBodyInertiaData
+import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import java.util.*
 
@@ -18,8 +18,8 @@ data class VSPhysicsFrame(
 data class ShipInPhysicsFrameData(
     val uuid: UUID,
     val dimensionId: Int,
-    val inertiaData: ShipInertiaData,
-    val shipTransform: ShipTransform,
+    val inertiaData: RigidBodyInertiaData,
+    val shipTransform: RigidBodyTransform,
     val vel: Vector3dc,
     val omega: Vector3dc
 )
