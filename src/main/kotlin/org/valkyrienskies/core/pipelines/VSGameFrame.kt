@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.pipelines
 
+import org.joml.Vector3dc
 import org.joml.Vector3ic
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyTransform
@@ -12,6 +13,7 @@ import java.util.*
 data class VSGameFrame(
     val newShips: List<NewShipInGameFrameData>, // Ships to be added to the Physics simulation
     val deletedShips: List<UUID>, // Ships to be deleted from the Physics simulation
+    val updatedShips: Map<UUID, UpdateShipInGameFrameData>, // Map of ship updates
     val voxelUpdatesMap: Map<UUID, List<IVoxelShapeUpdate>> // Voxel updates applied by this frame
 )
 
@@ -24,5 +26,11 @@ data class NewShipInGameFrameData(
     val minDefined: Vector3ic,
     val maxDefined: Vector3ic,
     val inertiaData: RigidBodyInertiaData,
-    val shipTransform: RigidBodyTransform
+    val shipTransform: RigidBodyTransform,
+    val voxelOffset: Vector3dc
+)
+
+data class UpdateShipInGameFrameData(
+    val uuid: UUID,
+    val newVoxelOffset: Vector3dc
 )
