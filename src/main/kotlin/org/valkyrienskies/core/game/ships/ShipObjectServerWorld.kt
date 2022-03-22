@@ -11,8 +11,15 @@ import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.pipelines.VSPipeline
 import org.valkyrienskies.core.util.names.NounListNameGenerator
-import org.valkyrienskies.physics_api.voxel_updates.*
-import java.util.*
+import org.valkyrienskies.physics_api.voxel_updates.DenseVoxelShapeUpdate
+import org.valkyrienskies.physics_api.voxel_updates.EmptyVoxelShapeUpdate
+import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
+import org.valkyrienskies.physics_api.voxel_updates.KrunchVoxelStates
+import org.valkyrienskies.physics_api.voxel_updates.SparseVoxelShapeUpdate
+import java.util.Collections
+import java.util.Spliterator
+import java.util.TreeSet
+import java.util.UUID
 
 class ShipObjectServerWorld(
     override val queryableShipData: MutableQueryableShipDataServer,
@@ -57,7 +64,7 @@ class ShipObjectServerWorld(
             val voxelShapeUpdate =
                 voxelUpdates.getOrPut(chunkPos) { SparseVoxelShapeUpdate.createSparseVoxelShapeUpdate(chunkPos) }
 
-            val voxelType: Byte = when(newBlockType) {
+            val voxelType: Byte = when (newBlockType) {
                 VSBlockType.AIR -> KrunchVoxelStates.AIR_STATE
                 VSBlockType.SOLID -> KrunchVoxelStates.SOLID_STATE
                 VSBlockType.WATER -> KrunchVoxelStates.WATER_STATE

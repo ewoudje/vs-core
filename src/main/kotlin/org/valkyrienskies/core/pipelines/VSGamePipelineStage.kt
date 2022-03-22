@@ -8,7 +8,7 @@ import org.valkyrienskies.core.game.ships.ShipTransform
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
-import java.util.*
+import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class VSGamePipelineStage {
@@ -65,19 +65,31 @@ class VSGamePipelineStage {
                         val transformFromPhysics = shipInPhysicsFrameData.shipTransform
                         val voxelOffsetFromPhysics = shipInPhysicsFrameData.shipVoxelOffset
 
-                        val deltaVoxelOffset = shipData.inertiaData.getCenterOfMassInShipSpace().sub(voxelOffsetFromPhysics, Vector3d())
+                        val deltaVoxelOffset =
+                            shipData.inertiaData.getCenterOfMassInShipSpace().sub(voxelOffsetFromPhysics, Vector3d())
 
-                        val shipPosAccountingForVoxelOffsetDifference = transformFromPhysics.position.add(deltaVoxelOffset, Vector3d())
-                        val newShipTransform = ShipTransform.createFromCoordinatesAndRotation(shipPosAccountingForVoxelOffsetDifference, shipData.inertiaData.getCenterOfMassInShipSpace(), transformFromPhysics.rotation)
+                        val shipPosAccountingForVoxelOffsetDifference =
+                            transformFromPhysics.position.add(deltaVoxelOffset, Vector3d())
+                        val newShipTransform = ShipTransform.createFromCoordinatesAndRotation(
+                            shipPosAccountingForVoxelOffsetDifference,
+                            shipData.inertiaData.getCenterOfMassInShipSpace(),
+                            transformFromPhysics.rotation
+                        )
 
                         shipData.shipTransform = newShipTransform
                     }
                 } else {
                     if (shipWorld.groundBodyUUID != uuid)
-                        println("Received physics frame update for ship with uuid: $uuid and dimension $dimension, but a ship with this uuid does not exist!")
+                        println(
+                            "Received physics frame update for ship with uuid: $uuid and dimension $dimension, " +
+                                "but a ship with this uuid does not exist!"
+                        )
                 }
             } else {
-                println("Received physics frame update for ship with uuid: $uuid and dimension $dimension, but a world with this dimension does not exist!")
+                println(
+                    "Received physics frame update for ship with uuid: $uuid and dimension $dimension, " +
+                        "but a world with this dimension does not exist!"
+                )
             }
         }
     }
@@ -102,10 +114,17 @@ class VSGamePipelineStage {
                 val inertiaTensorMatrix = it.shipData.inertiaData.getMomentOfInertiaTensor()
                 // For now, just put the diagonal of the inertia tensor in
                 // TODO: Make Krunch take in an inertia matrix
-                val inertiaTensorDiagonal = Vector3d(inertiaTensorMatrix.get(0, 0), inertiaTensorMatrix.get(1, 1), inertiaTensorMatrix.get(2, 2))
+                val inertiaTensorDiagonal = Vector3d(
+                    inertiaTensorMatrix.get(0, 0),
+                    inertiaTensorMatrix.get(1, 1),
+                    inertiaTensorMatrix.get(2, 2)
+                )
 
                 val inertiaData = RigidBodyInertiaData(it.shipData.inertiaData.getShipMass(), inertiaTensorDiagonal)
-                val shipTransform = RigidBodyTransform(it.shipData.shipTransform.shipPositionInWorldCoordinates, it.shipData.shipTransform.shipCoordinatesToWorldCoordinatesRotation)
+                val shipTransform = RigidBodyTransform(
+                    it.shipData.shipTransform.shipPositionInWorldCoordinates,
+                    it.shipData.shipTransform.shipCoordinatesToWorldCoordinatesRotation
+                )
                 val voxelOffset = it.shipData.inertiaData.getCenterOfMassInShipSpace()
                 val newShipInGameFrameData = NewShipInGameFrameData(
                     uuid,
@@ -135,7 +154,8 @@ class VSGamePipelineStage {
 
     fun addShipWorld(shipWorld: ShipObjectServerWorld) {
         val dimension = shipWorld.dimension
-        if (shipWorlds.containsKey(dimension)) throw IllegalStateException("Ship world with dimension $dimension already exists!")
+        if (shipWorlds.containsKey(dimension))
+            throw IllegalStateException("Ship world with dimension $dimension already exists!")
         shipWorlds[dimension] = shipWorld
     }
 
