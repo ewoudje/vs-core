@@ -71,10 +71,10 @@ class VSGamePipelineStage {
                     }
                 } else {
                     if (shipWorld.groundBodyUUID != uuid)
-                        print("Received physics frame update for ship with uuid: $uuid and dimension $dimension, but a ship with this uuid does not exist!")
+                        println("Received physics frame update for ship with uuid: $uuid and dimension $dimension, but a ship with this uuid does not exist!")
                 }
             } else {
-                print("Received physics frame update for ship with uuid: $uuid and dimension $dimension, but a world with this dimension does not exist!")
+                println("Received physics frame update for ship with uuid: $uuid and dimension $dimension, but a world with this dimension does not exist!")
             }
         }
     }
