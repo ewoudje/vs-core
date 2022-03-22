@@ -26,6 +26,10 @@ class ShipActiveChunksSet private constructor(
         }
     }
 
+    override fun getTotalChunks(): Int {
+        return chunkClaimSet.size
+    }
+
     override fun equals(other: Any?): Boolean {
         if (super.equals(other)) {
             return true

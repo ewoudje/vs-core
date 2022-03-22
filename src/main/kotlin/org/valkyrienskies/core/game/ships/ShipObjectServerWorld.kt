@@ -25,6 +25,11 @@ class ShipObjectServerWorld(
     override val shipObjects: Map<UUID, ShipObjectServer> = shipObjectMap
     val groundBodyUUID: UUID = UUID.randomUUID() // The UUID used when sending voxel updates for the ground shape
 
+    // These fields are used to generate [VSGameFrame]
+    private val newShipObjects: MutableList<ShipObjectServer> = ArrayList()
+    private val updatedShipObjects: MutableList<ShipObjectServer> = ArrayList()
+    private val deletedShipObjects: MutableList<UUID> = ArrayList()
+
     /**
      * A map of voxel updates pending to be applied to ships.
      *
@@ -80,10 +85,18 @@ class ShipObjectServerWorld(
     }
 
     fun tickShips(newLoadedChunks: List<IVoxelShapeUpdate>) {
+        shipObjects.forEach { (_, shipObjectServer) ->
+            updatedShipObjects.add(shipObjectServer)
+        }
+
         // For now, just make a [ShipObject] for every [ShipData]
         for (shipData in queryableShipData) {
             val shipID = shipData.shipUUID
-            shipObjectMap.computeIfAbsent(shipID) { ShipObjectServer(shipData) }
+            if (!shipObjectMap.containsKey(shipID)) {
+                val newShipObject = ShipObjectServer(shipData)
+                newShipObjects.add(newShipObject)
+                shipObjectMap[shipID] = newShipObject
+            }
         }
 
         // region Add voxel shape updates for chunks that loaded this tick
@@ -183,5 +196,23 @@ class ShipObjectServerWorld(
 
     override fun destroyWorld() {
         VSPipeline.getVSPipeline().removeShipWorld(this)
+    }
+
+    fun getNewShipObjects(): List<ShipObjectServer> {
+        return newShipObjects
+    }
+
+    fun getUpdatedShipObjects(): List<ShipObjectServer> {
+        return updatedShipObjects
+    }
+
+    fun getDeletedShipObjects(): List<UUID> {
+        return deletedShipObjects
+    }
+
+    fun clearNewUpdatedAndDeletedShipObjects() {
+        newShipObjects.clear()
+        updatedShipObjects.clear()
+        deletedShipObjects.clear()
     }
 }

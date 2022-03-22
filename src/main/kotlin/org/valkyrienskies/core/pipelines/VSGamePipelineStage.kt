@@ -1,9 +1,12 @@
 package org.valkyrienskies.core.pipelines
 
 import org.joml.Vector3d
+import org.joml.Vector3i
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.game.ships.ShipTransform
+import org.valkyrienskies.physics_api.RigidBodyInertiaData
+import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -86,9 +89,46 @@ class VSGamePipelineStage {
         val voxelUpdatesMap = HashMap<UUID, List<IVoxelShapeUpdate>>() // Voxel updates applied by this frame
 
         shipWorlds.forEach { (dimension, shipWorld) ->
-            shipWorld.shipObjects.forEach { (uuid, shipObject) ->
-                TODO("Implement this")
+            val newShipObjects = shipWorld.getNewShipObjects()
+            val updatedShipObjects = shipWorld.getUpdatedShipObjects()
+            val deletedShipObjects = shipWorld.getDeletedShipObjects()
+
+            newShipObjects.forEach {
+                val uuid = it.shipData.shipUUID
+                val minDefined = Vector3i()
+                val maxDefined = Vector3i()
+                it.shipData.shipActiveChunksSet.getMinMaxWorldPos(minDefined, maxDefined)
+
+                val inertiaTensorMatrix = it.shipData.inertiaData.getMomentOfInertiaTensor()
+                // For now, just put the diagonal of the inertia tensor in
+                // TODO: Make Krunch take in an inertia matrix
+                val inertiaTensorDiagonal = Vector3d(inertiaTensorMatrix.get(0, 0), inertiaTensorMatrix.get(1, 1), inertiaTensorMatrix.get(2, 2))
+
+                val inertiaData = RigidBodyInertiaData(it.shipData.inertiaData.getShipMass(), inertiaTensorDiagonal)
+                val shipTransform = RigidBodyTransform(it.shipData.shipTransform.shipPositionInWorldCoordinates, it.shipData.shipTransform.shipCoordinatesToWorldCoordinatesRotation)
+                val voxelOffset = it.shipData.inertiaData.getCenterOfMassInShipSpace()
+                val newShipInGameFrameData = NewShipInGameFrameData(
+                    uuid,
+                    dimension,
+                    minDefined,
+                    maxDefined,
+                    inertiaData,
+                    shipTransform,
+                    voxelOffset
+                )
+                newShips.add(newShipInGameFrameData)
             }
+
+            updatedShipObjects.forEach {
+                val uuid = it.shipData.shipUUID
+                val newVoxelOffset = it.shipData.inertiaData.getCenterOfMassInShipSpace()
+                val updateShipInGameFrameData = UpdateShipInGameFrameData(uuid, newVoxelOffset)
+                updatedShips[uuid] = updateShipInGameFrameData
+            }
+
+            deletedShips.addAll(deletedShipObjects)
+
+            shipWorld.clearNewUpdatedAndDeletedShipObjects()
         }
         return VSGameFrame(newShips, deletedShips, updatedShips, voxelUpdatesMap)
     }
