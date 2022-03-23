@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.pipelines
 
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3i
 import org.valkyrienskies.core.game.ships.ShipData
@@ -100,12 +101,37 @@ class VSGamePipelineStage {
         val newShips = ArrayList<NewShipInGameFrameData>() // Ships to be added to the Physics simulation
         val deletedShips = ArrayList<UUID>() // Ships to be deleted from the Physics simulation
         val updatedShips = HashMap<UUID, UpdateShipInGameFrameData>() // Map of ship updates
-        val voxelUpdatesMap = HashMap<UUID, List<IVoxelShapeUpdate>>() // Voxel updates applied by this frame
+        val gameFrameVoxelUpdatesMap = HashMap<UUID, List<IVoxelShapeUpdate>>() // Voxel updates applied by this frame
 
         shipWorlds.forEach { (dimension, shipWorld) ->
+            val newGroundRigidBodyObjects = shipWorld.getNewGroundRigidBodyObjects()
             val newShipObjects = shipWorld.getNewShipObjects()
             val updatedShipObjects = shipWorld.getUpdatedShipObjects()
             val deletedShipObjects = shipWorld.getDeletedShipObjects()
+            val shipVoxelUpdates = shipWorld.getShipToVoxelUpdates()
+
+            newGroundRigidBodyObjects.forEach {
+                val uuid = it
+                val minDefined = Vector3i(Int.MIN_VALUE, 0, Int.MIN_VALUE)
+                val maxDefined = Vector3i(Int.MAX_VALUE, 255, Int.MAX_VALUE)
+                // Some random inertia values, the ground body is static so these don't matter
+                val inertiaData = RigidBodyInertiaData(10.0, Vector3d(10.0))
+                // Set the transform to be the origin with no rotation
+                val shipTransform = RigidBodyTransform(Vector3d(), Quaterniond())
+                // No voxel offset
+                val voxelOffset = Vector3d()
+                val newShipInGameFrameData = NewShipInGameFrameData(
+                    uuid,
+                    dimension,
+                    minDefined,
+                    maxDefined,
+                    inertiaData,
+                    shipTransform,
+                    voxelOffset,
+                    true
+                )
+                newShips.add(newShipInGameFrameData)
+            }
 
             newShipObjects.forEach {
                 val uuid = it.shipData.shipUUID
@@ -135,7 +161,8 @@ class VSGamePipelineStage {
                     maxDefined,
                     inertiaData,
                     shipTransform,
-                    voxelOffset
+                    voxelOffset,
+                    false
                 )
                 newShips.add(newShipInGameFrameData)
             }
@@ -149,9 +176,14 @@ class VSGamePipelineStage {
 
             deletedShips.addAll(deletedShipObjects)
 
-            shipWorld.clearNewUpdatedAndDeletedShipObjects()
+            shipVoxelUpdates.forEach { (shipData, voxelUpdatesMap) ->
+                val uuid: UUID = shipData?.shipUUID ?: shipWorld.groundBodyUUID
+                gameFrameVoxelUpdatesMap[uuid] = voxelUpdatesMap.values.toList()
+            }
+
+            shipWorld.clearNewUpdatedDeletedShipObjectsAndVoxelUpdates()
         }
-        return VSGameFrame(newShips, deletedShips, updatedShips, voxelUpdatesMap)
+        return VSGameFrame(newShips, deletedShips, updatedShips, gameFrameVoxelUpdatesMap)
     }
 
     fun addShipWorld(shipWorld: ShipObjectServerWorld) {

@@ -74,11 +74,13 @@ class VSPhysicsPipelineStage {
             val maxDefined = newShipInGameFrameData.maxDefined
             val inertiaData = newShipInGameFrameData.inertiaData
             val shipTransform = newShipInGameFrameData.shipTransform
+            val isStatic = newShipInGameFrameData.isStatic
 
             val newRigidBodyReference = physicsEngine.createVoxelRigidBody(dimension, minDefined, maxDefined)
             newRigidBodyReference.inertiaData = inertiaData
             newRigidBodyReference.rigidBodyTransform = shipTransform
             newRigidBodyReference.collisionShapeOffset = newShipInGameFrameData.voxelOffset
+            newRigidBodyReference.isStatic = isStatic
 
             shipIdToRigidBodyMap[shipId] = ShipIdAndRigidBodyReference(shipId, newRigidBodyReference)
         }

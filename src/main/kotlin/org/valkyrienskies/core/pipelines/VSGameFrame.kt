@@ -5,7 +5,7 @@ import org.joml.Vector3ic
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
-import java.util.*
+import java.util.UUID
 
 /**
  * A [VSGameFrame] represents the change of state of the game that occurred over 1 tick
@@ -27,7 +27,8 @@ data class NewShipInGameFrameData(
     val maxDefined: Vector3ic,
     val inertiaData: RigidBodyInertiaData,
     val shipTransform: RigidBodyTransform,
-    val voxelOffset: Vector3dc
+    val voxelOffset: Vector3dc,
+    val isStatic: Boolean
 )
 
 data class UpdateShipInGameFrameData(

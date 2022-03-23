@@ -49,6 +49,8 @@ class ShipObjectServerWorld(
      */
     private val shipToVoxelUpdates: MutableMap<ShipData?, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
 
+    private var firstGameFrame = true
+
     /**
      * Add the update to [shipToVoxelUpdates].
      */
@@ -209,6 +211,15 @@ class ShipObjectServerWorld(
         VSPipeline.getVSPipeline().removeShipWorld(this)
     }
 
+    fun getNewGroundRigidBodyObjects(): List<UUID> {
+        return if (firstGameFrame) {
+            firstGameFrame = false
+            listOf(groundBodyUUID)
+        } else {
+            listOf()
+        }
+    }
+
     fun getNewShipObjects(): List<ShipObjectServer> {
         return newShipObjects
     }
@@ -221,9 +232,14 @@ class ShipObjectServerWorld(
         return deletedShipObjects
     }
 
-    fun clearNewUpdatedAndDeletedShipObjects() {
+    fun getShipToVoxelUpdates(): Map<ShipData?, Map<Vector3ic, IVoxelShapeUpdate>> {
+        return shipToVoxelUpdates
+    }
+
+    fun clearNewUpdatedDeletedShipObjectsAndVoxelUpdates() {
         newShipObjects.clear()
         updatedShipObjects.clear()
         deletedShipObjects.clear()
+        shipToVoxelUpdates.clear()
     }
 }
