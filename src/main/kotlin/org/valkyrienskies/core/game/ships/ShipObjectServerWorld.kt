@@ -27,6 +27,10 @@ class ShipObjectServerWorld(
     val dimension: Int
 ) : ShipObjectWorld(queryableShipData) {
 
+    init {
+        VSPipeline.getVSPipeline().addShipWorld(this)
+    }
+
     private var lastPlayersSet: Set<IPlayer> = setOf()
     private val shipObjectMap = HashMap<UUID, ShipObjectServer>()
     override val shipObjects: Map<UUID, ShipObjectServer> = shipObjectMap
