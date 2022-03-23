@@ -25,7 +25,7 @@ dependencies {
 
     // VS Physics
     api("com.github.ValkyrienSkies:Valkyrien-Skies-Physics-API:c84f1419e606de702e43d5417dd1c925bf0eefd8")
-    api("com.github.ValkyrienSkies:Valkyrien-Skies-Krunch-Physics-API:9782703dfb15e5eec490a7b2122489f01b8b35e0")
+    api("com.github.ValkyrienSkies:Valkyrien-Skies-Krunch-Physics-API:4343d4bd816779ee3a6c94a2e3f2ac4614a1d8a5")
 
     // JOML for Math
     api("org.joml:joml:1.10.0")
