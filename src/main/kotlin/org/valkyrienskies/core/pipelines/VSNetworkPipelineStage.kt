@@ -9,10 +9,13 @@ class VSNetworkPipelineStage {
      * Push a physics frame to the game stage
      */
     fun pushPhysicsFrame(physicsFrame: VSPhysicsFrame) {
+        // TODO: Implement this
+        /*
         if (physicsFramesQueue.size >= 100) {
             throw IllegalStateException("Too many physics frames in the physics frame queue. Is the game stage broken?")
         }
         physicsFramesQueue.add(physicsFrame)
+         */
     }
 
     /**

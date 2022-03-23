@@ -20,7 +20,9 @@ class VSGamePipelineStage {
      */
     fun pushPhysicsFrame(physicsFrame: VSPhysicsFrame) {
         if (physicsFramesQueue.size >= 100) {
-            throw IllegalStateException("Too many physics frames in the physics frame queue. Is the game stage broken?")
+            // throw IllegalStateException("Too many physics frames in the physics frame queue. Is the game stage broken?")
+            println("Too many physics frames in the physics frame queue. Is the game stage broken?")
+            Thread.sleep(1000L)
         }
         physicsFramesQueue.add(physicsFrame)
     }
