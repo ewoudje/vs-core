@@ -67,9 +67,10 @@ class VSGamePipelineStage {
                     if (applyTransform) {
                         val transformFromPhysics = shipInPhysicsFrameData.shipTransform
                         val voxelOffsetFromPhysics = shipInPhysicsFrameData.shipVoxelOffset
+                        val voxelOffsetFromGame =
+                            shipData.inertiaData.getCenterOfMassInShipSpace().mul(-1.0, Vector3d())
 
-                        val deltaVoxelOffset =
-                            shipData.inertiaData.getCenterOfMassInShipSpace().sub(voxelOffsetFromPhysics, Vector3d())
+                        val deltaVoxelOffset = voxelOffsetFromGame.sub(voxelOffsetFromPhysics, Vector3d())
 
                         val shipPosAccountingForVoxelOffsetDifference =
                             transformFromPhysics.position.add(deltaVoxelOffset, Vector3d())
@@ -153,7 +154,7 @@ class VSGamePipelineStage {
                     it.shipData.shipTransform.shipPositionInWorldCoordinates,
                     it.shipData.shipTransform.shipCoordinatesToWorldCoordinatesRotation
                 )
-                val voxelOffset = it.shipData.inertiaData.getCenterOfMassInShipSpace()
+                val voxelOffset = it.shipData.inertiaData.getCenterOfMassInShipSpace().mul(-1.0, Vector3d())
                 val newShipInGameFrameData = NewShipInGameFrameData(
                     uuid,
                     dimension,
@@ -169,7 +170,7 @@ class VSGamePipelineStage {
 
             updatedShipObjects.forEach {
                 val uuid = it.shipData.shipUUID
-                val newVoxelOffset = it.shipData.inertiaData.getCenterOfMassInShipSpace()
+                val newVoxelOffset = it.shipData.inertiaData.getCenterOfMassInShipSpace().mul(-1.0, Vector3d())
                 val updateShipInGameFrameData = UpdateShipInGameFrameData(uuid, newVoxelOffset)
                 updatedShips[uuid] = updateShipInGameFrameData
             }
