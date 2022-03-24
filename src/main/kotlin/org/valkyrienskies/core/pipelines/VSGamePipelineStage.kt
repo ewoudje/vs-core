@@ -2,8 +2,10 @@ package org.valkyrienskies.core.pipelines
 
 import org.joml.Quaterniond
 import org.joml.Vector3d
+import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.valkyrienskies.core.game.ships.ShipData
+import org.valkyrienskies.core.game.ships.ShipInertiaData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.game.ships.ShipTransform
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
@@ -67,8 +69,7 @@ class VSGamePipelineStage {
                     if (applyTransform) {
                         val transformFromPhysics = shipInPhysicsFrameData.shipTransform
                         val voxelOffsetFromPhysics = shipInPhysicsFrameData.shipVoxelOffset
-                        val voxelOffsetFromGame =
-                            shipData.inertiaData.getCenterOfMassInShipSpace().mul(-1.0, Vector3d())
+                        val voxelOffsetFromGame = getShipVoxelOffset(shipData.inertiaData)
 
                         val deltaVoxelOffset = voxelOffsetFromGame.sub(voxelOffsetFromPhysics, Vector3d())
 
@@ -76,7 +77,7 @@ class VSGamePipelineStage {
                             transformFromPhysics.position.add(deltaVoxelOffset, Vector3d())
                         val newShipTransform = ShipTransform.createFromCoordinatesAndRotation(
                             shipPosAccountingForVoxelOffsetDifference,
-                            shipData.inertiaData.getCenterOfMassInShipSpace(),
+                            shipData.inertiaData.getCenterOfMassInShipSpace().add(.5, .5, .5, Vector3d()),
                             transformFromPhysics.rotation
                         )
 
@@ -120,7 +121,7 @@ class VSGamePipelineStage {
                 // Set the transform to be the origin with no rotation
                 val shipTransform = RigidBodyTransform(Vector3d(), Quaterniond())
                 // No voxel offset
-                val voxelOffset = Vector3d()
+                val voxelOffset = Vector3d(.5, .5, .5)
                 val newShipInGameFrameData = NewShipInGameFrameData(
                     uuid,
                     dimension,
@@ -154,7 +155,7 @@ class VSGamePipelineStage {
                     it.shipData.shipTransform.shipPositionInWorldCoordinates,
                     it.shipData.shipTransform.shipCoordinatesToWorldCoordinatesRotation
                 )
-                val voxelOffset = it.shipData.inertiaData.getCenterOfMassInShipSpace().mul(-1.0, Vector3d())
+                val voxelOffset = getShipVoxelOffset(it.shipData.inertiaData)
                 val newShipInGameFrameData = NewShipInGameFrameData(
                     uuid,
                     dimension,
@@ -170,7 +171,7 @@ class VSGamePipelineStage {
 
             updatedShipObjects.forEach {
                 val uuid = it.shipData.shipUUID
-                val newVoxelOffset = it.shipData.inertiaData.getCenterOfMassInShipSpace().mul(-1.0, Vector3d())
+                val newVoxelOffset = getShipVoxelOffset(it.shipData.inertiaData)
                 val updateShipInGameFrameData = UpdateShipInGameFrameData(uuid, newVoxelOffset)
                 updatedShips[uuid] = updateShipInGameFrameData
             }
@@ -196,5 +197,12 @@ class VSGamePipelineStage {
 
     fun removeShipWorld(shipWorld: ShipObjectServerWorld) {
         shipWorlds.remove(shipWorld.dimension)
+    }
+
+    private companion object {
+        private fun getShipVoxelOffset(inertiaData: ShipInertiaData): Vector3dc {
+            val cm = inertiaData.getCenterOfMassInShipSpace()
+            return Vector3d(-cm.x(), -cm.y(), -cm.z())
+        }
     }
 }
