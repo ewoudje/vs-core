@@ -93,12 +93,12 @@ class VSPhysicsPipelineStage {
                 )
 
             val shipRigidBody = shipRigidBodyReferenceAndId.rigidBodyReference
+            val oldShipTransform = shipRigidBody.rigidBodyTransform
 
             val oldVoxelOffset = shipRigidBody.collisionShapeOffset
             val newVoxelOffset = shipUpdate.newVoxelOffset
-            val deltaVoxelOffset = newVoxelOffset.sub(oldVoxelOffset, Vector3d())
+            val deltaVoxelOffset = oldShipTransform.rotation.transform(newVoxelOffset.sub(oldVoxelOffset, Vector3d()))
 
-            val oldShipTransform = shipRigidBody.rigidBodyTransform
             val newShipTransform = RigidBodyTransform(
                 oldShipTransform.position.sub(deltaVoxelOffset, Vector3d()), oldShipTransform.rotation
             )

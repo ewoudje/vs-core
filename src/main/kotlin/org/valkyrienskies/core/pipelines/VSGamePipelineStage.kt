@@ -71,10 +71,12 @@ class VSGamePipelineStage {
                         val voxelOffsetFromPhysics = shipInPhysicsFrameData.shipVoxelOffset
                         val voxelOffsetFromGame = getShipVoxelOffset(shipData.inertiaData)
 
-                        val deltaVoxelOffset = voxelOffsetFromGame.sub(voxelOffsetFromPhysics, Vector3d())
+                        val deltaVoxelOffset = transformFromPhysics.rotation.transform(
+                            voxelOffsetFromGame.sub(voxelOffsetFromPhysics, Vector3d())
+                        )
 
                         val shipPosAccountingForVoxelOffsetDifference =
-                            transformFromPhysics.position.add(deltaVoxelOffset, Vector3d())
+                            transformFromPhysics.position.sub(deltaVoxelOffset, Vector3d())
                         val newShipTransform = ShipTransform.createFromCoordinatesAndRotation(
                             shipPosAccountingForVoxelOffsetDifference,
                             shipData.inertiaData.getCenterOfMassInShipSpace().add(.5, .5, .5, Vector3d()),
