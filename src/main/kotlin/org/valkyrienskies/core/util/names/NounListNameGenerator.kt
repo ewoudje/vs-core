@@ -2,7 +2,6 @@ package org.valkyrienskies.core.util.names
 
 import java.util.concurrent.ThreadLocalRandom
 import java.util.stream.Collectors
-import kotlin.streams.toList
 
 /**
  * Generates names from a noun list
@@ -16,7 +15,7 @@ object NounListNameGenerator : NameGenerator {
         .getResourceAsStream("nounlist.txt")!!
         .bufferedReader()
         .lines()
-        .toList()
+        .collect(Collectors.toList()) // This doesn't use `.toList()` because it breaks java 8 support
 
     override fun generateName(): String {
         return this.generateName(DEFAULT_NOUNS_PER_NAME)
