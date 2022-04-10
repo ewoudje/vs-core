@@ -19,6 +19,9 @@ repositories {
 }
 
 dependencies {
+    // Kotlin
+    implementation(kotlin("stdlib-jdk8"))
+
     val jacksonVersion = "2.12.1"
     val nettyVersion = "4.1.25.Final"
 
