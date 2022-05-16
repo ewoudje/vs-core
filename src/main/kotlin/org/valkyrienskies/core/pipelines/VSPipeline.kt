@@ -64,6 +64,10 @@ class VSPipeline private constructor() {
         return true
     }
 
+    fun computePhysTps(): Double {
+        return physicsPipelineBackgroundTask.computePhysicsTPS()
+    }
+
     companion object {
         private var INSTANCE: VSPipeline? = null
 
