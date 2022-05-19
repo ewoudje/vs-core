@@ -105,6 +105,7 @@ class VSPhysicsPipelineStage {
 
             shipRigidBody.collisionShapeOffset = newVoxelOffset
             shipRigidBody.rigidBodyTransform = newShipTransform
+            shipRigidBody.inertiaData = shipUpdate.inertiaData
         }
 
         // Send voxel updates

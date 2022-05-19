@@ -33,5 +33,6 @@ data class NewShipInGameFrameData(
 
 data class UpdateShipInGameFrameData(
     val uuid: UUID,
-    val newVoxelOffset: Vector3dc
+    val newVoxelOffset: Vector3dc,
+    val inertiaData: RigidBodyInertiaData
 )
