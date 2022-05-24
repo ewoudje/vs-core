@@ -7,7 +7,7 @@ import java.util.UUID
  * Manages all the [ShipObject]s in a world.
  */
 abstract class ShipObjectWorld(
-    open val queryableShipData: QueryableShipDataClient,
+    open val queryableShipData: QueryableShipDataCommon,
 ) {
 
     abstract val shipObjects: Map<UUID, ShipObject>

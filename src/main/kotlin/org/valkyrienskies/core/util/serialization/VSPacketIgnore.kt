@@ -12,5 +12,5 @@ package org.valkyrienskies.core.util.serialization
     AnnotationTarget.CONSTRUCTOR,
     AnnotationTarget.FIELD
 )
-@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.RUNTIME)
 annotation class VSPacketIgnore
