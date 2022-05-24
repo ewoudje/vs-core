@@ -181,8 +181,8 @@ class VSGamePipelineStage {
 
             deletedShips.addAll(deletedShipObjects)
 
-            shipVoxelUpdates.forEach { (shipData, voxelUpdatesMap) ->
-                val uuid: UUID = shipData?.shipUUID ?: shipWorld.groundBodyUUID
+            shipVoxelUpdates.forEach { (shipUUID, voxelUpdatesMap) ->
+                val uuid: UUID = shipUUID ?: shipWorld.groundBodyUUID
                 gameFrameVoxelUpdatesMap[uuid] = voxelUpdatesMap.values.toList()
             }
 
@@ -209,13 +209,15 @@ class VSGamePipelineStage {
         }
 
         private fun getRigidBodyInertiaData(shipInertiaData: ShipInertiaData): RigidBodyInertiaData {
-            val inertiaTensorMatrix = shipInertiaData.getMomentOfInertiaTensor()
+            val invMass = 1.0 / shipInertiaData.getShipMass()
+            if (!invMass.isFinite())
+                throw IllegalStateException("invMass is not finite!")
 
-            val invInertiaMatrix = inertiaTensorMatrix.invert(Matrix3d())
+            val invInertiaMatrix = shipInertiaData.getMomentOfInertiaTensor().invert(Matrix3d())
             if (!invInertiaMatrix.isFinite)
                 throw IllegalStateException("invInertiaMatrix is not finite!")
 
-            return RigidBodyInertiaData(1.0 / shipInertiaData.getShipMass(), invInertiaMatrix)
+            return RigidBodyInertiaData(invMass, invInertiaMatrix)
         }
     }
 }

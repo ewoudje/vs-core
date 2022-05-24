@@ -48,41 +48,39 @@ data class ShipInertiaData(
 
         val gameTickMass: Double = getShipMass()
         val prevCenterOfMass = Vector3d(getCenterOfMassInShipSpace())
-        if (gameTickMass > EPSILON) {
+        if (gameTickMass + addedMass > EPSILON) {
             val newCenterOfMass: Vector3d = getCenterOfMassInShipSpace().mul(gameTickMass, Vector3d())
             newCenterOfMass.add(x * addedMass, y * addedMass, z * addedMass)
             newCenterOfMass.mul(1.0 / (gameTickMass + addedMass))
             centerOfMassInShipSpace.set(newCenterOfMass)
+
+            // This code is pretty awful in hindsight, but it gets the job done.
+            val cmShiftX: Double = prevCenterOfMass.x - getCenterOfMassInShipSpace().x()
+            val cmShiftY: Double = prevCenterOfMass.y - getCenterOfMassInShipSpace().y()
+            val cmShiftZ: Double = prevCenterOfMass.z - getCenterOfMassInShipSpace().z()
+            val rx: Double = x - getCenterOfMassInShipSpace().x()
+            val ry: Double = y - getCenterOfMassInShipSpace().y()
+            val rz: Double = z - getCenterOfMassInShipSpace().z()
+            gameMoITensor[0] = gameMoITensor[0] + (cmShiftY * cmShiftY + cmShiftZ * cmShiftZ) * gameTickMass +
+                (ry * ry + rz * rz) * addedMass
+            gameMoITensor[1] = gameMoITensor[1] - cmShiftX * cmShiftY * gameTickMass - rx * ry * addedMass
+            gameMoITensor[2] = gameMoITensor[2] - cmShiftX * cmShiftZ * gameTickMass - rx * rz * addedMass
+            gameMoITensor[3] = gameMoITensor[1]
+            gameMoITensor[4] = gameMoITensor[4] + (cmShiftX * cmShiftX + cmShiftZ * cmShiftZ) * gameTickMass +
+                (rx * rx + rz * rz) * addedMass
+            gameMoITensor[5] = gameMoITensor[5] - cmShiftY * cmShiftZ * gameTickMass - ry * rz * addedMass
+            gameMoITensor[6] = gameMoITensor[2]
+            gameMoITensor[7] = gameMoITensor[5]
+            gameMoITensor[8] = gameMoITensor[8] + (cmShiftX * cmShiftX + cmShiftY * cmShiftY) * gameTickMass +
+                (rx * rx + ry * ry) * addedMass
+            momentOfInertiaTensor.set(gameMoITensor).transpose()
+
+            shipMass += addedMass
         } else {
+            // We have 0 mass, reset mass and moment of inertia to 0
             centerOfMassInShipSpace.set(x, y, z)
             momentOfInertiaTensor.zero()
-        }
-
-        // This code is pretty awful in hindsight, but it gets the job done.
-        val cmShiftX: Double = prevCenterOfMass.x - getCenterOfMassInShipSpace().x()
-        val cmShiftY: Double = prevCenterOfMass.y - getCenterOfMassInShipSpace().y()
-        val cmShiftZ: Double = prevCenterOfMass.z - getCenterOfMassInShipSpace().z()
-        val rx: Double = x - getCenterOfMassInShipSpace().x()
-        val ry: Double = y - getCenterOfMassInShipSpace().y()
-        val rz: Double = z - getCenterOfMassInShipSpace().z()
-        gameMoITensor[0] = gameMoITensor[0] + (cmShiftY * cmShiftY + cmShiftZ * cmShiftZ) * gameTickMass +
-            (ry * ry + rz * rz) * addedMass
-        gameMoITensor[1] = gameMoITensor[1] - cmShiftX * cmShiftY * gameTickMass - rx * ry * addedMass
-        gameMoITensor[2] = gameMoITensor[2] - cmShiftX * cmShiftZ * gameTickMass - rx * rz * addedMass
-        gameMoITensor[3] = gameMoITensor[1]
-        gameMoITensor[4] = gameMoITensor[4] + (cmShiftX * cmShiftX + cmShiftZ * cmShiftZ) * gameTickMass +
-            (rx * rx + rz * rz) * addedMass
-        gameMoITensor[5] = gameMoITensor[5] - cmShiftY * cmShiftZ * gameTickMass - ry * rz * addedMass
-        gameMoITensor[6] = gameMoITensor[2]
-        gameMoITensor[7] = gameMoITensor[5]
-        gameMoITensor[8] = gameMoITensor[8] + (cmShiftX * cmShiftX + cmShiftY * cmShiftY) * gameTickMass +
-            (rx * rx + ry * ry) * addedMass
-        momentOfInertiaTensor.set(gameMoITensor).transpose()
-
-        // Do this to avoid a mass of zero, which runs the risk of dividing by zero and
-        // crashing the program.
-        if (getShipMass() + addedMass > EPSILON) {
-            shipMass += addedMass
+            shipMass = 0.0
         }
     }
 

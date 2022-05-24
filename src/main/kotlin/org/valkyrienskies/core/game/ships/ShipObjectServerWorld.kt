@@ -33,7 +33,8 @@ class ShipObjectServerWorld(
 
     private var lastPlayersSet: Set<IPlayer> = setOf()
     private val shipObjectMap = HashMap<UUID, ShipObjectServer>()
-    override val shipObjects: Map<UUID, ShipObjectServer> = shipObjectMap
+    // Explicitly make [shipObjects] a MutableMap so that we can use Iterator::remove()
+    override val shipObjects: MutableMap<UUID, ShipObjectServer> = shipObjectMap
     val groundBodyUUID: UUID = UUID.randomUUID() // The UUID used when sending voxel updates for the ground shape
 
     // These fields are used to generate [VSGameFrame]
@@ -47,7 +48,7 @@ class ShipObjectServerWorld(
      * These updates will be sent to the physics engine, however they are not applied immediately. The physics engine
      * has full control of when the updates are applied.
      */
-    private val shipToVoxelUpdates: MutableMap<ShipData?, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
+    private val shipToVoxelUpdates: MutableMap<UUID?, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
 
     private var firstGameFrame = true
 
@@ -65,7 +66,7 @@ class ShipObjectServerWorld(
 
             val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
 
-            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData) { HashMap() }
+            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData?.shipUUID) { HashMap() }
 
             val voxelShapeUpdate =
                 voxelUpdates.getOrPut(chunkPos) { SparseVoxelShapeUpdate.createSparseVoxelShapeUpdate(chunkPos) }
@@ -98,6 +99,19 @@ class ShipObjectServerWorld(
     }
 
     fun tickShips(newLoadedChunks: List<IVoxelShapeUpdate>) {
+        val it = shipObjects.iterator()
+        while (it.hasNext()) {
+            val shipObjectServer = it.next().value
+            if (shipObjectServer.shipData.inertiaData.getShipMass() < 1e-8) {
+                // Delete this ship
+                deletedShipObjects.add(shipObjectServer.shipData.shipUUID)
+                queryableShipData.removeShipData(shipObjectServer.shipData)
+                shipToVoxelUpdates.remove(shipObjectServer.shipData.shipUUID)
+                it.remove()
+            }
+        }
+
+        // For now just update very ship object every tick
         shipObjects.forEach { (_, shipObjectServer) ->
             updatedShipObjects.add(shipObjectServer)
         }
@@ -116,7 +130,7 @@ class ShipObjectServerWorld(
         for (newLoadedChunk in newLoadedChunks) {
             val chunkPos: Vector3ic = Vector3i(newLoadedChunk.regionX, newLoadedChunk.regionY, newLoadedChunk.regionZ)
             val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
-            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData) { HashMap() }
+            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData?.shipUUID) { HashMap() }
             voxelUpdates[chunkPos] = newLoadedChunk
         }
         // endregion
@@ -232,7 +246,7 @@ class ShipObjectServerWorld(
         return deletedShipObjects
     }
 
-    fun getShipToVoxelUpdates(): Map<ShipData?, Map<Vector3ic, IVoxelShapeUpdate>> {
+    fun getShipToVoxelUpdates(): Map<UUID?, Map<Vector3ic, IVoxelShapeUpdate>> {
         return shipToVoxelUpdates
     }
 
