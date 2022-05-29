@@ -2,15 +2,19 @@ package org.valkyrienskies.core.collision
 
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
-import org.valkyrienskies.core.util.horizontalLengthSq
-import java.util.ArrayList
+import org.valkyrienskies.core.util.horizontalLength
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.sign
 
 object EntityPolygonCollider {
 
-    private val UNIT_NORMALS =
-        arrayOf<Vector3dc>(Vector3d(1.0, 0.0, 0.0), Vector3d(0.0, 1.0, 0.0), Vector3d(0.0, 0.0, 1.0))
+    private val X_NORMAL: Vector3dc = Vector3d(1.0, 0.0, 0.0)
+    private val Y_NORMAL: Vector3dc = Vector3d(0.0, 1.0, 0.0)
+    private val Z_NORMAL: Vector3dc = Vector3d(0.0, 0.0, 1.0)
+    private val UNIT_NORMALS = arrayOf(X_NORMAL, Y_NORMAL, Z_NORMAL)
 
     /**
      * @return [movement] modified such that the entity is colliding with [collidingPolygons]
@@ -23,69 +27,7 @@ object EntityPolygonCollider {
     ): Vector3dc {
         val originalMovement: Vector3dc = movement
 
-        // Compute the collision response assuming the entity can't step
-        val collisionResponseAssumingNoStep: Vector3dc =
-            adjustMovementComponentWise(entityBoundingBox, originalMovement, collidingPolygons)
-
-        // If [entityStepHeight] is 0 then it can't step
-        if (entityStepHeight == 0.0) {
-            return collisionResponseAssumingNoStep
-        }
-
-        // If the entity is not moving horizontally then it can't step
-        if (movement.horizontalLengthSq() < 1e-4) {
-            return collisionResponseAssumingNoStep
-        }
-
-        // Determine if the entity is standing on the polygons
-        val isEntityStandingOnPolygons =
-            isEntityStandingOnPolygons(
-                TransformedCuboidPolygon.createFromAABB(entityBoundingBox, null), originalMovement, collidingPolygons
-            )
-
-        // If the entity is not standing on the polygons then it can't step
-        if (!isEntityStandingOnPolygons) {
-            return collisionResponseAssumingNoStep
-        }
-
-        // Compute the collision response assuming the entity can step
-        val collisionResponseAssumingFullStep =
-            adjustMovementComponentWise(
-                entityBoundingBox,
-                Vector3d(originalMovement.x(), entityStepHeight, originalMovement.z()),
-                collidingPolygons
-            )
-
-        val originalMovementSpeedSq = originalMovement.horizontalLengthSq()
-
-        val collisionResponseAssumingNoStepHorizontalSpeedSq = collisionResponseAssumingNoStep.horizontalLengthSq()
-
-        val collisionResponseAssumingFullStepHorizontalSpeedSq = collisionResponseAssumingFullStep.horizontalLengthSq()
-
-        // Only choose [collisionResponseAssumingFullStep] if it has a larger horizontal speed than [collisionResponseAssumingNoStep]
-        if (collisionResponseAssumingFullStepHorizontalSpeedSq >= collisionResponseAssumingNoStepHorizontalSpeedSq &&
-            collisionResponseAssumingFullStepHorizontalSpeedSq >= originalMovementSpeedSq
-        ) {
-            // Now that we've chosen [collisionResponseAssumingFullStep], move the entity downwards such that it is still on the ground
-            val entityAfterSteppingFullyPolygon: ConvexPolygonc =
-                TransformedCuboidPolygon.createFromAABB(
-                    entityBoundingBox.translate(
-                        collisionResponseAssumingFullStep.x(), collisionResponseAssumingFullStep.y(),
-                        collisionResponseAssumingFullStep.z(), AABBd()
-                    ),
-                    null
-                )
-            val fixStepUpResponse = adjustMovement(
-                entityAfterSteppingFullyPolygon,
-                Vector3d(0.0, originalMovement.y() - collisionResponseAssumingFullStep.y(), 0.0),
-                collidingPolygons, UNIT_NORMALS[1]
-            )
-
-            return fixStepUpResponse.add(collisionResponseAssumingFullStep, Vector3d())
-        } else {
-            // [collisionResponseAssumingNoStep] had a larger horizontal speed, so we choose it instead of [collisionResponseAssumingFullStep]
-            return collisionResponseAssumingNoStep
-        }
+        return adjustMovementComponentWise(entityBoundingBox, originalMovement, collidingPolygons)
     }
 
     /**
@@ -96,80 +38,32 @@ object EntityPolygonCollider {
     ): Vector3dc {
         val entityPolygon: ConvexPolygonc = TransformedCuboidPolygon.createFromAABB(entityBoundingBox, null)
 
-        // First collide along the y-axis
-        val yOnlyResponse = adjustMovement(
-            entityPolygon, Vector3d(0.0, entityVelocity.y(), 0.0), collidingPolygons, UNIT_NORMALS[1]
+        // Try moving horizontally
+        val horizontalResponse = handleHorizontalCollisions(
+            entityPolygon, entityVelocity, collidingPolygons, 45.0
         )
 
         entityPolygon.points.forEach {
-            it as Vector3d
-            it.add(yOnlyResponse)
+             it as Vector3d
+             it.add(horizontalResponse.x(), 0.0, horizontalResponse.z())
         }
 
-        // Then collide along the x-axis
-        val horizontalResponse = adjustMovement(
-            entityPolygon, Vector3d(entityVelocity.x(), 0.0, entityVelocity.z()), collidingPolygons
+        val newEntityVelocity = Vector3d(0.0, entityVelocity.y(), 0.0)
+
+        // Try moving vertically
+        val yOnlyResponse = adjustMovementAlongOneAxis(
+            entityPolygon, Vector3d(newEntityVelocity), collidingPolygons, UNIT_NORMALS[1], 45.0
         )
 
-        return Vector3d(horizontalResponse.x(), yOnlyResponse.y() + horizontalResponse.y(), horizontalResponse.z())
+        return Vector3d(horizontalResponse.x() + yOnlyResponse.x(), yOnlyResponse.y(), horizontalResponse.z() + yOnlyResponse.z())
     }
 
     /**
-     * @return True if and only if [entityPolygon] is standing on [collidingPolygons].
+     * Put the player back on the ground, or at least try to...
      */
-    private fun isEntityStandingOnPolygons(
-        entityPolygon: ConvexPolygonc, entityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>
-    ): Boolean {
-        val collisionResult = CollisionResult.create()
-
-        // region declare temp objects
-        val temp1 = CollisionRange.create()
-        val temp2 = CollisionRange.create()
-        val temp3 = Vector3d()
-        // endregion
-
-        for (shipPolygon in collidingPolygons) {
-            val normals: MutableList<Vector3dc> = ArrayList()
-
-            for (normal in UNIT_NORMALS) normals.add(normal)
-            for (normal in shipPolygon.normals) {
-                normals.add(normal)
-                for (unitNormal in UNIT_NORMALS) {
-                    val crossProduct: Vector3dc = normal.cross(unitNormal, Vector3d()).normalize()
-                    if (crossProduct.lengthSquared() > 1.0e-6) {
-                        normals.add(crossProduct)
-                    }
-                }
-            }
-
-            SATConvexPolygonCollider.checkIfColliding(
-                entityPolygon,
-                shipPolygon,
-                entityVelocity,
-                normals.iterator(),
-                collisionResult,
-                temp1,
-                temp2
-            )
-            if (collisionResult.colliding) {
-                // Compute the response that pushes the player out of this polygon
-                val collisionResponse: Vector3dc = collisionResult.getCollisionResponse(temp3)
-
-                if (Math.toDegrees(collisionResponse.angle(UNIT_NORMALS[1])) < 30) {
-                    // If this response is less than 30 degrees from the Y normal then this entity is standing on [collidingPolygons]
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
-    /**
-     * @return [entityVelocity] modified such that the entity is colliding with [collidingPolygons]. If [forcedResponseNormal] != null then the collision response will be parallel to [forcedResponseNormal].
-     */
-    private fun adjustMovement(
+    private fun adjustMovementAlongOneAxis(
         entityPolygon: ConvexPolygonc, entityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>,
-        forcedResponseNormal: Vector3dc? = null
+        forcedResponseNormal: Vector3dc, forceResponseAngle: Double
     ): Vector3dc {
         val newEntityVelocity = Vector3d(entityVelocity)
         val collisionResult = CollisionResult.create()
@@ -177,7 +71,6 @@ object EntityPolygonCollider {
         // region declare temp objects
         val temp1 = CollisionRange.create()
         val temp2 = CollisionRange.create()
-        val temp3 = Vector3d()
         // endregion
 
         for (shipPolygon in collidingPolygons) {
@@ -204,27 +97,103 @@ object EntityPolygonCollider {
                 temp2
             )
             if (collisionResult.colliding) {
-                // Compute the response that pushes the entity out of this polygon
-                val collisionResponse: Vector3dc =
-                    if (forcedResponseNormal != null) {
-                        SATConvexPolygonCollider.checkIfColliding(
-                            entityPolygon,
-                            shipPolygon,
-                            newEntityVelocity,
-                            normals.iterator(),
-                            collisionResult,
-                            temp1,
-                            temp2,
-                            forcedResponseNormal
-                        )
-                        collisionResult.getCollisionResponse(temp3)
-                    } else {
-                        collisionResult.getCollisionResponse(temp3)
-                    }
+                val forcedCollisionAxisResult = CollisionResult.create()
+                // If we can force the response, then force the response
+                SATConvexPolygonCollider.checkIfColliding(
+                    entityPolygon,
+                    shipPolygon,
+                    newEntityVelocity,
+                    normals.iterator(),
+                    forcedCollisionAxisResult,
+                    CollisionRange.create(),
+                    CollisionRange.create(),
+                    forcedResponseNormal
+                )
 
-                newEntityVelocity.add(collisionResponse)
+                val forcedUpResponse = forcedCollisionAxisResult.getCollisionResponse(Vector3d())
+
+                applyResponse(newEntityVelocity, forcedUpResponse)
+            }
+        }
+
+        return newEntityVelocity
+    }
+
+    private fun handleHorizontalCollisions(
+        entityPolygon: ConvexPolygonc, entityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>,
+        maxSlopeClimbAngle: Double
+    ): Vector3dc {
+        val newEntityVelocity = Vector3d(entityVelocity)
+        val collisionResult = CollisionResult.create()
+
+        // The maximum y velocity we can add to climb up slopes
+        val maxStep = max(entityVelocity.horizontalLength() * cos(Math.toRadians(maxSlopeClimbAngle)), 1e-2)
+
+        for (shipPolygon in collidingPolygons) {
+            val normals: MutableList<Vector3dc> = ArrayList()
+
+            for (normal in UNIT_NORMALS) normals.add(normal)
+            for (normal in shipPolygon.normals) {
+                normals.add(normal)
+                for (unitNormal in UNIT_NORMALS) {
+                    val crossProduct: Vector3dc = normal.cross(unitNormal, Vector3d()).normalize()
+                    if (crossProduct.lengthSquared() > 1.0e-6) {
+                        normals.add(crossProduct)
+                    }
+                }
+            }
+
+            SATConvexPolygonCollider.checkIfColliding(
+                entityPolygon,
+                shipPolygon,
+                newEntityVelocity,
+                normals.iterator(),
+                collisionResult,
+                CollisionRange.create(),
+                CollisionRange.create()
+            )
+            if (collisionResult.colliding) {
+                // Compute the response that pushes the entity out of this polygon
+                val collisionResponse: Vector3dc = collisionResult.getCollisionResponse(Vector3d())
+
+
+                val forcedYCollisionResult = CollisionResult.create()
+                SATConvexPolygonCollider.checkIfColliding(
+                    entityPolygon,
+                    shipPolygon,
+                    newEntityVelocity,
+                    normals.iterator(),
+                    forcedYCollisionResult,
+                    CollisionRange.create(),
+                    CollisionRange.create(),
+                    Y_NORMAL
+                )
+
+                val forcedYCollisionResponse = forcedYCollisionResult.getCollisionResponse(Vector3d())
+
+                val newNewVel = Vector3d(newEntityVelocity) // The new velocity IF we apply forcedYCollisionResponse
+                applyResponse(newNewVel, forcedYCollisionResponse)
+                // Only climb slopes if forcedYCollisionResponse.y() is >= than 0
+                if (forcedYCollisionResponse.y() >= 0 && newNewVel.y() < maxStep) {
+                    applyResponse(newEntityVelocity, forcedYCollisionResponse)
+                } else {
+                    applyResponse(newEntityVelocity, collisionResponse)
+                }
             }
         }
         return newEntityVelocity
+    }
+
+    private fun applyResponse(velocity: Vector3d, response: Vector3dc) {
+        velocity.x = applyResponseOneAxis(velocity.x(), response.x())
+        velocity.y = applyResponseOneAxis(velocity.y(), response.y())
+        velocity.z = applyResponseOneAxis(velocity.z(), response.z())
+    }
+
+    private fun applyResponseOneAxis(vel: Double, response: Double): Double {
+        return if (sign(vel) == sign(response))
+            sign(response) * max(abs(vel), abs(response))
+        else
+            vel + response
     }
 }
