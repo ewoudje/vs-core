@@ -84,6 +84,8 @@ object SATConvexPolygonCollider : ConvexPolygonCollider {
                     maxTimeToCollision = timeToImpactResponse
                     result._collisionAxis.set(normal)
                     result._timeToCollision = maxTimeToCollision
+                    // Stop looping if we will never collide with the other polygon
+                    if (timeToImpactResponse == Double.POSITIVE_INFINITY) break
                 }
             }
         }
