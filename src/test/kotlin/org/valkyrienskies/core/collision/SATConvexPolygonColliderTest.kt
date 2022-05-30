@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 
 internal class SATConvexPolygonColliderTest {
 
@@ -74,6 +75,140 @@ internal class SATConvexPolygonColliderTest {
         )
 
         assertEquals(0.2, collisionResponse, EPSILON)
+    }
+
+    @Test
+    fun testComputeTimeToCollisionAlongNormal() {
+        val firstPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 2.0, 0.0, 1.0, 3.0, 1.0))
+        val secondPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 0.0, 0.0, 1.0, 1.0, 1.0))
+        val normal: Vector3dc = Vector3d(0.0, 1.0, 0.0)
+        val temp1: CollisionRange = CollisionRange.create()
+        val temp2: CollisionRange = CollisionRange.create()
+        val firstPolygonVelocity = Vector3d(0.0, -2.0, 0.0)
+
+        val timeToCollision = SATConvexPolygonCollider.computeTimeToCollisionAlongNormal(
+            firstPolygon, secondPolygon, firstPolygonVelocity, normal, temp1, temp2
+        )
+
+        assertEquals(0.5, timeToCollision, EPSILON)
+    }
+
+    @Test
+    fun testComputeTimeToCollisionAlongNormal2() {
+        val firstPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 1.0, 0.0, 1.0, 2.0, 1.0))
+        val secondPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 0.0, 0.0, 1.0, 1.0, 1.0))
+        val normal: Vector3dc = Vector3d(0.0, 1.0, 0.0)
+        val temp1: CollisionRange = CollisionRange.create()
+        val temp2: CollisionRange = CollisionRange.create()
+        val firstPolygonVelocity = Vector3d(0.0, -2.0, 0.0)
+
+        val timeToCollision = SATConvexPolygonCollider.computeTimeToCollisionAlongNormal(
+            firstPolygon, secondPolygon, firstPolygonVelocity, normal, temp1, temp2
+        )
+
+        assertEquals(0.0, timeToCollision)
+    }
+
+    @Test
+    fun testComputeTimeToCollisionAlongNormal3() {
+        val firstPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 2.0, 0.0, 1.0, 3.0, 1.0))
+        val secondPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 0.0, 0.0, 1.0, 1.0, 1.0))
+        val normal: Vector3dc = Vector3d(0.0, 1.0, 0.0)
+        val temp1: CollisionRange = CollisionRange.create()
+        val temp2: CollisionRange = CollisionRange.create()
+        val firstPolygonVelocity = Vector3d(0.0, 2.0, 0.0)
+
+        val timeToCollision = SATConvexPolygonCollider.computeTimeToCollisionAlongNormal(
+            firstPolygon, secondPolygon, firstPolygonVelocity, normal, temp1, temp2
+        )
+
+        assertEquals(Double.POSITIVE_INFINITY, timeToCollision)
+    }
+
+    @Test
+    fun testTimeToCollision() {
+        // The optimal collision response is to move firstPolygon by (0, -0.1, 0)
+        val firstPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 2.0, 0.0, 1.0, 3.0, 1.0))
+        val secondPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 0.9, 0.0, 1.0, 1.0, 1.0))
+        val normals: List<Vector3dc> = listOf(Vector3d(1.0, 0.0, 0.0), Vector3d(0.0, 1.0, 0.0), Vector3d(0.0, 0.0, 1.0))
+
+        val firstPolyVel = Vector3d(0.0, -2.0, 0.0)
+
+        val collisionResult = SATConvexPolygonCollider.timeToCollision(
+            firstPolygon, secondPolygon, firstPolyVel, normals.iterator()
+        )
+
+        assertFalse(collisionResult.colliding)
+        assertEquals(Vector3d(0.0, 1.0, 0.0), collisionResult.collisionAxis)
+        assertEquals(0.5, collisionResult.timeToCollision, EPSILON)
+    }
+
+    @Test
+    fun testTimeToCollision2() {
+        // The optimal collision response is to move firstPolygon by (0, -0.1, 0)
+        val firstPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 2.0, 0.0, 1.0, 3.0, 1.0))
+        val secondPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 0.9, 0.0, 1.0, 1.0, 1.0))
+        val normals: List<Vector3dc> = listOf(Vector3d(1.0, 0.0, 0.0), Vector3d(0.0, 1.0, 0.0), Vector3d(0.0, 0.0, 1.0))
+
+        val firstPolyVel = Vector3d(0.0, -1.0, 0.0)
+
+        val collisionResult = SATConvexPolygonCollider.timeToCollision(
+            firstPolygon, secondPolygon, firstPolyVel, normals.iterator()
+        )
+
+        assertFalse(collisionResult.colliding)
+        assertEquals(Vector3d(0.0, 1.0, 0.0), collisionResult.collisionAxis)
+        assertEquals(1.0, collisionResult.timeToCollision, EPSILON)
+    }
+
+    @Test
+    fun testTimeToCollision3() {
+        // The optimal collision response is to move firstPolygon by (0, -0.1, 0)
+        val firstPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 2.0, 0.0, 1.0, 3.0, 1.0))
+        val secondPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 0.9, 0.0, 1.0, 1.0, 1.0))
+        val normals: List<Vector3dc> = listOf(Vector3d(1.0, 0.0, 0.0), Vector3d(0.0, 1.0, 0.0), Vector3d(0.0, 0.0, 1.0))
+
+        val firstPolyVel = Vector3d(0.0, 1.0, 0.0)
+
+        val collisionResult = SATConvexPolygonCollider.timeToCollision(
+            firstPolygon, secondPolygon, firstPolyVel, normals.iterator()
+        )
+
+        assertFalse(collisionResult.colliding)
+        assertThrows<NeverCollidingException> { collisionResult.collisionAxis }
+        assertEquals(Double.POSITIVE_INFINITY, collisionResult.timeToCollision)
+    }
+
+    @Test
+    fun testTimeToCollision4() {
+        // The optimal collision response is to move firstPolygon by (0, -0.1, 0)
+        val firstPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 0.95, 0.0, 1.0, 1.95, 1.0))
+        val secondPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 0.9, 0.0, 1.0, 1.0, 1.0))
+        val normals: List<Vector3dc> = listOf(Vector3d(1.0, 0.0, 0.0), Vector3d(0.0, 1.0, 0.0), Vector3d(0.0, 0.0, 1.0))
+
+        val firstPolyVel = Vector3d(0.0, -2.0, 0.0)
+
+        val collisionResult = SATConvexPolygonCollider.timeToCollision(
+            firstPolygon, secondPolygon, firstPolyVel, normals.iterator()
+        )
+
+        assertTrue(collisionResult.colliding)
+        assertThrows<CollidingException> { collisionResult.collisionAxis }
+        assertThrows<CollidingException> { collisionResult.timeToCollision }
     }
 
     companion object {

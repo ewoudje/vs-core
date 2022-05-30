@@ -61,10 +61,10 @@ interface CollisionRangec {
 
                 // Compute time before pushRight is > 0 or pushLeft < 0
                 if (collisionRange1Velocity > 0) {
-                    if (pushLeft >= 0) pushLeft / collisionRange1Velocity
+                    if (pushLeft >= 0) abs(pushLeft / collisionRange1Velocity) // Add abs() so we don't return -0.0
                     else Double.POSITIVE_INFINITY
                 } else {
-                    if (pushRight <= 0) pushRight / collisionRange1Velocity
+                    if (pushRight <= 0) abs(pushRight / collisionRange1Velocity) // Add abs() so we don't return -0.0
                     else Double.POSITIVE_INFINITY
                 }
             } else {

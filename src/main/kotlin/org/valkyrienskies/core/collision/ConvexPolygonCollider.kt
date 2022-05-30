@@ -23,4 +23,11 @@ interface ConvexPolygonCollider {
         temp2: CollisionRange,
         forcedResponseNormal: Vector3dc? = null
     )
+
+    fun timeToCollision(
+        firstPolygon: ConvexPolygonc,
+        secondPolygon: ConvexPolygonc,
+        firstPolygonVelocity: Vector3dc,
+        normals: Iterator<Vector3dc>,
+    ): CollisionResultTimeToCollision
 }
