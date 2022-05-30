@@ -12,14 +12,16 @@ interface CollisionResultTimeToCollisionc {
     val colliding: Boolean
 
     /**
-     * Accessing this will throw a [NotCollidingException] when [colliding] is false.
+     * Accessing this when [colliding] is true will throw a [CollidingException].
      *
-     * @return the normal with the smallest overlap
+     * Also, access this when [timeToCollision] is [Double.POSITIVE_INFINITY] will throw a [NeverCollidingException].
+     *
+     * @return the normal with the largest time to collision
      */
     val collisionAxis: Vector3dc
 
     /**
-     * Accessing this will throw a [NotCollidingException] when [colliding] is false.
+     * Accessing this when [colliding] is true will throw a [CollidingException].
      *
      * @return the time to collision
      */
