@@ -14,6 +14,10 @@ repositories {
     maven {
         name = "VS Maven"
         url = uri(vs_maven_url)
+        content {
+            // this repository *only* contains artifacts with group "org.valkyrienskies"
+            includeGroup("org.valkyrienskies")
+        }
     }
 }
 
