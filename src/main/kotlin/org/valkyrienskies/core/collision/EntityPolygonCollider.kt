@@ -69,7 +69,13 @@ object EntityPolygonCollider {
     ): Vector3dc {
         if (maxSlopeClimbAngle < 0 || maxSlopeClimbAngle > 90)
             throw IllegalArgumentException("Argument maxSlopeClimbAngle must be between 0 and 90 inclusive!")
-        val tanMaxSlopeClimbAngle = tan(Math.toRadians(maxSlopeClimbAngle))
+
+        // The max amount of y movement we will add to allow the player to climb slopes
+        val maxAddedYVel = max(
+            // Let the player move up at least a tiny amount to handle numerical errors
+            (entityAABB.maxY() - entityAABB.minY()) / 1e4,
+            tan(Math.toRadians(maxSlopeClimbAngle)) * initialEntityVelocity.horizontalLength()
+        )
 
         val feetAABB = createFeetAABB(entityAABB)
 
@@ -121,11 +127,6 @@ object EntityPolygonCollider {
                     val forcedYResponse: Vector3dc = forcedYColResult.getCollisionResponse(Vector3d())
                     val velWithResponseApplied = Vector3d(newEntityVelocity)
                     applyResponse(velWithResponseApplied, forcedYResponse)
-
-                    val maxAddedYVel = max(
-                        0.0,
-                        tanMaxSlopeClimbAngle * initialEntityVelocity.horizontalLength()
-                    )
 
                     if (abs(velWithResponseApplied.y()) < 1e-8) {
                         // Force small values of y velocity to be 0 to handle numerical error
