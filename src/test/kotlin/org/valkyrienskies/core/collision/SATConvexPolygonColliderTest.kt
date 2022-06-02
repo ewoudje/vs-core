@@ -224,7 +224,12 @@ internal class SATConvexPolygonColliderTest {
         val checkIfCollidingResult = CollisionResult.create()
 
         SATConvexPolygonCollider.checkIfColliding(
-            firstPolygon, secondPolygon, normals.iterator(), checkIfCollidingResult, CollisionRange.create(), CollisionRange.create()
+            firstPolygon,
+            secondPolygon,
+            normals.iterator(),
+            checkIfCollidingResult,
+            CollisionRange.create(),
+            CollisionRange.create()
         )
 
         assertFalse(timeToCollisionResult.initiallyColliding)

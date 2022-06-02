@@ -12,22 +12,32 @@ internal class CollisionRangecTest {
 
         run {
             val playerVelocity = 1.0
-            assertEquals(1.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                1.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
 
         run {
             val playerVelocity = 2.0
-            assertEquals(0.5, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                0.5, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
 
         run {
             val playerVelocity = -1.0
-            assertEquals(Double.POSITIVE_INFINITY, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                Double.POSITIVE_INFINITY,
+                CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
 
         run {
             val playerVelocity = 1e-30
-            assertEquals(Double.POSITIVE_INFINITY, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                Double.POSITIVE_INFINITY,
+                CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
     }
 
@@ -38,22 +48,32 @@ internal class CollisionRangecTest {
 
         run {
             val playerVelocity = -1.0
-            assertEquals(1.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                1.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
 
         run {
             val playerVelocity = -2.0
-            assertEquals(0.5, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                0.5, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
 
         run {
             val playerVelocity = 1.0
-            assertEquals(Double.POSITIVE_INFINITY, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                Double.POSITIVE_INFINITY,
+                CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
 
         run {
             val playerVelocity = -1e-30
-            assertEquals(Double.POSITIVE_INFINITY, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                Double.POSITIVE_INFINITY,
+                CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
     }
 
@@ -64,23 +84,30 @@ internal class CollisionRangecTest {
 
         run {
             val playerVelocity = 1.0
-            assertEquals(0.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                0.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
 
         run {
             val playerVelocity = 2.0
-            assertEquals(0.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                0.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
 
         run {
             val playerVelocity = -1.0
-            assertEquals(0.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                0.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
 
         run {
             val playerVelocity = 1e-30
-            assertEquals(0.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity))
+            assertEquals(
+                0.0, CollisionRangec.computeCollisionTime(playerCollisionRange, shipCollisionRange, playerVelocity)
+            )
         }
     }
-
 }
