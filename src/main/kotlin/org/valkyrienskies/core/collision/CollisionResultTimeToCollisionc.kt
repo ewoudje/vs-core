@@ -7,21 +7,21 @@ import org.joml.Vector3dc
  */
 interface CollisionResultTimeToCollisionc {
     /**
-     * @return whether the polygons are colliding or not
+     * @return whether the polygons are initially colliding or not
      */
-    val colliding: Boolean
+    val initiallyColliding: Boolean
 
     /**
-     * Accessing this when [colliding] is true will throw a [CollidingException].
+     * Accessing this when [initiallyColliding] is true will throw a [CollidingException].
      *
-     * Also, access this when [timeToCollision] is [Double.POSITIVE_INFINITY] will throw a [NeverCollidingException].
+     * Accessing this when [timeToCollision] is [Double.POSITIVE_INFINITY] will throw a [NeverCollidingException].
      *
      * @return the normal with the largest time to collision
      */
     val collisionAxis: Vector3dc
 
     /**
-     * Accessing this when [colliding] is true will throw a [CollidingException].
+     * Accessing this when [initiallyColliding] is true will throw a [CollidingException].
      *
      * @return the time to collision
      */

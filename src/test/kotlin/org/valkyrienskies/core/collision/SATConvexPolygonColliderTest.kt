@@ -27,7 +27,7 @@ internal class SATConvexPolygonColliderTest {
         val temp2: CollisionRange = CollisionRange.create()
 
         SATConvexPolygonCollider.checkIfColliding(
-            firstPolygon, secondPolygon, Vector3d(), normals.iterator(), collisionResult, temp1, temp2
+            firstPolygon, secondPolygon, normals.iterator(), collisionResult, temp1, temp2
         )
 
         assertTrue(collisionResult.colliding)
@@ -50,7 +50,7 @@ internal class SATConvexPolygonColliderTest {
         val temp2: CollisionRange = CollisionRange.create()
 
         SATConvexPolygonCollider.checkIfColliding(
-            firstPolygon, secondPolygon, Vector3d(), normals.iterator(), collisionResult, temp1, temp2
+            firstPolygon, secondPolygon, normals.iterator(), collisionResult, temp1, temp2
         )
 
         assertFalse(collisionResult.colliding)
@@ -71,7 +71,7 @@ internal class SATConvexPolygonColliderTest {
         val temp2: CollisionRange = CollisionRange.create()
 
         val collisionResponse = SATConvexPolygonCollider.computeCollisionResponseAlongNormal(
-            firstPolygon, secondPolygon, Vector3d(), normal, temp1, temp2
+            firstPolygon, secondPolygon, normal, temp1, temp2
         )
 
         assertEquals(0.2, collisionResponse, EPSILON)
@@ -133,7 +133,6 @@ internal class SATConvexPolygonColliderTest {
 
     @Test
     fun testTimeToCollision() {
-        // The optimal collision response is to move firstPolygon by (0, -0.1, 0)
         val firstPolygon: ConvexPolygonc =
             TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 2.0, 0.0, 1.0, 3.0, 1.0))
         val secondPolygon: ConvexPolygonc =
@@ -146,14 +145,13 @@ internal class SATConvexPolygonColliderTest {
             firstPolygon, secondPolygon, firstPolyVel, normals.iterator()
         )
 
-        assertFalse(collisionResult.colliding)
+        assertFalse(collisionResult.initiallyColliding)
         assertEquals(Vector3d(0.0, 1.0, 0.0), collisionResult.collisionAxis)
         assertEquals(0.5, collisionResult.timeToCollision, EPSILON)
     }
 
     @Test
     fun testTimeToCollision2() {
-        // The optimal collision response is to move firstPolygon by (0, -0.1, 0)
         val firstPolygon: ConvexPolygonc =
             TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 2.0, 0.0, 1.0, 3.0, 1.0))
         val secondPolygon: ConvexPolygonc =
@@ -166,14 +164,13 @@ internal class SATConvexPolygonColliderTest {
             firstPolygon, secondPolygon, firstPolyVel, normals.iterator()
         )
 
-        assertFalse(collisionResult.colliding)
+        assertFalse(collisionResult.initiallyColliding)
         assertEquals(Vector3d(0.0, 1.0, 0.0), collisionResult.collisionAxis)
         assertEquals(1.0, collisionResult.timeToCollision, EPSILON)
     }
 
     @Test
     fun testTimeToCollision3() {
-        // The optimal collision response is to move firstPolygon by (0, -0.1, 0)
         val firstPolygon: ConvexPolygonc =
             TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 2.0, 0.0, 1.0, 3.0, 1.0))
         val secondPolygon: ConvexPolygonc =
@@ -186,14 +183,13 @@ internal class SATConvexPolygonColliderTest {
             firstPolygon, secondPolygon, firstPolyVel, normals.iterator()
         )
 
-        assertFalse(collisionResult.colliding)
+        assertFalse(collisionResult.initiallyColliding)
         assertThrows<NeverCollidingException> { collisionResult.collisionAxis }
         assertEquals(Double.POSITIVE_INFINITY, collisionResult.timeToCollision)
     }
 
     @Test
     fun testTimeToCollision4() {
-        // The optimal collision response is to move firstPolygon by (0, -0.1, 0)
         val firstPolygon: ConvexPolygonc =
             TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 0.95, 0.0, 1.0, 1.95, 1.0))
         val secondPolygon: ConvexPolygonc =
@@ -206,9 +202,33 @@ internal class SATConvexPolygonColliderTest {
             firstPolygon, secondPolygon, firstPolyVel, normals.iterator()
         )
 
-        assertTrue(collisionResult.colliding)
+        assertTrue(collisionResult.initiallyColliding)
         assertThrows<CollidingException> { collisionResult.collisionAxis }
         assertThrows<CollidingException> { collisionResult.timeToCollision }
+    }
+
+    @Test
+    fun testTimeToCollisionMatchesCheckIfColliding() {
+        val firstPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 1.0, 0.0, 1.0, 2.0, 1.0))
+        val secondPolygon: ConvexPolygonc =
+            TransformedCuboidPolygon.createFromAABB(AABBd(0.0, 0.0, 0.0, 1.0, 1.0, 1.0))
+        val normals: List<Vector3dc> = listOf(Vector3d(1.0, 0.0, 0.0), Vector3d(0.0, 1.0, 0.0), Vector3d(0.0, 0.0, 1.0))
+
+        val firstPolyVel = Vector3d(0.0, 0.0, 0.0)
+
+        val timeToCollisionResult = SATConvexPolygonCollider.timeToCollision(
+            firstPolygon, secondPolygon, firstPolyVel, normals.iterator()
+        )
+
+        val checkIfCollidingResult = CollisionResult.create()
+
+        SATConvexPolygonCollider.checkIfColliding(
+            firstPolygon, secondPolygon, normals.iterator(), checkIfCollidingResult, CollisionRange.create(), CollisionRange.create()
+        )
+
+        assertFalse(timeToCollisionResult.initiallyColliding)
+        assertFalse(checkIfCollidingResult.colliding)
     }
 
     companion object {

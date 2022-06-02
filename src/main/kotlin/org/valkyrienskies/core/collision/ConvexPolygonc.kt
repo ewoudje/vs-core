@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.collision
 
+import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBd
 import kotlin.math.max
@@ -44,6 +45,17 @@ interface ConvexPolygonc {
             output.maxY = max(output.maxY, point.y())
             output.maxZ = max(output.maxZ, point.z())
         }
+        return output
+    }
+
+    fun computeCenterPos(output: Vector3d): Vector3d {
+        output.zero()
+        var pointsCount = 0
+        points.forEach {
+            output.add(it)
+            pointsCount++
+        }
+        if (pointsCount > 0) output.div(pointsCount.toDouble())
         return output
     }
 }

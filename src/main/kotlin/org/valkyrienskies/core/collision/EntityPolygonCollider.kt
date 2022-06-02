@@ -2,12 +2,15 @@ package org.valkyrienskies.core.collision
 
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
+import org.valkyrienskies.core.util.extend
 import org.valkyrienskies.core.util.horizontalLength
+import org.valkyrienskies.core.util.signedDistanceTo
 import kotlin.math.abs
-import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sign
+import kotlin.math.tan
 
 object EntityPolygonCollider {
 
@@ -36,153 +39,175 @@ object EntityPolygonCollider {
     private fun adjustMovementComponentWise(
         entityBoundingBox: AABBdc, entityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>
     ): Vector3dc {
-        val entityPolygon: ConvexPolygonc = TransformedCuboidPolygon.createFromAABB(entityBoundingBox, null)
+        // Let the player climb slopes up to 45 degrees without being slowed down horizontally
+        val maxSlopeClimbAngle = 46.0 // Slightly more than 45 to account for numerical error
 
         // Try moving horizontally
         val horizontalResponse = handleHorizontalCollisions(
-            entityPolygon, entityVelocity, collidingPolygons, 45.0
+            entityBoundingBox, entityVelocity, collidingPolygons, maxSlopeClimbAngle
         )
 
-        entityPolygon.points.forEach {
-             it as Vector3d
-             it.add(horizontalResponse.x(), 0.0, horizontalResponse.z())
-        }
-
-        val newEntityVelocity = Vector3d(0.0, entityVelocity.y(), 0.0)
-
-        // Try moving vertically
-        val yOnlyResponse = adjustMovementAlongOneAxis(
-            entityPolygon, Vector3d(newEntityVelocity), collidingPolygons, UNIT_NORMALS[1], 45.0
+        // Commit the horizontal movement from horizontalResponse
+        /*
+        val verticalResponse = handleVerticalCollisions(
+            entityBoundingBox.translate(horizontalResponse.x(), 0.0, horizontalResponse.z(), AABBd()),
+            Vector3d(0.0, entityVelocity.y(), 0.0),
+            collidingPolygons,
+            maxSlopeClimbAngle
         )
+         */
 
-        return Vector3d(horizontalResponse.x() + yOnlyResponse.x(), yOnlyResponse.y(), horizontalResponse.z() + yOnlyResponse.z())
+        return horizontalResponse
     }
 
     /**
-     * Put the player back on the ground, or at least try to...
+     * [maxSlopeClimbAngle] is the angle of the max slope we can climb, in degrees. It must be between 0 and 90.
      */
-    private fun adjustMovementAlongOneAxis(
-        entityPolygon: ConvexPolygonc, entityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>,
-        forcedResponseNormal: Vector3dc, forceResponseAngle: Double
-    ): Vector3dc {
-        val newEntityVelocity = Vector3d(entityVelocity)
-        val collisionResult = CollisionResult.create()
-
-        // region declare temp objects
-        val temp1 = CollisionRange.create()
-        val temp2 = CollisionRange.create()
-        // endregion
-
-        for (shipPolygon in collidingPolygons) {
-            val normals: MutableList<Vector3dc> = ArrayList()
-
-            for (normal in UNIT_NORMALS) normals.add(normal)
-            for (normal in shipPolygon.normals) {
-                normals.add(normal)
-                for (unitNormal in UNIT_NORMALS) {
-                    val crossProduct: Vector3dc = normal.cross(unitNormal, Vector3d()).normalize()
-                    if (crossProduct.lengthSquared() > 1.0e-6) {
-                        normals.add(crossProduct)
-                    }
-                }
-            }
-
-            SATConvexPolygonCollider.checkIfColliding(
-                entityPolygon,
-                shipPolygon,
-                newEntityVelocity,
-                normals.iterator(),
-                collisionResult,
-                temp1,
-                temp2
-            )
-            if (collisionResult.colliding) {
-                val forcedCollisionAxisResult = CollisionResult.create()
-                // If we can force the response, then force the response
-                SATConvexPolygonCollider.checkIfColliding(
-                    entityPolygon,
-                    shipPolygon,
-                    newEntityVelocity,
-                    normals.iterator(),
-                    forcedCollisionAxisResult,
-                    CollisionRange.create(),
-                    CollisionRange.create(),
-                    forcedResponseNormal
-                )
-
-                val forcedUpResponse = forcedCollisionAxisResult.getCollisionResponse(Vector3d())
-
-                applyResponse(newEntityVelocity, forcedUpResponse)
-            }
-        }
-
-        return newEntityVelocity
-    }
-
     private fun handleHorizontalCollisions(
-        entityPolygon: ConvexPolygonc, entityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>,
+        entityAABB: AABBdc, initialEntityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>,
         maxSlopeClimbAngle: Double
     ): Vector3dc {
-        val newEntityVelocity = Vector3d(entityVelocity)
-        val collisionResult = CollisionResult.create()
+        if (maxSlopeClimbAngle < 0 || maxSlopeClimbAngle > 90)
+            throw IllegalArgumentException("Argument maxSlopeClimbAngle must be between 0 and 90 inclusive!")
+        val tanMaxSlopeClimbAngle = tan(Math.toRadians(maxSlopeClimbAngle))
 
-        // The maximum y velocity we can add to climb up slopes
-        val maxStep = max(entityVelocity.horizontalLength() * cos(Math.toRadians(maxSlopeClimbAngle)), 1e-2)
+        val feetAABB = createFeetAABB(entityAABB)
 
-        for (shipPolygon in collidingPolygons) {
-            val normals: MutableList<Vector3dc> = ArrayList()
+        val entityPolygon: ConvexPolygonc = TransformedCuboidPolygon.createFromAABB(entityAABB, null)
+        val feetPolygon: ConvexPolygonc = TransformedCuboidPolygon.createFromAABB(feetAABB, null)
 
-            for (normal in UNIT_NORMALS) normals.add(normal)
-            for (normal in shipPolygon.normals) {
-                normals.add(normal)
-                for (unitNormal in UNIT_NORMALS) {
-                    val crossProduct: Vector3dc = normal.cross(unitNormal, Vector3d()).normalize()
-                    if (crossProduct.lengthSquared() > 1.0e-6) {
-                        normals.add(crossProduct)
-                    }
-                }
-            }
+        // Sort the polygons by the distance of their centers to [feetAABB]
+        val polysSorted = collidingPolygons.sortedBy {
+            val centerPos = it.computeCenterPos(Vector3d())
+            feetAABB.signedDistanceTo(centerPos)
+        }
 
-            SATConvexPolygonCollider.checkIfColliding(
+        val newEntityVelocity = Vector3d(initialEntityVelocity)
+
+        polysSorted.forEach { shipPoly ->
+            val allNormals = generateAllNormals(shipPoly.normals)
+
+            val timeOfImpactResponse = SATConvexPolygonCollider.timeToCollision(
                 entityPolygon,
-                shipPolygon,
+                shipPoly,
                 newEntityVelocity,
-                normals.iterator(),
-                collisionResult,
-                CollisionRange.create(),
-                CollisionRange.create()
+                allNormals.iterator()
             )
-            if (collisionResult.colliding) {
-                // Compute the response that pushes the entity out of this polygon
-                val collisionResponse: Vector3dc = collisionResult.getCollisionResponse(Vector3d())
 
+            // Overriding this to try doesn't handle the case of flying towards a block we are slightly below the top of
+            // correctly
+            //
+            // TODO: Use [timeOfImpactResponse] to correctly handle that case. Also use it to handle stepping.
+            if (true || timeOfImpactResponse.initiallyColliding) { // For now just always use this case
+                // Initially colliding? Try forcing the y response if it's not too large
 
-                val forcedYCollisionResult = CollisionResult.create()
+                val aabbExpanded = AABBd(entityAABB).extend(newEntityVelocity)
+                val aabbExpandedPoly = TransformedCuboidPolygon.createFromAABB(aabbExpanded, null)
+
+                val forcedYColResult = CollisionResult.create()
                 SATConvexPolygonCollider.checkIfColliding(
-                    entityPolygon,
-                    shipPolygon,
-                    newEntityVelocity,
-                    normals.iterator(),
-                    forcedYCollisionResult,
+                    aabbExpandedPoly,
+                    shipPoly,
+                    allNormals.iterator(),
+                    forcedYColResult,
                     CollisionRange.create(),
                     CollisionRange.create(),
                     Y_NORMAL
                 )
 
-                val forcedYCollisionResponse = forcedYCollisionResult.getCollisionResponse(Vector3d())
+                if (forcedYColResult.colliding) {
+                    var usingForcedYCol = false
 
-                val newNewVel = Vector3d(newEntityVelocity) // The new velocity IF we apply forcedYCollisionResponse
-                applyResponse(newNewVel, forcedYCollisionResponse)
-                // Only climb slopes if forcedYCollisionResponse.y() is >= than 0
-                if (forcedYCollisionResponse.y() >= 0 && newNewVel.y() < maxStep) {
-                    applyResponse(newEntityVelocity, forcedYCollisionResponse)
-                } else {
-                    applyResponse(newEntityVelocity, collisionResponse)
+                    val forcedYResponse: Vector3dc = forcedYColResult.getCollisionResponse(Vector3d())
+                    val velWithResponseApplied = Vector3d(newEntityVelocity)
+                    applyResponse(velWithResponseApplied, forcedYResponse)
+
+                    val maxAddedYVel = max(
+                        0.0,
+                        tanMaxSlopeClimbAngle * initialEntityVelocity.horizontalLength()
+                    )
+
+                    if (abs(velWithResponseApplied.y()) < 1e-8) {
+                        // Force small values of y velocity to be 0 to handle numerical error
+                        velWithResponseApplied.y = 0.0
+                    }
+
+                    if (velWithResponseApplied.y() >= 0.0) {
+                        if (velWithResponseApplied.y() <= maxAddedYVel || velWithResponseApplied.y() <= newEntityVelocity.y()) {
+                            // Use forced y vel
+                            newEntityVelocity.set(velWithResponseApplied)
+                            usingForcedYCol = true
+                        }
+                    } else {
+                        // Push down with up to [maxAddedYVel] vel, or any vel less than the initial entity velocity
+                        if (-velWithResponseApplied.y() <= maxAddedYVel || -velWithResponseApplied.y() <= -newEntityVelocity.y()) {
+                            // Use forced y vel
+                            newEntityVelocity.set(velWithResponseApplied)
+                            usingForcedYCol = true
+                        }
+                    }
+
+                    if (!usingForcedYCol) {
+                        // Use the min separating axis
+                        val minAxisColResult = CollisionResult.create()
+                        SATConvexPolygonCollider.checkIfColliding(
+                            aabbExpandedPoly,
+                            shipPoly,
+                            allNormals.iterator(),
+                            minAxisColResult,
+                            CollisionRange.create(),
+                            CollisionRange.create()
+                        )
+
+                        val minAxisColResponse = minAxisColResult.getCollisionResponse(Vector3d())
+                        applyResponse(newEntityVelocity, minAxisColResponse)
+                    }
                 }
             }
         }
+
         return newEntityVelocity
     }
+
+    /*
+    private fun handleVerticalCollisions(
+        entityAABB: AABBdc, initialEntityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>,
+        maxSlopeClimbAngle: Double
+    ): Vector3dc {
+        // Sort the polygons by the distance of their centers to [entityAABB]
+        val polysSorted = collidingPolygons.sortedBy {
+            val centerPos = it.computeCenterPos(Vector3d())
+            entityAABB.signedDistanceTo(centerPos)
+        }
+
+        val newEntityVelocity = Vector3d(initialEntityVelocity)
+
+        val entityPolygon: ConvexPolygonc = TransformedCuboidPolygon.createFromAABB(entityAABB, null)
+
+        polysSorted.forEach { shipPoly ->
+            val allNormals = generateAllNormals(shipPoly.normals)
+
+            val forcedYColResult = CollisionResult.create()
+            SATConvexPolygonCollider.checkIfColliding(
+                entityPolygon,
+                shipPoly,
+                newEntityVelocity,
+                allNormals.iterator(),
+                forcedYColResult,
+                CollisionRange.create(),
+                CollisionRange.create(),
+                Y_NORMAL
+            )
+
+            if (forcedYColResult.colliding) {
+                val forcedYColResponse = forcedYColResult.getCollisionResponse(Vector3d())
+
+            }
+        }
+
+        return initialEntityVelocity
+    }
+     */
 
     private fun applyResponse(velocity: Vector3d, response: Vector3dc) {
         velocity.x = applyResponseOneAxis(velocity.x(), response.x())
@@ -195,5 +220,31 @@ object EntityPolygonCollider {
             sign(response) * max(abs(vel), abs(response))
         else
             vel + response
+    }
+
+    private fun createFeetAABB(aabb: AABBdc): AABBdc {
+        return AABBd(
+            aabb.minX(),
+            aabb.minY(),
+            aabb.minZ(),
+            aabb.maxX(),
+            aabb.minY() + .1 * (aabb.maxY() - aabb.minY()),
+            aabb.maxZ()
+        )
+    }
+
+    private fun generateAllNormals(shipNormals: Iterable<Vector3dc>): List<Vector3dc> {
+        val normals = ArrayList<Vector3dc>()
+        for (normal in UNIT_NORMALS) normals.add(normal)
+        for (normal in shipNormals) {
+            normals.add(normal)
+            for (unitNormal in UNIT_NORMALS) {
+                val crossProduct: Vector3dc = normal.cross(unitNormal, Vector3d()).normalize()
+                if (crossProduct.lengthSquared() > 1.0e-6) {
+                    normals.add(crossProduct)
+                }
+            }
+        }
+        return normals
     }
 }
