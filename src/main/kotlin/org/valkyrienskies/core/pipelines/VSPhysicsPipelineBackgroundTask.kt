@@ -40,7 +40,9 @@ class VSPhysicsPipelineBackgroundTask(private val vsPipeline: VSPipeline, privat
                 val currentTimeMillis = System.currentTimeMillis()
                 prevPhysTicksTimeMillis.add(currentTimeMillis)
                 // Remove physics ticks that were over [PHYS_TICK_AVERAGE_WINDOW_MS] ms ago
-                while (prevPhysTicksTimeMillis.isNotEmpty() && (prevPhysTicksTimeMillis.peek() + PHYS_TICK_AVERAGE_WINDOW_MS < currentTimeMillis)) {
+                while (prevPhysTicksTimeMillis.isNotEmpty() &&
+                    prevPhysTicksTimeMillis.peek() + PHYS_TICK_AVERAGE_WINDOW_MS < currentTimeMillis
+                ) {
                     prevPhysTicksTimeMillis.remove()
                 }
 

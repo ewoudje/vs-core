@@ -133,14 +133,18 @@ object EntityPolygonCollider {
                     }
 
                     if (velWithResponseApplied.y() >= 0.0) {
-                        if (velWithResponseApplied.y() <= maxAddedYVel || velWithResponseApplied.y() <= newEntityVelocity.y()) {
+                        if (velWithResponseApplied.y() <= maxAddedYVel ||
+                            velWithResponseApplied.y() <= newEntityVelocity.y()
+                        ) {
                             // Use forced y vel
                             newEntityVelocity.set(velWithResponseApplied)
                             usingForcedYCol = true
                         }
                     } else {
                         // Push down with up to [maxAddedYVel] vel, or any vel less than the initial entity velocity
-                        if (-velWithResponseApplied.y() <= maxAddedYVel || -velWithResponseApplied.y() <= -newEntityVelocity.y()) {
+                        if (-velWithResponseApplied.y() <= maxAddedYVel ||
+                            -velWithResponseApplied.y() <= -newEntityVelocity.y()
+                        ) {
                             // Use forced y vel
                             newEntityVelocity.set(velWithResponseApplied)
                             usingForcedYCol = true

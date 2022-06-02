@@ -1,6 +1,10 @@
 package org.valkyrienskies.core.util
 
-import org.joml.*
+import org.joml.Matrix3d
+import org.joml.Matrix4d
+import org.joml.Matrix4f
+import org.joml.Vector3d
+import org.joml.Vector3i
 
 /**
  * Class the lazily initializes a bunch of vector types,

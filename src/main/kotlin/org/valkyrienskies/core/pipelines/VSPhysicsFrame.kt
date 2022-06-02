@@ -4,7 +4,7 @@ import org.joml.Vector3dc
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
-import java.util.*
+import java.util.UUID
 
 /**
  * A [VSPhysicsFrame] represents the state of all the bodies in the physics engine. It also has [voxelUpdatesMap] which

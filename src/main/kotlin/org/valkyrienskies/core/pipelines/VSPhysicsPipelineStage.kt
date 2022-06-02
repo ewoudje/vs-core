@@ -53,7 +53,8 @@ class VSPhysicsPipelineStage {
         gameFrame.deletedShips.forEach { deletedShipId ->
             val shipRigidBodyReferenceAndId = shipIdToRigidBodyMap[deletedShipId]
                 ?: throw IllegalStateException(
-                    "Tried deleting rigid body from ship with UUID $deletedShipId, but no rigid body exists for this ship!"
+                    "Tried deleting rigid body from ship with UUID $deletedShipId," +
+                        " but no rigid body exists for this ship!"
                 )
 
             val shipRigidBodyReference = shipRigidBodyReferenceAndId.rigidBodyReference
@@ -66,7 +67,8 @@ class VSPhysicsPipelineStage {
             val shipId = newShipInGameFrameData.uuid
             if (shipIdToRigidBodyMap.containsKey(shipId)) {
                 throw IllegalStateException(
-                    "Tried creating rigid body from ship with UUID $shipId, but a rigid body already exists for this ship!"
+                    "Tried creating rigid body from ship with UUID $shipId," +
+                        " but a rigid body already exists for this ship!"
                 )
             }
             val dimension = newShipInGameFrameData.dimensionId
@@ -112,7 +114,8 @@ class VSPhysicsPipelineStage {
         gameFrame.voxelUpdatesMap.forEach { (shipId, voxelUpdatesList) ->
             val shipRigidBodyReferenceAndId = shipIdToRigidBodyMap[shipId]
                 ?: throw IllegalStateException(
-                    "Tried sending voxel updates to rigid body from ship with UUID $shipId, but no rigid body exists for this ship!"
+                    "Tried sending voxel updates to rigid body from ship with UUID $shipId," +
+                        " but no rigid body exists for this ship!"
                 )
 
             val shipRigidBodyReference = shipRigidBodyReferenceAndId.rigidBodyReference
