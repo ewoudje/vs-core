@@ -77,6 +77,46 @@ data class ShipTransform(
         ): ShipTransform {
             return ShipTransform(centerCoordinateInWorld, centerCoordinateInShip, shipRotation, shipScaling)
         }
+
+        /**
+         * Interpolate between two [ShipTransform] based on [alpha]
+         * @param alpha Must be between 0 and 1 inclusive
+         */
+        fun createFromSlerp(prevTransform: ShipTransform, curTransform: ShipTransform, alpha: Double): ShipTransform {
+            // Always use the center coord from the new transform
+            val newCenterCoords = curTransform.shipPositionInShipCoordinates
+
+            val centerCoordDif = curTransform.shipPositionInShipCoordinates.sub(prevTransform.shipPositionInShipCoordinates, Vector3d())
+
+            val oldWorldPosWithRespectToNewCenter = prevTransform.shipToWorldMatrix.transformDirection(
+                centerCoordDif, Vector3d()
+            ).add(prevTransform.shipPositionInWorldCoordinates)
+
+            val newWorldCoords = oldWorldPosWithRespectToNewCenter.lerp(
+                curTransform.shipPositionInWorldCoordinates,
+                alpha,
+                Vector3d()
+            )
+
+            val newRotation = prevTransform.shipCoordinatesToWorldCoordinatesRotation.slerp(
+                curTransform.shipCoordinatesToWorldCoordinatesRotation,
+                alpha,
+                Quaterniond()
+            ).normalize()
+
+            val newScaling = prevTransform.shipCoordinatesToWorldCoordinatesScaling.lerp(
+                curTransform.shipCoordinatesToWorldCoordinatesScaling,
+                alpha,
+                Vector3d()
+            )
+
+            return createFromCoordinatesAndRotationAndScaling(
+                newWorldCoords,
+                newCenterCoords,
+                newRotation,
+                newScaling
+            )
+        }
     }
 
     fun transformDirectionNoScalingFromShipToWorld(directionInShip: Vector3dc, dest: Vector3d): Vector3d {

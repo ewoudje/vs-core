@@ -14,6 +14,7 @@ class ShipObjectClientWorld(
         for (shipData in queryableShipData) {
             val shipID = shipData.shipUUID
             shipObjectMap.computeIfAbsent(shipID) { ShipObjectClient(shipData) }
+            shipData.tickUpdateShipTransform()
         }
     }
 
