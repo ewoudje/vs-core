@@ -86,7 +86,8 @@ data class ShipTransform(
             // Always use the center coord from the new transform
             val newCenterCoords = curTransform.shipPositionInShipCoordinates
 
-            val centerCoordDif = curTransform.shipPositionInShipCoordinates.sub(prevTransform.shipPositionInShipCoordinates, Vector3d())
+            val centerCoordDif =
+                curTransform.shipPositionInShipCoordinates.sub(prevTransform.shipPositionInShipCoordinates, Vector3d())
 
             val oldWorldPosWithRespectToNewCenter = prevTransform.shipToWorldMatrix.transformDirection(
                 centerCoordDif, Vector3d()
