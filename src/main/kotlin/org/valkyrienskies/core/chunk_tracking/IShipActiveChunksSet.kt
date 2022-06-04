@@ -7,6 +7,7 @@ import kotlin.math.min
 interface IShipActiveChunksSet {
     fun addChunkPos(chunkX: Int, chunkZ: Int): Boolean
     fun removeChunkPos(chunkX: Int, chunkZ: Int): Boolean
+    fun containsChunkPos(chunkX: Int, chunkZ: Int): Boolean
     fun iterateChunkPos(func: (Int, Int) -> Unit)
     fun getTotalChunks(): Int
 

@@ -57,4 +57,15 @@ internal class ShipActiveChunksSetTest {
         // Verify that both are equal
         assertEquals(shipActiveChunksSet, shipActiveChunksSetDeserialized)
     }
+
+    @Test
+    fun containsChunkPos() {
+        val shipActiveChunksSet = ShipActiveChunksSet.create()
+        assertTrue(shipActiveChunksSet.addChunkPos(0, 0))
+        assertTrue(shipActiveChunksSet.addChunkPos(1, 1))
+
+        assertTrue(shipActiveChunksSet.containsChunkPos(0, 0))
+        assertTrue(shipActiveChunksSet.containsChunkPos(1, 1))
+        assertFalse(shipActiveChunksSet.containsChunkPos(2, 2))
+    }
 }

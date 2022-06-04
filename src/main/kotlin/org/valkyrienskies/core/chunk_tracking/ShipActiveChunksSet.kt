@@ -16,6 +16,10 @@ class ShipActiveChunksSet private constructor(
         return chunkClaimSet.remove(chunkPosToLong(chunkX, chunkZ))
     }
 
+    override fun containsChunkPos(chunkX: Int, chunkZ: Int): Boolean {
+        return chunkClaimSet.contains(chunkPosToLong(chunkX, chunkZ))
+    }
+
     override fun iterateChunkPos(func: (Int, Int) -> Unit) {
         val chunkClaimIterator = chunkClaimSet.iterator()
         while (chunkClaimIterator.hasNext()) {
