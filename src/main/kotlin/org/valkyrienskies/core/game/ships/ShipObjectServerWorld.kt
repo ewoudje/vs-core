@@ -222,7 +222,15 @@ class ShipObjectServerWorld(
     }
 
     override fun destroyWorld() {
-        VSPipeline.getVSPipeline().removeShipWorld(this)
+        try {
+            VSPipeline.getVSPipeline().removeShipWorld(this)
+        } catch (e: Exception) {
+            if (e is NullPointerException) {
+                println("Tried unloading ship world $this, but the VS pipeline was already unloaded!")
+            } else {
+                e.printStackTrace()
+            }
+        }
     }
 
     fun getNewGroundRigidBodyObjects(): List<UUID> {
