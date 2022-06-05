@@ -132,6 +132,8 @@ class VSGamePipelineStage {
                 val shipTransform = RigidBodyTransform(Vector3d(), Quaterniond())
                 // No voxel offset
                 val voxelOffset = Vector3d(.5, .5, .5)
+                val isStatic = true
+                val isVoxelsFullyLoaded = false
                 val newShipInGameFrameData = NewShipInGameFrameData(
                     uuid,
                     dimension,
@@ -140,7 +142,8 @@ class VSGamePipelineStage {
                     inertiaData,
                     shipTransform,
                     voxelOffset,
-                    true
+                    isStatic,
+                    isVoxelsFullyLoaded
                 )
                 newShips.add(newShipInGameFrameData)
             }
@@ -158,6 +161,8 @@ class VSGamePipelineStage {
                     it.shipData.shipTransform.shipCoordinatesToWorldCoordinatesRotation
                 )
                 val voxelOffset = getShipVoxelOffset(it.shipData.inertiaData)
+                val isStatic = it.shipData.isStatic
+                val isVoxelsFullyLoaded = it.shipData.areVoxelsFullyLoaded()
                 val newShipInGameFrameData = NewShipInGameFrameData(
                     uuid,
                     dimension,
@@ -166,7 +171,8 @@ class VSGamePipelineStage {
                     rigidBodyInertiaData,
                     shipTransform,
                     voxelOffset,
-                    false
+                    isStatic,
+                    isVoxelsFullyLoaded
                 )
                 newShips.add(newShipInGameFrameData)
             }
@@ -175,13 +181,21 @@ class VSGamePipelineStage {
                 val uuid = it.shipData.shipUUID
                 val newVoxelOffset = getShipVoxelOffset(it.shipData.inertiaData)
                 val rigidBodyInertiaData = getRigidBodyInertiaData(it.shipData.inertiaData)
-                val updateShipInGameFrameData = UpdateShipInGameFrameData(uuid, newVoxelOffset, rigidBodyInertiaData)
+                val isStatic = it.shipData.isStatic
+                val isVoxelsFullyLoaded = it.shipData.areVoxelsFullyLoaded()
+                val updateShipInGameFrameData = UpdateShipInGameFrameData(
+                    uuid,
+                    newVoxelOffset,
+                    rigidBodyInertiaData,
+                    isStatic,
+                    isVoxelsFullyLoaded
+                )
                 updatedShips[uuid] = updateShipInGameFrameData
             }
 
             deletedShips.addAll(deletedShipObjects)
 
-            shipVoxelUpdates.forEach { (shipUUID, voxelUpdatesMap) ->
+            shipVoxelUpdates.forEach forEachVoxelUpdate@{ (shipUUID, voxelUpdatesMap) ->
                 val uuid: UUID = shipUUID ?: shipWorld.groundBodyUUID
                 gameFrameVoxelUpdatesMap[uuid] = voxelUpdatesMap.values.toList()
             }

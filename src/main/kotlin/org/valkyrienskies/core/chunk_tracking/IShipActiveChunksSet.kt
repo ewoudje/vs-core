@@ -10,7 +10,6 @@ interface IShipActiveChunksSet {
     fun containsChunkPos(chunkX: Int, chunkZ: Int): Boolean
     fun iterateChunkPos(func: (Int, Int) -> Unit)
     fun getTotalChunks(): Int
-
     fun getMinMaxWorldPos(minWorldPos: Vector3i, maxWorldPos: Vector3i) {
         if (getTotalChunks() == 0) {
             // Just set the ship to be undefined everywhere

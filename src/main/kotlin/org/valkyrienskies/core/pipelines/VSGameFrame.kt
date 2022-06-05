@@ -28,11 +28,14 @@ data class NewShipInGameFrameData(
     val inertiaData: RigidBodyInertiaData,
     val shipTransform: RigidBodyTransform,
     val voxelOffset: Vector3dc,
-    val isStatic: Boolean
+    val isStatic: Boolean,
+    val shipVoxelsFullyLoaded: Boolean
 )
 
 data class UpdateShipInGameFrameData(
     val uuid: UUID,
     val newVoxelOffset: Vector3dc,
-    val inertiaData: RigidBodyInertiaData
+    val inertiaData: RigidBodyInertiaData,
+    val isStatic: Boolean,
+    val shipVoxelsFullyLoaded: Boolean
 )

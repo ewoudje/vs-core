@@ -77,12 +77,14 @@ class VSPhysicsPipelineStage {
             val inertiaData = newShipInGameFrameData.inertiaData
             val shipTransform = newShipInGameFrameData.shipTransform
             val isStatic = newShipInGameFrameData.isStatic
+            val shipVoxelsFullyLoaded = newShipInGameFrameData.shipVoxelsFullyLoaded
 
             val newRigidBodyReference = physicsEngine.createVoxelRigidBody(dimension, minDefined, maxDefined)
             newRigidBodyReference.inertiaData = inertiaData
             newRigidBodyReference.rigidBodyTransform = shipTransform
             newRigidBodyReference.collisionShapeOffset = newShipInGameFrameData.voxelOffset
             newRigidBodyReference.isStatic = isStatic
+            newRigidBodyReference.isVoxelTerrainFullyLoaded = shipVoxelsFullyLoaded
 
             shipIdToRigidBodyMap[shipId] = ShipIdAndRigidBodyReference(shipId, newRigidBodyReference)
         }
@@ -100,6 +102,8 @@ class VSPhysicsPipelineStage {
             val oldVoxelOffset = shipRigidBody.collisionShapeOffset
             val newVoxelOffset = shipUpdate.newVoxelOffset
             val deltaVoxelOffset = oldShipTransform.rotation.transform(newVoxelOffset.sub(oldVoxelOffset, Vector3d()))
+            val isStatic = shipUpdate.isStatic
+            val shipVoxelsFullyLoaded = shipUpdate.shipVoxelsFullyLoaded
 
             val newShipTransform = RigidBodyTransform(
                 oldShipTransform.position.sub(deltaVoxelOffset, Vector3d()), oldShipTransform.rotation
@@ -108,6 +112,8 @@ class VSPhysicsPipelineStage {
             shipRigidBody.collisionShapeOffset = newVoxelOffset
             shipRigidBody.rigidBodyTransform = newShipTransform
             shipRigidBody.inertiaData = shipUpdate.inertiaData
+            shipRigidBody.isStatic = isStatic
+            shipRigidBody.isVoxelTerrainFullyLoaded = shipVoxelsFullyLoaded
         }
 
         // Send voxel updates

@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.game.ships
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
@@ -26,11 +27,27 @@ class ShipData(
     shipTransform: ShipTransform,
     prevTickShipTransform: ShipTransform,
     shipAABB: AABBdc,
-    shipActiveChunksSet: IShipActiveChunksSet
+    shipActiveChunksSet: IShipActiveChunksSet,
+    var isStatic: Boolean = false
 ) : ShipDataCommon(
     shipUUID, name, chunkClaim, physicsData, shipTransform, prevTickShipTransform,
     shipAABB, shipActiveChunksSet
 ) {
+    /**
+     * The set of chunks that must be loaded before this ship is fully loaded.
+     *
+     * We need to keep track of this regardless of whether a ShipObject for this exists, so we keep track of it here.
+     *
+     * Also, this is transient, so we don't want to save it
+     */
+    @JsonIgnore
+    private val missingLoadedChunks: IShipActiveChunksSet = ShipActiveChunksSet.create()
+
+    init {
+        shipActiveChunksSet.iterateChunkPos { chunkX: Int, chunkZ: Int ->
+            missingLoadedChunks.addChunkPos(chunkX, chunkZ)
+        }
+    }
 
     override fun onSetBlock(
         posX: Int,
@@ -45,6 +62,23 @@ class ShipData(
 
         // Update [inertiaData]
         inertiaData.onSetBlock(posX, posY, posZ, oldBlockMass, newBlockMass)
+    }
+
+    fun onLoadChunk(chunkX: Int, chunkZ: Int) {
+        if (chunkClaim.contains(chunkX, chunkZ)) {
+            missingLoadedChunks.removeChunkPos(chunkX, chunkZ)
+        }
+    }
+
+    fun onUnloadChunk(chunkX: Int, chunkZ: Int) {
+        if (chunkClaim.contains(chunkX, chunkZ) && shipActiveChunksSet.containsChunkPos(chunkX, chunkZ)) {
+            missingLoadedChunks.addChunkPos(chunkX, chunkZ)
+        }
+    }
+
+    fun areVoxelsFullyLoaded(): Boolean {
+        // We are fully loaded if we have 0 missing chunks
+        return missingLoadedChunks.getTotalChunks() == 0
     }
 
     override fun equals(other: Any?): Boolean {
@@ -75,7 +109,8 @@ class ShipData(
             chunkClaim: ChunkClaim,
             shipCenterInWorldCoordinates: Vector3dc,
             shipCenterInShipCoordinates: Vector3dc,
-            scaling: Double = 1.0
+            scaling: Double = 1.0,
+            isStatic: Boolean = false
         ): ShipData {
             val shipTransform = ShipTransform.createFromCoordinatesAndRotationAndScaling(
                 shipCenterInWorldCoordinates,
@@ -93,7 +128,8 @@ class ShipData(
                 shipTransform = shipTransform,
                 prevTickShipTransform = shipTransform,
                 shipAABB = AABBd(),
-                shipActiveChunksSet = ShipActiveChunksSet.create()
+                shipActiveChunksSet = ShipActiveChunksSet.create(),
+                isStatic = isStatic
             )
         }
     }
