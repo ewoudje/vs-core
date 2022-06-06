@@ -8,12 +8,21 @@ plugins {
 group = "org.valkyrienskies.core"
 version = "1.0"
 
-val vs_maven_url: String by project
 repositories {
     mavenCentral()
     maven {
         name = "VS Maven"
-        url = uri(vs_maven_url)
+        url = uri(project.findProperty("vs_maven_url") ?: "https://maven.valkyrienskies.org/")
+
+        val vsMavenUsername = project.findProperty("vs_maven_username") as String?
+        val vsMavenPassword = project.findProperty("vs_maven_password") as String?
+
+        if (vsMavenPassword != null && vsMavenUsername != null) {
+            credentials {
+                username = vsMavenUsername
+                password = vsMavenPassword
+            }
+        }
         content {
             // this repository *only* contains artifacts with group "org.valkyrienskies"
             includeGroup("org.valkyrienskies")
