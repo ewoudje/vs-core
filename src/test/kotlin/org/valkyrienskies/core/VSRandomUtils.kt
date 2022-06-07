@@ -183,6 +183,7 @@ internal object VSRandomUtils {
             shipUUID = UUID.randomUUID(),
             name = randomString(random, random.nextInt(10)),
             chunkClaim = randomChunkClaim(random),
+            chunkClaimDimension = random.nextInt(),
             physicsData = randomShipPhysicsData(random),
             inertiaData = randomShipInertiaData(random),
             shipTransform = randomShipTransform(random),
