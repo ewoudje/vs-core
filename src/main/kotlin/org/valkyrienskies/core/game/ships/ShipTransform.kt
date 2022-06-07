@@ -21,7 +21,7 @@ data class ShipTransform(
     val shipPositionInWorldCoordinates: Vector3dc,
     val shipPositionInShipCoordinates: Vector3dc,
     val shipCoordinatesToWorldCoordinatesRotation: Quaterniondc,
-    val shipCoordinatesToWorldCoordinatesScaling: Vector3dc
+    val shipCoordinatesToWorldCoordinatesScaling: Vector3dc,
 ) {
 
     /**

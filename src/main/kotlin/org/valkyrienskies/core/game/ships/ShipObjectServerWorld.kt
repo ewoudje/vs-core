@@ -7,9 +7,9 @@ import org.joml.Vector3ic
 import org.valkyrienskies.core.chunk_tracking.ChunkUnwatchTask
 import org.valkyrienskies.core.chunk_tracking.ChunkWatchTask
 import org.valkyrienskies.core.game.ChunkAllocator
+import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.VSBlockType
-import org.valkyrienskies.core.pipelines.VSPipeline
 import org.valkyrienskies.core.util.names.NounListNameGenerator
 import org.valkyrienskies.physics_api.voxel_updates.DenseVoxelShapeUpdate
 import org.valkyrienskies.physics_api.voxel_updates.EmptyVoxelShapeUpdate
@@ -24,15 +24,15 @@ import java.util.UUID
 class ShipObjectServerWorld(
     override val queryableShipData: MutableQueryableShipDataServer,
     val chunkAllocator: ChunkAllocator,
-    val dimension: Int
 ) : ShipObjectWorld(queryableShipData) {
 
-    init {
-        VSPipeline.getVSPipeline().addShipWorld(this)
-    }
+    var lastPlayersSet: Set<IPlayer> = setOf()
+        private set
 
-    private var lastPlayersSet: Set<IPlayer> = setOf()
+    var players: Set<IPlayer> = setOf()
+
     private val shipObjectMap = HashMap<UUID, ShipObjectServer>()
+
     // Explicitly make [shipObjects] a MutableMap so that we can use Iterator::remove()
     override val shipObjects: MutableMap<UUID, ShipObjectServer> = shipObjectMap
     val groundBodyUUID: UUID = UUID.randomUUID() // The UUID used when sending voxel updates for the ground shape
@@ -163,19 +163,13 @@ class ShipObjectServerWorld(
      * It only returns the tasks, it is up to the caller to execute the tasks; however they do not have to execute all of them.
      * It is up to the caller to decide which tasks to execute, and which ones to skip.
      */
-    fun tickShipChunkLoading(
-        currentPlayers: Iterable<IPlayer>
-    ): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
-        val removedPlayers = lastPlayersSet - currentPlayers
-        lastPlayersSet = currentPlayers.toHashSet()
-
+    fun tickShipChunkLoading(): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
         val chunkWatchTasksSorted = TreeSet<ChunkWatchTask>()
         val chunkUnwatchTasksSorted = TreeSet<ChunkUnwatchTask>()
 
         for (shipObject in shipObjects.values) {
             shipObject.shipChunkTracker.tick(
-                players = currentPlayers,
-                removedPlayers = removedPlayers,
+                players = players,
                 shipTransform = shipObject.shipData.shipTransform
             )
 
@@ -195,7 +189,8 @@ class ShipObjectServerWorld(
      * If [createShipObjectImmediately] is true then a [ShipObject] will be created immediately.
      */
     fun createNewShipAtBlock(
-        blockPosInWorldCoordinates: Vector3ic, createShipObjectImmediately: Boolean, scaling: Double = 1.0
+        blockPosInWorldCoordinates: Vector3ic, createShipObjectImmediately: Boolean, scaling: Double = 1.0,
+        dimensionId: DimensionId
     ): ShipData {
         val chunkClaim = chunkAllocator.allocateNewChunkClaim()
         val shipName = NounListNameGenerator.generateName()
@@ -209,7 +204,8 @@ class ShipObjectServerWorld(
             chunkClaim = chunkClaim,
             shipCenterInWorldCoordinates = shipCenterInWorldCoordinates,
             shipCenterInShipCoordinates = shipCenterInShipCoordinates,
-            scaling = scaling
+            scaling = scaling,
+            chunkClaimDimension = dimensionId
         )
 
         queryableShipData.addShipData(newShipData)
@@ -222,15 +218,6 @@ class ShipObjectServerWorld(
     }
 
     override fun destroyWorld() {
-        try {
-            VSPipeline.getVSPipeline().removeShipWorld(this)
-        } catch (e: Exception) {
-            if (e is NullPointerException) {
-                println("Tried unloading ship world $this, but the VS pipeline was already unloaded!")
-            } else {
-                e.printStackTrace()
-            }
-        }
     }
 
     fun getNewGroundRigidBodyObjects(): List<UUID> {

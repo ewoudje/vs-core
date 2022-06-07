@@ -14,8 +14,8 @@ import kotlin.concurrent.thread
  *
  * Game <--> Physics --> Network
  */
-class VSPipeline private constructor() {
-    private val gameStage = VSGamePipelineStage()
+class VSPipeline(shipWorld: ShipObjectServerWorld) {
+    private val gameStage = VSGamePipelineStage(shipWorld)
     private val physicsStage = VSPhysicsPipelineStage()
     private val networkStage = VSNetworkPipelineStage()
 
@@ -26,7 +26,7 @@ class VSPipeline private constructor() {
         physicsPipelineBackgroundTask.run()
     }
 
-    private var deleteResources = false
+    var deleteResources = false
 
     fun preTickGame() {
         gameStage.preTickGame()
@@ -48,14 +48,6 @@ class VSPipeline private constructor() {
         networkStage.pushPhysicsFrame(physicsFrame)
     }
 
-    fun addShipWorld(shipWorld: ShipObjectServerWorld) {
-        gameStage.addShipWorld(shipWorld)
-    }
-
-    fun removeShipWorld(shipWorld: ShipObjectServerWorld) {
-        gameStage.removeShipWorld(shipWorld)
-    }
-
     fun getPhysicsGravity(): Vector3dc {
         return Vector3d(0.0, -10.0, 0.0)
     }
@@ -66,23 +58,5 @@ class VSPipeline private constructor() {
 
     fun computePhysTps(): Double {
         return physicsPipelineBackgroundTask.computePhysicsTPS()
-    }
-
-    companion object {
-        private var INSTANCE: VSPipeline? = null
-
-        fun createVSPipeline() {
-            if (INSTANCE != null) throw IllegalStateException("INSTANCE is not null!")
-            INSTANCE = VSPipeline()
-        }
-
-        fun deleteVSPipeline() {
-            INSTANCE?.deleteResources = true
-            INSTANCE = null
-        }
-
-        fun getVSPipeline(): VSPipeline {
-            return INSTANCE!!
-        }
     }
 }

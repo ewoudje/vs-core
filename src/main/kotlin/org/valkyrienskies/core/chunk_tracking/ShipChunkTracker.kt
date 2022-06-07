@@ -12,8 +12,7 @@ class ShipChunkTracker(
     private val shipActiveChunksSet: IShipActiveChunksSet,
     private var chunkWatchDistance: Double,
     private var chunkUnwatchDistance: Double
-) :
-    IShipChunkTracker {
+) : IShipChunkTracker {
 
     private val playersWatchingChunkMap: Long2ObjectMap<MutableSet<IPlayer>> = Long2ObjectOpenHashMap()
     private var chunkWatchTasks: List<ChunkWatchTask> = listOf()
@@ -27,7 +26,7 @@ class ShipChunkTracker(
         chunkUnwatchDistance = newChunkUnwatchDistance
     }
 
-    override fun tick(players: Iterable<IPlayer>, removedPlayers: Iterable<IPlayer>, shipTransform: ShipTransform) {
+    override fun tick(players: Iterable<IPlayer>, shipTransform: ShipTransform) {
         val newChunkWatchTasks: MutableList<ChunkWatchTask> = ArrayList()
         val newChunkUnwatchTasks: MutableList<ChunkUnwatchTask> = ArrayList()
 

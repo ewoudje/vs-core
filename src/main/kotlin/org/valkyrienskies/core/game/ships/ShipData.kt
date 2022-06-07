@@ -9,6 +9,7 @@ import org.joml.primitives.AABBdc
 import org.valkyrienskies.core.chunk_tracking.IShipActiveChunksSet
 import org.valkyrienskies.core.chunk_tracking.ShipActiveChunksSet
 import org.valkyrienskies.core.game.ChunkClaim
+import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.util.serialization.VSPacketIgnore
 import java.util.UUID
@@ -22,6 +23,7 @@ class ShipData(
     shipUUID: UUID,
     name: String,
     chunkClaim: ChunkClaim,
+    chunkClaimDimension: DimensionId,
     physicsData: ShipPhysicsData,
     @VSPacketIgnore val inertiaData: ShipInertiaData,
     shipTransform: ShipTransform,
@@ -30,7 +32,7 @@ class ShipData(
     shipActiveChunksSet: IShipActiveChunksSet,
     var isStatic: Boolean = false
 ) : ShipDataCommon(
-    shipUUID, name, chunkClaim, physicsData, shipTransform, prevTickShipTransform,
+    shipUUID, name, chunkClaim, chunkClaimDimension, physicsData, shipTransform, prevTickShipTransform,
     shipAABB, shipActiveChunksSet
 ) {
     /**
@@ -107,6 +109,7 @@ class ShipData(
         internal fun createEmpty(
             name: String,
             chunkClaim: ChunkClaim,
+            chunkClaimDimension: DimensionId,
             shipCenterInWorldCoordinates: Vector3dc,
             shipCenterInShipCoordinates: Vector3dc,
             scaling: Double = 1.0,
@@ -123,6 +126,7 @@ class ShipData(
                 shipUUID = UUID.randomUUID(),
                 name = name,
                 chunkClaim = chunkClaim,
+                chunkClaimDimension = chunkClaimDimension,
                 physicsData = ShipPhysicsData.createEmpty(),
                 inertiaData = ShipInertiaData.newEmptyShipInertiaData(),
                 shipTransform = shipTransform,
