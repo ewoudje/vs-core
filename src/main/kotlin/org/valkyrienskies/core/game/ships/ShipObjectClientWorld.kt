@@ -3,7 +3,7 @@ package org.valkyrienskies.core.game.ships
 import java.util.UUID
 
 class ShipObjectClientWorld(
-    override val queryableShipData: MutableQueryableShipDataClient
+    override val queryableShipData: MutableQueryableShipDataCommon
 ) : ShipObjectWorld(queryableShipData) {
 
     private val shipObjectMap = HashMap<UUID, ShipObjectClient>()

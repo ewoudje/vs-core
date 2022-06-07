@@ -6,10 +6,8 @@ import org.valkyrienskies.core.datastructures.ChunkClaimMap
 import java.util.UUID
 
 typealias QueryableShipDataServer = QueryableShipData<ShipData>
-typealias QueryableShipDataClient = QueryableShipData<ShipDataClient>
 typealias QueryableShipDataCommon = QueryableShipData<ShipDataCommon>
 typealias MutableQueryableShipDataServer = MutableQueryableShipData<ShipData>
-typealias MutableQueryableShipDataClient = MutableQueryableShipData<ShipDataClient>
 typealias MutableQueryableShipDataCommon = MutableQueryableShipData<ShipDataCommon>
 
 interface QueryableShipData<out ShipDataType : ShipDataCommon> : Iterable<ShipDataType> {
