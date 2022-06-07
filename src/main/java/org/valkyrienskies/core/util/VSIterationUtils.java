@@ -250,19 +250,5 @@ public class VSIterationUtils {
         }
     }
 
-    @FunctionalInterface
-    public interface IntTernaryConsumer {
-
-        void accept(int x, int y, int z);
-
-    }
-
-    @FunctionalInterface
-    public interface IntBinaryConsumer {
-
-        void accept(int x, int y);
-
-    }
-
     // endregion
 }

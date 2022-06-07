@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.joml.Vector3ic;
-import org.valkyrienskies.core.util.VSIterationUtils;
+import org.valkyrienskies.core.util.IntTernaryConsumer;
 
 /**
  * Acts just like a <code>Set&lt;Vector3ic&gt;</code>, but it can store the data however it wants to.
@@ -30,7 +30,7 @@ public interface IBlockPosSet extends Set<Vector3ic> {
      * Fast way to iterate over all BlockPos in this Set that does not require us to create BlockPos objects. Although
      * this default implementation is still slow, it should be accelerated by the data structure.
      */
-    default void forEach(@Nonnull final VSIterationUtils.IntTernaryConsumer action) {
+    default void forEach(@Nonnull final IntTernaryConsumer action) {
         forEach(blockPos -> action.accept(blockPos.x(), blockPos.y(), blockPos.z()));
     }
 
@@ -39,7 +39,7 @@ public interface IBlockPosSet extends Set<Vector3ic> {
      * iteration is almost always correct, it is possible to iterate over an element more than once, or not all. But the
      * chances of these events occurring is very small.
      */
-    default void forEachUnsafe(@Nonnull final VSIterationUtils.IntTernaryConsumer action) {
+    default void forEachUnsafe(@Nonnull final IntTernaryConsumer action) {
         throw new UnsupportedOperationException();
     }
 

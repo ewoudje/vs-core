@@ -20,7 +20,7 @@ import javax.annotation.Nonnull;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.valkyrienskies.core.game.ChunkClaim;
-import org.valkyrienskies.core.util.VSIterationUtils;
+import org.valkyrienskies.core.util.IntTernaryConsumer;
 
 /**
  * An implementation of IBlockPosSet that stores block positions as 1 integer. This is accomplished by storing each
@@ -125,7 +125,7 @@ public class SmallBlockPosSet implements IBlockPosSet {
     }
 
     @Override
-    public void forEach(@Nonnull final VSIterationUtils.IntTernaryConsumer action) {
+    public void forEach(@Nonnull final IntTernaryConsumer action) {
         final IntIterator iterator = compressedBlockPosList.iterator();
         while (iterator.hasNext()) {
             final int compressed = iterator.nextInt();
@@ -169,7 +169,7 @@ public class SmallBlockPosSet implements IBlockPosSet {
     }
 
     @Override
-    public void forEachUnsafe(@Nonnull final VSIterationUtils.IntTernaryConsumer action) {
+    public void forEachUnsafe(@Nonnull final IntTernaryConsumer action) {
         int curIndex = 0;
         final Vector3i mutableBlockPos = new Vector3i();
         while (compressedBlockPosList.size() >= curIndex) {

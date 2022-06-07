@@ -18,7 +18,7 @@ import org.joml.Vector3i;
 import org.joml.Vector3ic;
 import org.joml.primitives.AABBd;
 import org.valkyrienskies.core.game.ChunkClaim;
-import org.valkyrienskies.core.util.VSIterationUtils;
+import org.valkyrienskies.core.util.IntTernaryConsumer;
 
 /**
  * A wrapper around SmallBlockPosSet that can make create tight AxisAlignedBB containing all BlockPos in the Set. All
@@ -155,7 +155,7 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
     }
 
     @Override
-    public void forEach(@Nonnull final VSIterationUtils.IntTernaryConsumer action) {
+    public void forEach(@Nonnull final IntTernaryConsumer action) {
         blockPosSet.forEach(action);
     }
 
