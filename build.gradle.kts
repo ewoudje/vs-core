@@ -64,7 +64,7 @@ dependencies {
     implementation("io.netty", "netty-buffer", nettyVersion)
 
     // Junit 5 for Unit Testing
-    testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
 }
 
 tasks.withType<Checkstyle> {
