@@ -8,6 +8,7 @@ import org.joml.Vector3i
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipInertiaData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
+import org.valkyrienskies.core.game.ships.ShipPhysicsData
 import org.valkyrienskies.core.game.ships.ShipTransform
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyTransform
@@ -79,6 +80,8 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                         transformFromPhysics.rotation
                     )
 
+                    shipData.physicsData.linearVelocity = shipInPhysicsFrameData.vel
+                    shipData.physicsData.angularVelocity = shipInPhysicsFrameData.omega
                     shipData.shipTransform = newShipTransform
                 }
             } else {
@@ -127,6 +130,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 minDefined,
                 maxDefined,
                 inertiaData,
+                ShipPhysicsData(Vector3d(), Vector3d()),
                 shipTransform,
                 voxelOffset,
                 isStatic,
@@ -156,6 +160,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 minDefined,
                 maxDefined,
                 rigidBodyInertiaData,
+                it.shipData.physicsData,
                 shipTransform,
                 voxelOffset,
                 isStatic,
@@ -174,6 +179,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 uuid,
                 newVoxelOffset,
                 rigidBodyInertiaData,
+                it.shipData.physicsData,
                 isStatic,
                 isVoxelsFullyLoaded
             )
