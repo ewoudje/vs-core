@@ -98,12 +98,12 @@ class ShipData(
     }
 
     // Java friendly
-    fun <T> setAttachment(clazz: Class<T>, value: T) {
+    fun <T> saveAttachment(clazz: Class<T>, value: T) {
         persistentAttachedData[clazz] = value
     }
 
     // Kotlin Only Inlining
-    inline fun <reified T> setAttachment(value: T) = setAttachment(T::class.java, value)
+    inline fun <reified T> saveAttachment(value: T) = saveAttachment(T::class.java, value)
 
     // Java friendly
     fun <T> getAttachment(clazz: Class<T>) = persistentAttachedData[clazz]
