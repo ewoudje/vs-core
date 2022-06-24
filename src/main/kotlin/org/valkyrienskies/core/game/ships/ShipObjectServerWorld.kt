@@ -31,16 +31,16 @@ class ShipObjectServerWorld(
 
     var players: Set<IPlayer> = setOf()
 
-    private val shipObjectMap = HashMap<UUID, ShipObjectServer>()
+    private val shipObjectMap = HashMap<ShipId, ShipObjectServer>()
 
     // Explicitly make [shipObjects] a MutableMap so that we can use Iterator::remove()
-    override val shipObjects: MutableMap<UUID, ShipObjectServer> = shipObjectMap
-    val groundBodyUUID: UUID = UUID.randomUUID() // The UUID used when sending voxel updates for the ground shape
+    override val shipObjects: MutableMap<ShipId, ShipObjectServer> = shipObjectMap
+    val groundBodyUUID: ShipId = UUID.randomUUID() // The UUID used when sending voxel updates for the ground shape
 
     // These fields are used to generate [VSGameFrame]
     private val newShipObjects: MutableList<ShipObjectServer> = ArrayList()
     private val updatedShipObjects: MutableList<ShipObjectServer> = ArrayList()
-    private val deletedShipObjects: MutableList<UUID> = ArrayList()
+    private val deletedShipObjects: MutableList<ShipId> = ArrayList()
 
     /**
      * A map of voxel updates pending to be applied to ships.
@@ -48,7 +48,7 @@ class ShipObjectServerWorld(
      * These updates will be sent to the physics engine, however they are not applied immediately. The physics engine
      * has full control of when the updates are applied.
      */
-    private val shipToVoxelUpdates: MutableMap<UUID?, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
+    private val shipToVoxelUpdates: MutableMap<ShipId?, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
 
     private var firstGameFrame = true
 
@@ -66,7 +66,7 @@ class ShipObjectServerWorld(
 
             val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
 
-            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData?.shipUUID) { HashMap() }
+            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData?.id) { HashMap() }
 
             val voxelShapeUpdate =
                 voxelUpdates.getOrPut(chunkPos) { SparseVoxelShapeUpdate.createSparseVoxelShapeUpdate(chunkPos) }
@@ -104,9 +104,9 @@ class ShipObjectServerWorld(
             val shipObjectServer = it.next().value
             if (shipObjectServer.shipData.inertiaData.getShipMass() < 1e-8) {
                 // Delete this ship
-                deletedShipObjects.add(shipObjectServer.shipData.shipUUID)
+                deletedShipObjects.add(shipObjectServer.shipData.id)
                 queryableShipData.removeShipData(shipObjectServer.shipData)
-                shipToVoxelUpdates.remove(shipObjectServer.shipData.shipUUID)
+                shipToVoxelUpdates.remove(shipObjectServer.shipData.id)
                 it.remove()
             }
         }
@@ -118,7 +118,7 @@ class ShipObjectServerWorld(
 
         // For now, just make a [ShipObject] for every [ShipData]
         for (shipData in queryableShipData) {
-            val shipID = shipData.shipUUID
+            val shipID = shipData.id
             if (!shipObjectMap.containsKey(shipID)) {
                 val newShipObject = ShipObjectServer(shipData)
                 newShipObjects.add(newShipObject)
@@ -130,7 +130,7 @@ class ShipObjectServerWorld(
         for (newLoadedChunk in newLoadedChunks) {
             val chunkPos: Vector3ic = Vector3i(newLoadedChunk.regionX, newLoadedChunk.regionY, newLoadedChunk.regionZ)
             val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
-            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData?.shipUUID) { HashMap() }
+            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData?.id) { HashMap() }
             voxelUpdates[chunkPos] = newLoadedChunk
         }
         // endregion
@@ -148,7 +148,7 @@ class ShipObjectServerWorld(
             val shipDataManagingPos = queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ)
             if (shipDataManagingPos != null) {
                 // Then check if there exists a ShipObject for this ShipData
-                val shipObjectManagingPos = shipObjects[shipDataManagingPos.shipUUID]
+                val shipObjectManagingPos = shipObjects[shipDataManagingPos.id]
                 if (shipObjectManagingPos != null) {
                     return shipObjectManagingPos.shipChunkTracker.getPlayersWatchingChunk(chunkX, chunkZ)
                 }

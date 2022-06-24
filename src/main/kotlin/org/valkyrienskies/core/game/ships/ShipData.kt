@@ -20,7 +20,7 @@ import java.util.UUID
  * See [ShipObject] to find the code that defines ship behavior (movement, player interactions, etc)
  */
 class ShipData(
-    shipUUID: UUID,
+    id: ShipId,
     name: String,
     chunkClaim: ChunkClaim,
     chunkClaimDimension: DimensionId,
@@ -32,7 +32,7 @@ class ShipData(
     shipActiveChunksSet: IShipActiveChunksSet,
     var isStatic: Boolean = false
 ) : ShipDataCommon(
-    shipUUID, name, chunkClaim, chunkClaimDimension, physicsData, shipTransform, prevTickShipTransform,
+    id, name, chunkClaim, chunkClaimDimension, physicsData, shipTransform, prevTickShipTransform,
     shipAABB, shipActiveChunksSet
 ) {
     /**
@@ -123,7 +123,7 @@ class ShipData(
             )
 
             return ShipData(
-                shipUUID = UUID.randomUUID(),
+                id = UUID.randomUUID(),
                 name = name,
                 chunkClaim = chunkClaim,
                 chunkClaimDimension = chunkClaimDimension,

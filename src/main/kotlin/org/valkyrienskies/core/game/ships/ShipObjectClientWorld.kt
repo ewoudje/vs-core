@@ -1,18 +1,16 @@
 package org.valkyrienskies.core.game.ships
 
-import java.util.UUID
-
 class ShipObjectClientWorld(
     override val queryableShipData: MutableQueryableShipDataCommon
 ) : ShipObjectWorld(queryableShipData) {
 
-    private val shipObjectMap = HashMap<UUID, ShipObjectClient>()
-    override val shipObjects: Map<UUID, ShipObjectClient> = shipObjectMap
+    private val shipObjectMap = HashMap<ShipId, ShipObjectClient>()
+    override val shipObjects: Map<ShipId, ShipObjectClient> = shipObjectMap
 
     fun tickShips() {
         // For now, just make a [ShipObject] for every [ShipData]
         for (shipData in queryableShipData) {
-            val shipID = shipData.shipUUID
+            val shipID = shipData.id
             shipObjectMap.computeIfAbsent(shipID) { ShipObjectClient(shipData) }
         }
 

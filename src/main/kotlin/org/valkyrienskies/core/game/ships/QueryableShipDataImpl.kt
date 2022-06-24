@@ -3,7 +3,6 @@ package org.valkyrienskies.core.game.ships
 import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
 import org.valkyrienskies.core.datastructures.ChunkClaimMap
-import java.util.UUID
 
 typealias QueryableShipDataServer = QueryableShipData<ShipData>
 typealias QueryableShipDataCommon = QueryableShipData<ShipDataCommon>
@@ -11,9 +10,9 @@ typealias MutableQueryableShipDataServer = MutableQueryableShipData<ShipData>
 typealias MutableQueryableShipDataCommon = MutableQueryableShipData<ShipDataCommon>
 
 interface QueryableShipData<out ShipDataType : ShipDataCommon> : Iterable<ShipDataType> {
-    val uuidToShipData: Map<UUID, ShipDataType>
+    val idToShipData: Map<ShipId, ShipDataType>
     override fun iterator(): Iterator<ShipDataType>
-    fun getShipDataFromUUID(uuid: UUID): ShipDataType?
+    fun getById(uuid: ShipId): ShipDataType?
     fun getShipDataFromChunkPos(chunkX: Int, chunkZ: Int): ShipDataType?
     fun getShipDataIntersecting(aabb: AABBdc): Iterator<ShipDataType>
 }
@@ -27,8 +26,8 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
     data: Iterable<ShipDataType> = emptyList()
 ) : MutableQueryableShipData<ShipDataType> {
 
-    val _uuidToShipData: HashMap<UUID, ShipDataType> = HashMap()
-    override val uuidToShipData: Map<UUID, ShipDataType> = _uuidToShipData
+    val _idToShipData: HashMap<ShipId, ShipDataType> = HashMap()
+    override val idToShipData: Map<ShipId, ShipDataType> = _idToShipData
     val chunkClaimToShipData: ChunkClaimMap<ShipDataType> = ChunkClaimMap()
 
     init {
@@ -36,11 +35,11 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
     }
 
     override fun iterator(): Iterator<ShipDataType> {
-        return _uuidToShipData.values.iterator()
+        return _idToShipData.values.iterator()
     }
 
-    override fun getShipDataFromUUID(uuid: UUID): ShipDataType? {
-        return _uuidToShipData[uuid]
+    override fun getById(uuid: ShipId): ShipDataType? {
+        return _idToShipData[uuid]
     }
 
     override fun getShipDataFromChunkPos(chunkX: Int, chunkZ: Int): ShipDataType? {
@@ -48,24 +47,24 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
     }
 
     override fun addShipData(shipData: ShipDataType) {
-        if (getShipDataFromUUID(shipData.shipUUID) != null) {
+        if (getById(shipData.id) != null) {
             throw IllegalArgumentException("Adding shipData $shipData failed because of duplicated UUID.")
         }
-        _uuidToShipData[shipData.shipUUID] = shipData
+        _idToShipData[shipData.id] = shipData
         chunkClaimToShipData.set(shipData.chunkClaim, shipData)
     }
 
     override fun removeShipData(shipData: ShipDataType) {
-        if (getShipDataFromUUID(shipData.shipUUID) == null) {
+        if (getById(shipData.id) == null) {
             throw IllegalArgumentException("Removing $shipData failed because it wasn't in the UUID map.")
         }
-        _uuidToShipData.remove(shipData.shipUUID)
+        _idToShipData.remove(shipData.id)
         chunkClaimToShipData.remove(shipData.chunkClaim)
     }
 
     override fun getShipDataIntersecting(aabb: AABBdc): Iterator<ShipDataType> {
         // TODO("Use https://github.com/tzaeschke/phtree")
-        return _uuidToShipData.values
+        return _idToShipData.values
             .filter { it.shipAABB.intersectsAABB(aabb as AABBd) }
             .iterator()
     }
@@ -76,12 +75,12 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
 
         other as QueryableShipDataImpl<*>
 
-        if (uuidToShipData != other.uuidToShipData) return false
+        if (idToShipData != other.idToShipData) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return uuidToShipData.hashCode()
+        return idToShipData.hashCode()
     }
 }

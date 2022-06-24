@@ -15,7 +15,7 @@ import org.valkyrienskies.core.util.serialization.VSPacketIgnore
 import java.util.UUID
 
 open class ShipDataCommon(
-    val shipUUID: UUID,
+    val id: ShipId,
     var name: String,
     val chunkClaim: ChunkClaim,
     val chunkClaimDimension: DimensionId,
@@ -64,7 +64,7 @@ open class ShipDataCommon(
 
         other as ShipDataCommon
 
-        if (shipUUID != other.shipUUID) return false
+        if (id != other.id) return false
         if (name != other.name) return false
         if (chunkClaim != other.chunkClaim) return false
         if (physicsData != other.physicsData) return false
@@ -77,7 +77,7 @@ open class ShipDataCommon(
     }
 
     override fun hashCode(): Int {
-        var result = shipUUID.hashCode()
+        var result = id.hashCode()
         result = 31 * result + name.hashCode()
         result = 31 * result + chunkClaim.hashCode()
         result = 31 * result + physicsData.hashCode()
@@ -108,7 +108,7 @@ open class ShipDataCommon(
             )
 
             return ShipDataCommon(
-                shipUUID = UUID.randomUUID(),
+                id = UUID.randomUUID(),
                 name = name,
                 chunkClaim = chunkClaim,
                 chunkClaimDimension = chunkClaimDimension,

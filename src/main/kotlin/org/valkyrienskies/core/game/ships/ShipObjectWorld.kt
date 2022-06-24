@@ -1,7 +1,6 @@
 package org.valkyrienskies.core.game.ships
 
 import org.valkyrienskies.core.game.VSBlockType
-import java.util.UUID
 
 /**
  * Manages all the [ShipObject]s in a world.
@@ -10,7 +9,7 @@ abstract class ShipObjectWorld(
     open val queryableShipData: QueryableShipDataCommon,
 ) {
 
-    abstract val shipObjects: Map<UUID, ShipObject>
+    abstract val shipObjects: Map<ShipId, ShipObject>
 
     open fun onSetBlock(
         posX: Int,

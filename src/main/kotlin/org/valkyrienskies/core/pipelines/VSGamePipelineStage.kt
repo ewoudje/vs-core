@@ -6,6 +6,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.valkyrienskies.core.game.ships.ShipData
+import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipInertiaData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
@@ -96,9 +97,9 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
 
     private fun createGameFrame(): VSGameFrame {
         val newShips = ArrayList<NewShipInGameFrameData>() // Ships to be added to the Physics simulation
-        val deletedShips = ArrayList<UUID>() // Ships to be deleted from the Physics simulation
-        val updatedShips = HashMap<UUID, UpdateShipInGameFrameData>() // Map of ship updates
-        val gameFrameVoxelUpdatesMap = HashMap<UUID, List<IVoxelShapeUpdate>>() // Voxel updates applied by this frame
+        val deletedShips = ArrayList<ShipId>() // Ships to be deleted from the Physics simulation
+        val updatedShips = HashMap<ShipId, UpdateShipInGameFrameData>() // Map of ship updates
+        val gameFrameVoxelUpdatesMap = HashMap<ShipId, List<IVoxelShapeUpdate>>() // Voxel updates applied by this frame
 
         val newGroundRigidBodyObjects = shipWorld.getNewGroundRigidBodyObjects()
         val newShipObjects = shipWorld.getNewShipObjects()
@@ -140,7 +141,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
         }
 
         newShipObjects.forEach {
-            val uuid = it.shipData.shipUUID
+            val uuid = it.shipData.id
             val minDefined = Vector3i()
             val maxDefined = Vector3i()
             it.shipData.shipActiveChunksSet.getMinMaxWorldPos(minDefined, maxDefined)
@@ -170,7 +171,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
         }
 
         updatedShipObjects.forEach {
-            val uuid = it.shipData.shipUUID
+            val uuid = it.shipData.id
             val newVoxelOffset = getShipVoxelOffset(it.shipData.inertiaData)
             val rigidBodyInertiaData = getRigidBodyInertiaData(it.shipData.inertiaData)
             val isStatic = it.shipData.isStatic
