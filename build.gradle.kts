@@ -144,7 +144,7 @@ publishing {
             println("Publishing to GitHub Packages")
             maven {
                 name = "GithubPackages"
-                url = uri("https://maven.pkg.github.com/vs-core")
+                url = uri("https://maven.pkg.github.com/ValkyrienSkies/vs-core")
                 credentials {
                     username = ghpUser
                     password = ghpPassword
