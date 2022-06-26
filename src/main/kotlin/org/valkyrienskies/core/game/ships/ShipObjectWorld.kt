@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.game.ships
 
+import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
 
 /**
@@ -15,6 +16,7 @@ abstract class ShipObjectWorld(
         posX: Int,
         posY: Int,
         posZ: Int,
+        dimensionId: DimensionId,
         oldBlockType: VSBlockType,
         newBlockType: VSBlockType,
         oldBlockMass: Double,
@@ -22,7 +24,7 @@ abstract class ShipObjectWorld(
     ) {
         // If there is a ShipData at this position, then tell it about the block update
         queryableShipData.getShipDataFromChunkPos(posX shr 4, posZ shr 4)
-            ?.onSetBlock(posX, posY, posZ, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
+            ?.onSetBlock(posX, posY, posZ, dimensionId, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
     }
 
     abstract fun destroyWorld()

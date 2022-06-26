@@ -35,7 +35,16 @@ class ShipObjectServerWorld(
 
     // Explicitly make [shipObjects] a MutableMap so that we can use Iterator::remove()
     override val shipObjects: MutableMap<ShipId, ShipObjectServer> = shipObjectMap
-    val groundBodyUUID: ShipId = UUID.randomUUID() // The UUID used when sending voxel updates for the ground shape
+
+    private val dimensionToGroundBodyId: MutableMap<DimensionId, ShipId> = HashMap()
+    // An immutable view of [dimensionToGroundBodyId]
+    val dimensionToGroundBodyIdImmutable: Map<DimensionId, ShipId>
+        get() = dimensionToGroundBodyId
+
+    private val dimensionsAddedThisTick = ArrayList<DimensionId>()
+    private val dimensionsRemovedThisTick = ArrayList<DimensionId>()
+
+    private val newLoadedChunksList = ArrayList<Pair<DimensionId, List<IVoxelShapeUpdate>>>()
 
     // These fields are used to generate [VSGameFrame]
     private val newShipObjects: MutableList<ShipObjectServer> = ArrayList()
@@ -48,7 +57,7 @@ class ShipObjectServerWorld(
      * These updates will be sent to the physics engine, however they are not applied immediately. The physics engine
      * has full control of when the updates are applied.
      */
-    private val shipToVoxelUpdates: MutableMap<ShipId?, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
+    private val shipToVoxelUpdates: MutableMap<ShipId, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
 
     private var firstGameFrame = true
 
@@ -56,17 +65,18 @@ class ShipObjectServerWorld(
      * Add the update to [shipToVoxelUpdates].
      */
     override fun onSetBlock(
-        posX: Int, posY: Int, posZ: Int, oldBlockType: VSBlockType, newBlockType: VSBlockType, oldBlockMass: Double,
+        posX: Int, posY: Int, posZ: Int, dimensionId: DimensionId, oldBlockType: VSBlockType, newBlockType: VSBlockType, oldBlockMass: Double,
         newBlockMass: Double
     ) {
-        super.onSetBlock(posX, posY, posZ, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
+        super.onSetBlock(posX, posY, posZ, dimensionId, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
 
         if (oldBlockType != newBlockType) {
             val chunkPos: Vector3ic = Vector3i(posX shr 4, posY shr 4, posZ shr 4)
 
             val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
 
-            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData?.id) { HashMap() }
+            val shipId: ShipId = shipData?.id ?: dimensionToGroundBodyId[dimensionId]!!
+            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipId) { HashMap() }
 
             val voxelShapeUpdate =
                 voxelUpdates.getOrPut(chunkPos) { SparseVoxelShapeUpdate.createSparseVoxelShapeUpdate(chunkPos) }
@@ -98,7 +108,11 @@ class ShipObjectServerWorld(
         }
     }
 
-    fun tickShips(newLoadedChunks: List<IVoxelShapeUpdate>) {
+    fun addNewLoadedChunks(dimensionId: DimensionId, newLoadedChunks: List<IVoxelShapeUpdate>) {
+        newLoadedChunksList.add(Pair(dimensionId, newLoadedChunks))
+    }
+
+    fun tickShips() {
         val it = shipObjects.iterator()
         while (it.hasNext()) {
             val shipObjectServer = it.next().value
@@ -127,11 +141,18 @@ class ShipObjectServerWorld(
         }
 
         // region Add voxel shape updates for chunks that loaded this tick
-        for (newLoadedChunk in newLoadedChunks) {
-            val chunkPos: Vector3ic = Vector3i(newLoadedChunk.regionX, newLoadedChunk.regionY, newLoadedChunk.regionZ)
-            val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
-            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData?.id) { HashMap() }
-            voxelUpdates[chunkPos] = newLoadedChunk
+        for (newLoadedChunkAndDimension in newLoadedChunksList) {
+            val dimensionId = newLoadedChunkAndDimension.first
+            for (newLoadedChunk in newLoadedChunkAndDimension.second) {
+                val chunkPos: Vector3ic =
+                    Vector3i(newLoadedChunk.regionX, newLoadedChunk.regionY, newLoadedChunk.regionZ)
+                val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
+
+                val shipId: ShipId = shipData?.id ?: dimensionToGroundBodyId[dimensionId]!!
+
+                val voxelUpdates = shipToVoxelUpdates.getOrPut(shipId) { HashMap() }
+                voxelUpdates[chunkPos] = newLoadedChunk
+            }
         }
         // endregion
     }
@@ -220,13 +241,12 @@ class ShipObjectServerWorld(
     override fun destroyWorld() {
     }
 
-    fun getNewGroundRigidBodyObjects(): List<UUID> {
-        return if (firstGameFrame) {
-            firstGameFrame = false
-            listOf(groundBodyUUID)
-        } else {
-            listOf()
+    fun getNewGroundRigidBodyObjects(): List<Pair<DimensionId, ShipId>> {
+        val newDimensionsObjects = ArrayList<Pair<DimensionId, ShipId>>(dimensionsAddedThisTick.size)
+        dimensionsAddedThisTick.forEach { dimensionId: DimensionId ->
+            newDimensionsObjects.add(Pair(dimensionId, dimensionToGroundBodyId[dimensionId]!!))
         }
+        return newDimensionsObjects
     }
 
     fun getNewShipObjects(): List<ShipObjectServer> {
@@ -237,11 +257,15 @@ class ShipObjectServerWorld(
         return updatedShipObjects
     }
 
-    fun getDeletedShipObjects(): List<UUID> {
-        return deletedShipObjects
+    fun getDeletedShipObjects(): List<ShipId> {
+        val deletedGroundShips = ArrayList<ShipId>()
+        dimensionsRemovedThisTick.forEach { dimensionRemovedThisTick: DimensionId ->
+            deletedGroundShips.add(dimensionToGroundBodyId[dimensionRemovedThisTick]!!)
+        }
+        return deletedGroundShips + deletedShipObjects
     }
 
-    fun getShipToVoxelUpdates(): Map<UUID?, Map<Vector3ic, IVoxelShapeUpdate>> {
+    fun getShipToVoxelUpdates(): Map<ShipId, Map<Vector3ic, IVoxelShapeUpdate>> {
         return shipToVoxelUpdates
     }
 
@@ -250,5 +274,23 @@ class ShipObjectServerWorld(
         updatedShipObjects.clear()
         deletedShipObjects.clear()
         shipToVoxelUpdates.clear()
+        newLoadedChunksList.clear()
+        dimensionsAddedThisTick.clear()
+        dimensionsRemovedThisTick.forEach { dimensionRemovedThisTick: DimensionId ->
+            val removedSuccessfully = dimensionToGroundBodyId.remove(dimensionRemovedThisTick) != null
+            assert(removedSuccessfully)
+        }
+        dimensionsRemovedThisTick.clear()
+    }
+
+    fun addDimension(dimensionId: DimensionId) {
+        assert(!dimensionToGroundBodyId.contains(dimensionId))
+        dimensionsAddedThisTick.add(dimensionId)
+        dimensionToGroundBodyId[dimensionId] = UUID.randomUUID()
+    }
+
+    fun removeDimension(dimensionId: DimensionId) {
+        assert(dimensionToGroundBodyId.contains(dimensionId))
+        dimensionsRemovedThisTick.add(dimensionId)
     }
 }
