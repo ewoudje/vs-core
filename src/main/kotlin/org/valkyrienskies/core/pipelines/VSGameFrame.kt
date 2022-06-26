@@ -2,6 +2,7 @@ package org.valkyrienskies.core.pipelines
 
 import org.joml.Vector3dc
 import org.joml.Vector3ic
+import org.joml.primitives.AABBic
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
@@ -26,6 +27,7 @@ data class NewShipInGameFrameData(
     val dimensionId: Int,
     val minDefined: Vector3ic,
     val maxDefined: Vector3ic,
+    val totalVoxelRegion: AABBic,
     val inertiaData: RigidBodyInertiaData,
     val physicsData: ShipPhysicsData,
     val shipTransform: RigidBodyTransform,

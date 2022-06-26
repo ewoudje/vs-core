@@ -17,7 +17,6 @@ data class VSPhysicsFrame(
 
 data class ShipInPhysicsFrameData(
     val uuid: ShipId,
-    val dimensionId: Int,
     val inertiaData: RigidBodyInertiaData,
     val shipTransform: RigidBodyTransform,
     val shipVoxelOffset: Vector3dc, // The voxel offset of the ship at this physics frame

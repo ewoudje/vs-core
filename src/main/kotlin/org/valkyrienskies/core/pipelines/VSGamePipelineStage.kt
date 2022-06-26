@@ -11,6 +11,7 @@ import org.valkyrienskies.core.game.ships.ShipInertiaData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
 import org.valkyrienskies.core.game.ships.ShipTransform
+import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
@@ -56,10 +57,9 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
     }
 
     private fun applyPhysicsFrame(physicsFrame: VSPhysicsFrame) {
-        physicsFrame.shipDataMap.forEach { (uuid, shipInPhysicsFrameData) ->
-            val dimension = shipInPhysicsFrameData.dimensionId
+        physicsFrame.shipDataMap.forEach { (shipId, shipInPhysicsFrameData) ->
             // Only apply physics updates to ShipObjects. Do not apply them to ShipData without a ShipObject
-            val shipData: ShipData? = shipWorld.shipObjects[uuid]?.shipData
+            val shipData: ShipData? = shipWorld.shipObjects[shipId]?.shipData
             if (shipData != null) {
                 // TODO: Don't apply the transform if we are forcing the ship to move somewhere else
                 val applyTransform = true // For now just set [applyTransform] to always be true
@@ -86,10 +86,10 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 }
             } else {
                 // Check ground rigid body objects
-                if (shipWorld.dimensionToGroundBodyIdImmutable[dimension] != uuid)
+                if (!shipWorld.dimensionToGroundBodyIdImmutable.containsValue(shipId))
                     println(
-                        "Received physics frame update for ship with uuid: $uuid and dimension $dimension, " +
-                            "but a ship with this uuid does not exist!"
+                        "Received physics frame update for ship with ShipId: $shipId, " +
+                            "but a ship with this ShipId does not exist!"
                     )
             }
         }
@@ -112,6 +112,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
             val shipId = newGroundObjectData.second
             val minDefined = Vector3i(Int.MIN_VALUE, 0, Int.MIN_VALUE)
             val maxDefined = Vector3i(Int.MAX_VALUE, 255, Int.MAX_VALUE)
+            val totalVoxelRegion = PhysicsWorldReference.INFINITE_VOXEL_REGION
             // Some random inertia values, the ground body is static so these don't matter
             val inertiaData = RigidBodyInertiaData(
                 1e-1,
@@ -132,6 +133,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 dimensionId,
                 minDefined,
                 maxDefined,
+                totalVoxelRegion,
                 inertiaData,
                 ShipPhysicsData(Vector3d(), Vector3d()),
                 shipTransform,
@@ -148,6 +150,8 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
             val maxDefined = Vector3i()
             it.shipData.shipActiveChunksSet.getMinMaxWorldPos(minDefined, maxDefined)
 
+            val totalVoxelRegion = it.shipData.chunkClaim.getTotalVoxelRegion()
+
             val rigidBodyInertiaData = getRigidBodyInertiaData(it.shipData.inertiaData)
 
             val shipTransform = RigidBodyTransform(
@@ -162,6 +166,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 it.shipData.chunkClaimDimension,
                 minDefined,
                 maxDefined,
+                totalVoxelRegion,
                 rigidBodyInertiaData,
                 it.shipData.physicsData,
                 shipTransform,

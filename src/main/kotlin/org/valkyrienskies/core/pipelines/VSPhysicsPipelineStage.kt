@@ -74,12 +74,13 @@ class VSPhysicsPipelineStage {
             val dimension = newShipInGameFrameData.dimensionId
             val minDefined = newShipInGameFrameData.minDefined
             val maxDefined = newShipInGameFrameData.maxDefined
+            val totalVoxelRegion = newShipInGameFrameData.totalVoxelRegion
             val inertiaData = newShipInGameFrameData.inertiaData
             val shipTransform = newShipInGameFrameData.shipTransform
             val isStatic = newShipInGameFrameData.isStatic
             val shipVoxelsFullyLoaded = newShipInGameFrameData.shipVoxelsFullyLoaded
 
-            val newRigidBodyReference = physicsEngine.createVoxelRigidBody(dimension, minDefined, maxDefined)
+            val newRigidBodyReference = physicsEngine.createVoxelRigidBody(dimension, minDefined, maxDefined, totalVoxelRegion)
             newRigidBodyReference.inertiaData = inertiaData
             newRigidBodyReference.rigidBodyTransform = shipTransform
             newRigidBodyReference.collisionShapeOffset = newShipInGameFrameData.voxelOffset
@@ -137,9 +138,6 @@ class VSPhysicsPipelineStage {
         val voxelUpdatesMap: Map<ShipId, List<IVoxelShapeUpdate>> = emptyMap()
         shipIdToRigidBodyMap.forEach { (shipId, shipIdAndRigidBodyReference) ->
             val rigidBodyReference = shipIdAndRigidBodyReference.rigidBodyReference
-
-            val shipId: ShipId = shipId
-            val dimensionId = rigidBodyReference.initialDimension
             val inertiaData: RigidBodyInertiaData = rigidBodyReference.inertiaData
             val shipTransform: RigidBodyTransform = rigidBodyReference.rigidBodyTransform
             val shipVoxelOffset: Vector3dc = rigidBodyReference.collisionShapeOffset
@@ -147,7 +145,7 @@ class VSPhysicsPipelineStage {
             val omega: Vector3dc = rigidBodyReference.omega
 
             shipDataMap[shipId] =
-                ShipInPhysicsFrameData(shipId, dimensionId, inertiaData, shipTransform, shipVoxelOffset, vel, omega)
+                ShipInPhysicsFrameData(shipId, inertiaData, shipTransform, shipVoxelOffset, vel, omega)
         }
         return VSPhysicsFrame(shipDataMap, voxelUpdatesMap)
     }
