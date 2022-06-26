@@ -65,7 +65,13 @@ class ShipObjectServerWorld(
      * Add the update to [shipToVoxelUpdates].
      */
     override fun onSetBlock(
-        posX: Int, posY: Int, posZ: Int, dimensionId: DimensionId, oldBlockType: VSBlockType, newBlockType: VSBlockType, oldBlockMass: Double,
+        posX: Int,
+        posY: Int,
+        posZ: Int,
+        dimensionId: DimensionId,
+        oldBlockType: VSBlockType,
+        newBlockType: VSBlockType,
+        oldBlockMass: Double,
         newBlockMass: Double
     ) {
         super.onSetBlock(posX, posY, posZ, dimensionId, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
@@ -146,7 +152,8 @@ class ShipObjectServerWorld(
             for (newLoadedChunk in newLoadedChunkAndDimension.second) {
                 val chunkPos: Vector3ic =
                     Vector3i(newLoadedChunk.regionX, newLoadedChunk.regionY, newLoadedChunk.regionZ)
-                val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z(), dimensionId)
+                val shipData: ShipData? =
+                    queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z(), dimensionId)
 
                 val shipId: ShipId = shipData?.id ?: dimensionToGroundBodyId[dimensionId]!!
 
@@ -184,7 +191,9 @@ class ShipObjectServerWorld(
      * It only returns the tasks, it is up to the caller to execute the tasks; however they do not have to execute all of them.
      * It is up to the caller to decide which tasks to execute, and which ones to skip.
      */
-    fun tickShipChunkLoading(dimensionId: DimensionId): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
+    fun tickShipChunkLoading(
+        dimensionId: DimensionId
+    ): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
         val chunkWatchTasksSorted = TreeSet<ChunkWatchTask>()
         val chunkUnwatchTasksSorted = TreeSet<ChunkUnwatchTask>()
 
