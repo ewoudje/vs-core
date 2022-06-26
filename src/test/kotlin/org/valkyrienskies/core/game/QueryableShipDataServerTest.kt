@@ -41,7 +41,7 @@ internal class QueryableShipDataServerTest {
         for (count in 1..1000) {
             val chunkX = Random.nextInt(shipChunkClaim.xStart, shipChunkClaim.xEnd + 1)
             val chunkZ = Random.nextInt(shipChunkClaim.zStart, shipChunkClaim.zEnd + 1)
-            assertEquals(shipData, queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ))
+            assertEquals(shipData, queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ, shipData.chunkClaimDimension))
         }
 
         // Test chunks outside of the claim
@@ -56,14 +56,14 @@ internal class QueryableShipDataServerTest {
             } else {
                 shipChunkClaim.zEnd + Random.nextInt(1, 1000)
             }
-            assertEquals(null, queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ))
+            assertEquals(null, queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ, shipData.chunkClaimDimension))
         }
 
         // Test more chunks outside of the claim
-        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart, shipChunkClaim.zStart - 1))
-        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart - 1, shipChunkClaim.zStart))
-        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd, shipChunkClaim.zEnd + 1))
-        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd + 1, shipChunkClaim.zEnd))
+        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart, shipChunkClaim.zStart - 1, shipData.chunkClaimDimension))
+        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xStart - 1, shipChunkClaim.zStart, shipData.chunkClaimDimension))
+        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd, shipChunkClaim.zEnd + 1, shipData.chunkClaimDimension))
+        assertEquals(null, queryableShipData.getShipDataFromChunkPos(shipChunkClaim.xEnd + 1, shipChunkClaim.zEnd, shipData.chunkClaimDimension))
     }
 
     /**

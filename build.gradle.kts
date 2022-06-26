@@ -3,10 +3,27 @@ plugins {
     id("org.jlleitschuh.gradle.ktlint") version "10.0.0"
     java
     checkstyle
+    `maven-publish`
 }
 
-group = "org.valkyrienskies.core"
-version = "1.0"
+group = "org.valkyrienskies"
+// Determine the version
+if (project.hasProperty("CustomReleaseVersion")) {
+    version = project.property("CustomReleaseVersion") as String
+} else {
+    // Yes, I know there is a gradle plugin to detect git version.
+    // But its made by Palantir 0_0.
+    val gitRevisionProcess = Runtime.getRuntime().exec("git rev-parse HEAD", emptyArray(), File("."))
+    val processInputStream = gitRevisionProcess.inputStream
+
+    var gitRevision = ""
+    while (true) {
+        val lastReadByte = processInputStream.read()
+        if (lastReadByte == -1) break
+        gitRevision += lastReadByte.toChar()
+    }
+    version = "1.0.0+" + gitRevision.substring(0, 10)
+}
 
 repositories {
     mavenCentral()
@@ -108,6 +125,56 @@ tasks {
         useJUnitPlatform()
         testLogging {
             events("passed", "skipped", "failed")
+        }
+    }
+}
+
+// Publish javadoc and sources to maven
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    repositories {
+        val ghpUser = (project.findProperty("gpr.user") ?: System.getenv("USERNAME")) as String?
+        val ghpPassword = (project.findProperty("gpr.key") ?: System.getenv("TOKEN")) as String?
+        // Publish to Github Packages
+        if (ghpUser != null && ghpPassword != null) {
+            println("Publishing to GitHub Packages")
+            maven {
+                name = "GithubPackages"
+                url = uri("https://maven.pkg.github.com/vs-core")
+                credentials {
+                    username = ghpUser
+                    password = ghpPassword
+                }
+            }
+        }
+
+        val vsMavenUsername = project.findProperty("vs_maven_username") as String?
+        val vsMavenPassword = project.findProperty("vs_maven_password") as String?
+        val vsMavenUrl = project.findProperty("vs_maven_url") as String?
+        if (vsMavenUrl != null && vsMavenPassword != null && vsMavenUsername != null) {
+            println("Publishing to VS Maven")
+            maven {
+                url = uri(vsMavenUrl)
+                credentials {
+                    username = vsMavenUsername
+                    password = vsMavenPassword
+                }
+            }
+        }
+    }
+    publishing {
+        publications {
+            create<MavenPublication>("maven") {
+                groupId = "org.valkyrienskies"
+                artifactId = "vs-core"
+                version = project.version as String
+
+                from(components["java"])
+            }
         }
     }
 }
