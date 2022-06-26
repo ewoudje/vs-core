@@ -55,13 +55,12 @@ class ShipData(
         posX: Int,
         posY: Int,
         posZ: Int,
-        dimensionId: DimensionId,
         oldBlockType: VSBlockType,
         newBlockType: VSBlockType,
         oldBlockMass: Double,
         newBlockMass: Double
     ) {
-        super.onSetBlock(posX, posY, posZ, dimensionId, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
+        super.onSetBlock(posX, posY, posZ, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
 
         // Update [inertiaData]
         inertiaData.onSetBlock(posX, posY, posZ, oldBlockMass, newBlockMass)

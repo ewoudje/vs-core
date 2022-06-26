@@ -22,9 +22,10 @@ abstract class ShipObjectWorld(
         oldBlockMass: Double,
         newBlockMass: Double
     ) {
-        // If there is a ShipData at this position, then tell it about the block update
-        queryableShipData.getShipDataFromChunkPos(posX shr 4, posZ shr 4)
-            ?.onSetBlock(posX, posY, posZ, dimensionId, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
+        // If there is a ShipData at this position and dimension, then tell it about the block update
+        val shipData: ShipDataCommon? = queryableShipData.getShipDataFromChunkPos(posX shr 4, posZ shr 4)
+        if (shipData != null && shipData.chunkClaimDimension == dimensionId)
+            shipData.onSetBlock(posX, posY, posZ, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
     }
 
     abstract fun destroyWorld()
