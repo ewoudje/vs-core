@@ -14,8 +14,4 @@ class VSSerializationModule : SimpleModule() {
         addAbstractTypeMapping<IBlockPosSetAABB, SmallBlockPosSetAABB>()
         addAbstractTypeMapping<IShipActiveChunksSet, ShipActiveChunksSet>()
     }
-
-    private inline fun <reified A, reified B : A> addAbstractTypeMapping() {
-        super.addAbstractTypeMapping(A::class.java, B::class.java)
-    }
 }
