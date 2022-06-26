@@ -44,7 +44,7 @@ class ShipObjectServerWorld(
     private val dimensionsAddedThisTick = ArrayList<DimensionId>()
     private val dimensionsRemovedThisTick = ArrayList<DimensionId>()
 
-    private val newLoadedChunksList = ArrayList<Pair<DimensionId, List<IVoxelShapeUpdate>>>()
+    private val newAndDeletedChunkUpdates = ArrayList<Pair<DimensionId, List<IVoxelShapeUpdate>>>()
 
     // These fields are used to generate [VSGameFrame]
     private val newShipObjects: MutableList<ShipObjectServer> = ArrayList()
@@ -108,8 +108,8 @@ class ShipObjectServerWorld(
         }
     }
 
-    fun addNewLoadedChunks(dimensionId: DimensionId, newLoadedChunks: List<IVoxelShapeUpdate>) {
-        newLoadedChunksList.add(Pair(dimensionId, newLoadedChunks))
+    fun addVoxelShapeUpdates(dimensionId: DimensionId, voxelShapeUpdates: List<IVoxelShapeUpdate>) {
+        newAndDeletedChunkUpdates.add(Pair(dimensionId, voxelShapeUpdates))
     }
 
     fun tickShips() {
@@ -141,7 +141,7 @@ class ShipObjectServerWorld(
         }
 
         // region Add voxel shape updates for chunks that loaded this tick
-        for (newLoadedChunkAndDimension in newLoadedChunksList) {
+        for (newLoadedChunkAndDimension in newAndDeletedChunkUpdates) {
             val dimensionId = newLoadedChunkAndDimension.first
             for (newLoadedChunk in newLoadedChunkAndDimension.second) {
                 val chunkPos: Vector3ic =
@@ -277,7 +277,7 @@ class ShipObjectServerWorld(
         updatedShipObjects.clear()
         deletedShipObjects.clear()
         shipToVoxelUpdates.clear()
-        newLoadedChunksList.clear()
+        newAndDeletedChunkUpdates.clear()
         dimensionsAddedThisTick.clear()
         dimensionsRemovedThisTick.forEach { dimensionRemovedThisTick: DimensionId ->
             val removedSuccessfully = dimensionToGroundBodyId.remove(dimensionRemovedThisTick) != null
