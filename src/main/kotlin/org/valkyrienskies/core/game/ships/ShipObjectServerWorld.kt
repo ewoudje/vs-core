@@ -73,7 +73,7 @@ class ShipObjectServerWorld(
         if (oldBlockType != newBlockType) {
             val chunkPos: Vector3ic = Vector3i(posX shr 4, posY shr 4, posZ shr 4)
 
-            val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
+            val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z(), dimensionId)
 
             val shipId: ShipId = shipData?.id ?: dimensionToGroundBodyId[dimensionId]!!
             val voxelUpdates = shipToVoxelUpdates.getOrPut(shipId) { HashMap() }
@@ -146,7 +146,7 @@ class ShipObjectServerWorld(
             for (newLoadedChunk in newLoadedChunkAndDimension.second) {
                 val chunkPos: Vector3ic =
                     Vector3i(newLoadedChunk.regionX, newLoadedChunk.regionY, newLoadedChunk.regionZ)
-                val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
+                val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z(), dimensionId)
 
                 val shipId: ShipId = shipData?.id ?: dimensionToGroundBodyId[dimensionId]!!
 
@@ -162,11 +162,11 @@ class ShipObjectServerWorld(
      *
      * If the chunk at [chunkX], [chunkZ] is not a ship chunk, then this returns nothing.
      */
-    fun getIPlayersWatchingShipChunk(chunkX: Int, chunkZ: Int): Iterator<IPlayer> {
+    fun getIPlayersWatchingShipChunk(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): Iterator<IPlayer> {
         // Check if this chunk potentially belongs to a ship
         if (ChunkAllocator.isChunkInShipyard(chunkX, chunkZ)) {
             // Then look for the shipData that owns this chunk
-            val shipDataManagingPos = queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ)
+            val shipDataManagingPos = queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ, dimensionId)
             if (shipDataManagingPos != null) {
                 // Then check if there exists a ShipObject for this ShipData
                 val shipObjectManagingPos = shipObjects[shipDataManagingPos.id]
