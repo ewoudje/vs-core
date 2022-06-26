@@ -29,7 +29,12 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
 
     private val _idToShipData: HashMap<ShipId, ShipDataType> = HashMap()
     override val idToShipData: Map<ShipId, ShipDataType> = _idToShipData
-    private val dimensionToChunkClaims: HashMap<DimensionId, ChunkClaimMap<ShipDataType>> = HashMap()
+
+    /**
+     * Chunk claims are shared over all dimensions, this is so that we don't have to change the chunk claim when we move
+     * a ship between dimensions.
+     */
+    private val chunkClaimToShipData: ChunkClaimMap<ShipDataType> = ChunkClaimMap()
 
     init {
         data.forEach(::addShipData)
@@ -44,7 +49,14 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
     }
 
     override fun getShipDataFromChunkPos(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): ShipDataType? {
-        return dimensionToChunkClaims[dimensionId]?.get(chunkX, chunkZ)
+        val shipData: ShipDataType? = chunkClaimToShipData[chunkX, chunkZ]
+        return if (shipData != null && shipData.chunkClaimDimension == dimensionId) {
+            // Only return [shipData] if [shipData.chunkClaimDimension] is the same as [dimensionId]
+            shipData
+        } else {
+            // [shipData] is null, or has a different dimension
+            null
+        }
     }
 
     override fun addShipData(shipData: ShipDataType) {
@@ -52,9 +64,7 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
             throw IllegalArgumentException("Adding shipData $shipData failed because of duplicated UUID.")
         }
         _idToShipData[shipData.id] = shipData
-        dimensionToChunkClaims.getOrPut(shipData.chunkClaimDimension) {
-            ChunkClaimMap()
-        }[shipData.chunkClaim] = shipData
+        chunkClaimToShipData[shipData.chunkClaim] = shipData
     }
 
     override fun removeShipData(shipData: ShipDataType) {
@@ -62,7 +72,7 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
             throw IllegalArgumentException("Removing $shipData failed because it wasn't in the UUID map.")
         }
         _idToShipData.remove(shipData.id)
-        dimensionToChunkClaims[shipData.chunkClaimDimension]!!.remove(shipData.chunkClaim)
+        chunkClaimToShipData.remove(shipData.chunkClaim)
     }
 
     override fun getShipDataIntersecting(aabb: AABBdc): Iterator<ShipDataType> {
