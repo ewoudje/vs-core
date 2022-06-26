@@ -184,11 +184,14 @@ class ShipObjectServerWorld(
      * It only returns the tasks, it is up to the caller to execute the tasks; however they do not have to execute all of them.
      * It is up to the caller to decide which tasks to execute, and which ones to skip.
      */
-    fun tickShipChunkLoading(): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
+    fun tickShipChunkLoading(dimensionId: DimensionId): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
         val chunkWatchTasksSorted = TreeSet<ChunkWatchTask>()
         val chunkUnwatchTasksSorted = TreeSet<ChunkUnwatchTask>()
 
         for (shipObject in shipObjects.values) {
+            // Only tick ship chunk loading for ships with the correct dimension
+            if (shipObject.shipData.chunkClaimDimension != dimensionId) continue
+
             shipObject.shipChunkTracker.tick(
                 players = players,
                 shipTransform = shipObject.shipData.shipTransform
