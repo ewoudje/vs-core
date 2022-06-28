@@ -1,6 +1,7 @@
 package org.valkyrienskies.core.pipelines
 
 import org.joml.Vector3dc
+import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyTransform
@@ -17,7 +18,7 @@ data class VSPhysicsFrame(
 
 data class ShipInPhysicsFrameData(
     val uuid: ShipId,
-    val dimensionId: Int,
+    val dimensionId: DimensionId,
     val inertiaData: RigidBodyInertiaData,
     val shipTransform: RigidBodyTransform,
     val shipVoxelOffset: Vector3dc, // The voxel offset of the ship at this physics frame

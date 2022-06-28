@@ -1,7 +1,9 @@
 package org.valkyrienskies.core.pipelines
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
@@ -18,6 +20,7 @@ class VSPhysicsPipelineStage {
 
     // Map ships ids to rigid bodies, and map rigid bodies to ship ids
     private val shipIdToRigidBodyMap: MutableMap<ShipId, ShipIdAndRigidBodyReference> = HashMap()
+    private val dimensionIntIdToString = Int2ObjectOpenHashMap<String>()
 
     /**
      * Push a game frame to the physics engine stage
@@ -79,7 +82,8 @@ class VSPhysicsPipelineStage {
             val isStatic = newShipInGameFrameData.isStatic
             val shipVoxelsFullyLoaded = newShipInGameFrameData.shipVoxelsFullyLoaded
 
-            val newRigidBodyReference = physicsEngine.createVoxelRigidBody(dimension, minDefined, maxDefined)
+            val newRigidBodyReference =
+                physicsEngine.createVoxelRigidBody(getKrunchDimensionId(dimension), minDefined, maxDefined)
             newRigidBodyReference.inertiaData = inertiaData
             newRigidBodyReference.rigidBodyTransform = shipTransform
             newRigidBodyReference.collisionShapeOffset = newShipInGameFrameData.voxelOffset
@@ -147,9 +151,23 @@ class VSPhysicsPipelineStage {
             val omega: Vector3dc = rigidBodyReference.omega
 
             shipDataMap[shipId] =
-                ShipInPhysicsFrameData(shipId, dimensionId, inertiaData, shipTransform, shipVoxelOffset, vel, omega)
+                ShipInPhysicsFrameData(
+                    shipId, getMinecraftDimensionId(dimensionId), inertiaData, shipTransform, shipVoxelOffset, vel,
+                    omega
+                )
         }
         return VSPhysicsFrame(shipDataMap, voxelUpdatesMap)
+    }
+
+    private fun getKrunchDimensionId(dimensionId: DimensionId): Int {
+        // TODO maybe don't use hashcode
+        val id = dimensionId.hashCode()
+        dimensionIntIdToString.put(id, dimensionId)
+        return id
+    }
+
+    private fun getMinecraftDimensionId(id: Int): String {
+        return dimensionIntIdToString.get(id)
     }
 }
 
