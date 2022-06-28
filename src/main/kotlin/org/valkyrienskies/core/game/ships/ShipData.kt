@@ -12,7 +12,6 @@ import org.valkyrienskies.core.game.ChunkClaim
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.util.serialization.VSPacketIgnore
-import java.util.UUID
 
 /**
  * The purpose of [ShipData] is to keep track of the state of a ship; it does not manage the behavior of a ship.
@@ -110,6 +109,7 @@ class ShipData(
             name: String,
             chunkClaim: ChunkClaim,
             chunkClaimDimension: DimensionId,
+            shipId: ShipId,
             shipCenterInWorldCoordinates: Vector3dc,
             shipCenterInShipCoordinates: Vector3dc,
             scaling: Double = 1.0,
@@ -123,7 +123,7 @@ class ShipData(
             )
 
             return ShipData(
-                id = UUID.randomUUID(),
+                id = shipId,
                 name = name,
                 chunkClaim = chunkClaim,
                 chunkClaimDimension = chunkClaimDimension,

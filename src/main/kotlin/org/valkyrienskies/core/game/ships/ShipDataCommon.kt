@@ -1,18 +1,12 @@
 package org.valkyrienskies.core.game.ships
 
-import org.joml.Quaterniond
-import org.joml.Vector3d
-import org.joml.Vector3dc
-import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
 import org.valkyrienskies.core.chunk_tracking.IShipActiveChunksSet
-import org.valkyrienskies.core.chunk_tracking.ShipActiveChunksSet
 import org.valkyrienskies.core.datastructures.IBlockPosSet
 import org.valkyrienskies.core.game.ChunkClaim
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.util.serialization.VSPacketIgnore
-import java.util.UUID
 
 open class ShipDataCommon(
     val id: ShipId,
@@ -86,38 +80,5 @@ open class ShipDataCommon(
         result = 31 * result + shipAABB.hashCode()
         result = 31 * result + shipActiveChunksSet.hashCode()
         return result
-    }
-
-    companion object {
-        /**
-         * Creates a new [ShipData] from the given name and coordinates. The resulting [ShipData] is completely empty,
-         * so it must be filled with blocks by other code.
-         */
-        internal fun createEmpty(
-            name: String,
-            chunkClaim: ChunkClaim,
-            chunkClaimDimension: DimensionId,
-            shipCenterInWorldCoordinates: Vector3dc,
-            shipCenterInShipCoordinates: Vector3dc
-        ): ShipDataCommon {
-            val shipTransform = ShipTransform.createFromCoordinatesAndRotationAndScaling(
-                shipCenterInWorldCoordinates,
-                shipCenterInShipCoordinates,
-                Quaterniond().fromAxisAngleDeg(0.0, 1.0, 0.0, 45.0),
-                Vector3d(.5, .5, .5)
-            )
-
-            return ShipDataCommon(
-                id = UUID.randomUUID(),
-                name = name,
-                chunkClaim = chunkClaim,
-                chunkClaimDimension = chunkClaimDimension,
-                physicsData = ShipPhysicsData.createEmpty(),
-                shipTransform = shipTransform,
-                prevTickShipTransform = shipTransform,
-                shipAABB = AABBd(),
-                shipActiveChunksSet = ShipActiveChunksSet.create()
-            )
-        }
     }
 }

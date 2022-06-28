@@ -9,6 +9,7 @@ import org.joml.Vector3ic
 data class ChunkAllocator(
     private var nextClaimX: Int,
     private var nextClaimZ: Int,
+    private var nextShipId: Long,
 ) {
     companion object {
         /**
@@ -23,8 +24,10 @@ data class ChunkAllocator(
         private const val Z_INDEX_START = 3000 // Start at Z=12288000 block coordinates
         private const val Z_INDEX_END = 7000 // End at Z=28672000 block coordinates
 
+        private const val SHIP_ID_START = 0L
+
         fun create(): ChunkAllocator {
-            return ChunkAllocator(X_INDEX_START, Z_INDEX_START)
+            return ChunkAllocator(X_INDEX_START, Z_INDEX_START, SHIP_ID_START)
         }
 
         /**
@@ -66,6 +69,10 @@ data class ChunkAllocator(
      */
     fun isBlockInShipyard(blockPos: Vector3ic): Boolean {
         return isBlockInShipyard(blockPos.x(), blockPos.y(), blockPos.z())
+    }
+
+    fun allocateShipId(): Long {
+        return nextShipId++
     }
 
     /**

@@ -19,7 +19,6 @@ import org.valkyrienskies.physics_api.voxel_updates.SparseVoxelShapeUpdate
 import java.util.Collections
 import java.util.Spliterator
 import java.util.TreeSet
-import java.util.UUID
 
 class ShipObjectServerWorld(
     override val queryableShipData: MutableQueryableShipDataServer,
@@ -37,6 +36,7 @@ class ShipObjectServerWorld(
     override val shipObjects: MutableMap<ShipId, ShipObjectServer> = shipObjectMap
 
     private val dimensionToGroundBodyId: MutableMap<DimensionId, ShipId> = HashMap()
+
     // An immutable view of [dimensionToGroundBodyId]
     val dimensionToGroundBodyIdImmutable: Map<DimensionId, ShipId>
         get() = dimensionToGroundBodyId
@@ -231,10 +231,10 @@ class ShipObjectServerWorld(
         val shipCenterInWorldCoordinates: Vector3dc = Vector3d(blockPosInWorldCoordinates).add(0.5, 0.5, 0.5)
         val blockPosInShipCoordinates: Vector3ic = chunkClaim.getCenterBlockCoordinates(Vector3i())
         val shipCenterInShipCoordinates: Vector3dc = Vector3d(blockPosInShipCoordinates).add(0.5, 0.5, 0.5)
-
         val newShipData = ShipData.createEmpty(
             name = shipName,
             chunkClaim = chunkClaim,
+            shipId = chunkAllocator.allocateShipId(),
             shipCenterInWorldCoordinates = shipCenterInWorldCoordinates,
             shipCenterInShipCoordinates = shipCenterInShipCoordinates,
             scaling = scaling,
@@ -298,7 +298,7 @@ class ShipObjectServerWorld(
     fun addDimension(dimensionId: DimensionId) {
         assert(!dimensionToGroundBodyId.contains(dimensionId))
         dimensionsAddedThisTick.add(dimensionId)
-        dimensionToGroundBodyId[dimensionId] = UUID.randomUUID()
+        dimensionToGroundBodyId[dimensionId] = chunkAllocator.allocateShipId()
     }
 
     fun removeDimension(dimensionId: DimensionId) {
