@@ -14,7 +14,6 @@ import org.valkyrienskies.core.game.ships.ShipTransform
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
-import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
@@ -86,7 +85,8 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                     shipData.shipTransform = newShipTransform
                 }
             } else {
-                if (shipWorld.groundBodyUUID != uuid)
+                // Check ground rigid body objects
+                if (shipWorld.dimensionToGroundBodyIdImmutable[dimension] != uuid)
                     println(
                         "Received physics frame update for ship with uuid: $uuid and dimension $dimension, " +
                             "but a ship with this uuid does not exist!"
@@ -107,7 +107,9 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
         val deletedShipObjects = shipWorld.getDeletedShipObjects()
         val shipVoxelUpdates = shipWorld.getShipToVoxelUpdates()
 
-        newGroundRigidBodyObjects.forEach { uuid ->
+        newGroundRigidBodyObjects.forEach { newGroundObjectData ->
+            val dimensionId = newGroundObjectData.first
+            val shipId = newGroundObjectData.second
             val minDefined = Vector3i(Int.MIN_VALUE, 0, Int.MIN_VALUE)
             val maxDefined = Vector3i(Int.MAX_VALUE, 255, Int.MAX_VALUE)
             // Some random inertia values, the ground body is static so these don't matter
@@ -126,8 +128,8 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
             val isStatic = true
             val isVoxelsFullyLoaded = false
             val newShipInGameFrameData = NewShipInGameFrameData(
-                uuid,
-                0, // TODO! Each ground object needs a dimension ID
+                shipId,
+                dimensionId,
                 minDefined,
                 maxDefined,
                 inertiaData,
@@ -189,9 +191,8 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
 
         deletedShips.addAll(deletedShipObjects)
 
-        shipVoxelUpdates.forEach forEachVoxelUpdate@{ (shipUUID, voxelUpdatesMap) ->
-            val uuid: UUID = shipUUID ?: shipWorld.groundBodyUUID
-            gameFrameVoxelUpdatesMap[uuid] = voxelUpdatesMap.values.toList()
+        shipVoxelUpdates.forEach forEachVoxelUpdate@{ (shipId, voxelUpdatesMap) ->
+            gameFrameVoxelUpdatesMap[shipId] = voxelUpdatesMap.values.toList()
         }
 
         shipWorld.clearNewUpdatedDeletedShipObjectsAndVoxelUpdates()
