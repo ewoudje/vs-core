@@ -6,7 +6,7 @@ import org.valkyrienskies.core.datastructures.IBlockPosSet
 import org.valkyrienskies.core.game.ChunkClaim
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
-import org.valkyrienskies.core.util.serialization.VSPacketIgnore
+import org.valkyrienskies.core.util.serialization.PacketIgnore
 
 open class ShipDataCommon(
     val id: ShipId,
@@ -14,11 +14,11 @@ open class ShipDataCommon(
     val chunkClaim: ChunkClaim,
     val chunkClaimDimension: DimensionId,
     val physicsData: ShipPhysicsData,
-    @VSPacketIgnore
+    @PacketIgnore
     var shipTransform: ShipTransform,
-    @VSPacketIgnore
+    @PacketIgnore
     var prevTickShipTransform: ShipTransform,
-    @VSPacketIgnore
+    @PacketIgnore
     var shipAABB: AABBdc,
     val shipActiveChunksSet: IShipActiveChunksSet
 ) {

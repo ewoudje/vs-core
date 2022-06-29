@@ -10,11 +10,11 @@ import io.netty.buffer.ByteBufInputStream
 import io.netty.buffer.ByteBufOutputStream
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
-import org.valkyrienskies.core.util.serialization.VSPacketIgnore
+import org.valkyrienskies.core.util.serialization.PacketIgnore
 import java.io.DataOutput
 
 /**
- * Delta encodes every field of [ShipData] not marked with [VSPacketIgnore]
+ * Delta encodes every field of [ShipData] not marked with [PacketIgnore]
  */
 object ShipDataGeneralDeltaAlgorithm : DeltaAlgorithm<ShipData> {
 

@@ -11,7 +11,7 @@ import org.valkyrienskies.core.chunk_tracking.ShipActiveChunksSet
 import org.valkyrienskies.core.game.ChunkClaim
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
-import org.valkyrienskies.core.util.serialization.VSPacketIgnore
+import org.valkyrienskies.core.util.serialization.PacketIgnore
 
 /**
  * The purpose of [ShipData] is to keep track of the state of a ship; it does not manage the behavior of a ship.
@@ -24,7 +24,7 @@ class ShipData(
     chunkClaim: ChunkClaim,
     chunkClaimDimension: DimensionId,
     physicsData: ShipPhysicsData,
-    @VSPacketIgnore val inertiaData: ShipInertiaData,
+    @PacketIgnore val inertiaData: ShipInertiaData,
     shipTransform: ShipTransform,
     prevTickShipTransform: ShipTransform,
     shipAABB: AABBdc,
