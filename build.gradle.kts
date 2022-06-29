@@ -165,7 +165,7 @@ publishing {
     publishing {
         publications {
             create<MavenPublication>("maven") {
-                groupId = "org.valkyrienskies"
+                groupId = "org.valkyrienskies.core"
                 artifactId = "vs-core"
                 version = project.version as String
 
