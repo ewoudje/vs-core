@@ -81,7 +81,8 @@ class VSPhysicsPipelineStage {
             val isStatic = newShipInGameFrameData.isStatic
             val shipVoxelsFullyLoaded = newShipInGameFrameData.shipVoxelsFullyLoaded
 
-            val newRigidBodyReference = physicsEngine.createVoxelRigidBody(dimension, minDefined, maxDefined, totalVoxelRegion)
+            val newRigidBodyReference =
+                physicsEngine.createVoxelRigidBody(dimension, minDefined, maxDefined, totalVoxelRegion)
             newRigidBodyReference.inertiaData = inertiaData
             newRigidBodyReference.rigidBodyTransform = shipTransform
             newRigidBodyReference.collisionShapeOffset = newShipInGameFrameData.voxelOffset
