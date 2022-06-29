@@ -6,6 +6,7 @@ import org.joml.Vector3i
 import org.joml.Vector3ic
 import org.valkyrienskies.core.chunk_tracking.ChunkUnwatchTask
 import org.valkyrienskies.core.chunk_tracking.ChunkWatchTask
+import org.valkyrienskies.core.chunk_tracking.ShipObjectServerWorldChunkTracker
 import org.valkyrienskies.core.game.ChunkAllocator
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.IPlayer
@@ -18,7 +19,6 @@ import org.valkyrienskies.physics_api.voxel_updates.KrunchVoxelStates
 import org.valkyrienskies.physics_api.voxel_updates.SparseVoxelShapeUpdate
 import java.util.Collections
 import java.util.Spliterator
-import java.util.TreeSet
 
 class ShipObjectServerWorld(
     override val queryableShipData: MutableQueryableShipDataServer,
@@ -59,7 +59,13 @@ class ShipObjectServerWorld(
      */
     private val shipToVoxelUpdates: MutableMap<ShipId, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
 
-    private var firstGameFrame = true
+    private val chunkTracker =
+        ShipObjectServerWorldChunkTracker(this, DEFAULT_CHUNK_WATCH_DISTANCE, DEFAULT_CHUNK_UNWATCH_DISTANCE)
+
+    companion object {
+        private const val DEFAULT_CHUNK_WATCH_DISTANCE = 12.0 // 128.0
+        private const val DEFAULT_CHUNK_UNWATCH_DISTANCE = 24.0 // 192.0
+    }
 
     /**
      * Add the update to [shipToVoxelUpdates].
@@ -148,8 +154,8 @@ class ShipObjectServerWorld(
 
         // region Add voxel shape updates for chunks that loaded this tick
         for (newLoadedChunkAndDimension in newLoadedChunksList) {
-            val dimensionId = newLoadedChunkAndDimension.first
-            for (newLoadedChunk in newLoadedChunkAndDimension.second) {
+            val (dimensionId, shapeUpdates) = newLoadedChunkAndDimension
+            for (newLoadedChunk in shapeUpdates) {
                 val chunkPos: Vector3ic =
                     Vector3i(newLoadedChunk.regionX, newLoadedChunk.regionY, newLoadedChunk.regionZ)
                 val shipData: ShipData? =
@@ -172,15 +178,7 @@ class ShipObjectServerWorld(
     fun getIPlayersWatchingShipChunk(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): Iterator<IPlayer> {
         // Check if this chunk potentially belongs to a ship
         if (ChunkAllocator.isChunkInShipyard(chunkX, chunkZ)) {
-            // Then look for the shipData that owns this chunk
-            val shipDataManagingPos = queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ, dimensionId)
-            if (shipDataManagingPos != null) {
-                // Then check if there exists a ShipObject for this ShipData
-                val shipObjectManagingPos = shipObjects[shipDataManagingPos.id]
-                if (shipObjectManagingPos != null) {
-                    return shipObjectManagingPos.shipChunkTracker.getPlayersWatchingChunk(chunkX, chunkZ)
-                }
-            }
+            return chunkTracker.getPlayersWatchingChunk(chunkX, chunkZ, dimensionId).iterator()
         }
         return Collections.emptyIterator()
     }
@@ -191,29 +189,10 @@ class ShipObjectServerWorld(
      * It only returns the tasks, it is up to the caller to execute the tasks; however they do not have to execute all of them.
      * It is up to the caller to decide which tasks to execute, and which ones to skip.
      */
-    fun tickShipChunkLoading(
-        dimensionId: DimensionId
-    ): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
-        val chunkWatchTasksSorted = TreeSet<ChunkWatchTask>()
-        val chunkUnwatchTasksSorted = TreeSet<ChunkUnwatchTask>()
+    fun tickShipChunkLoading(): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
+        chunkTracker.updateTracking(players)
 
-        for (shipObject in shipObjects.values) {
-            // Only tick ship chunk loading for ships with the correct dimension
-            if (shipObject.shipData.chunkClaimDimension != dimensionId) continue
-
-            shipObject.shipChunkTracker.tick(
-                players = players,
-                shipTransform = shipObject.shipData.shipTransform
-            )
-
-            val chunkWatchTasks = shipObject.shipChunkTracker.getChunkWatchTasks()
-            val chunkUnwatchTasks = shipObject.shipChunkTracker.getChunkUnwatchTasks()
-
-            chunkWatchTasks.forEach { chunkWatchTasksSorted.add(it) }
-            chunkUnwatchTasks.forEach { chunkUnwatchTasksSorted.add(it) }
-        }
-
-        return Pair(chunkWatchTasksSorted.spliterator(), chunkUnwatchTasksSorted.spliterator())
+        return Pair(chunkTracker.chunkWatchTasks.spliterator(), chunkTracker.chunkUnwatchTasks.spliterator())
     }
 
     /**
