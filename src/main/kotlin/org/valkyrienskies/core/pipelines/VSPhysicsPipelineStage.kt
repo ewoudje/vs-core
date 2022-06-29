@@ -2,6 +2,7 @@ package org.valkyrienskies.core.pipelines
 
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.joml.primitives.AABBd
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
@@ -143,9 +144,11 @@ class VSPhysicsPipelineStage {
             val shipVoxelOffset: Vector3dc = rigidBodyReference.collisionShapeOffset
             val vel: Vector3dc = rigidBodyReference.velocity
             val omega: Vector3dc = rigidBodyReference.omega
+            val aabb = AABBd()
+            rigidBodyReference.getAABB(aabb)
 
             shipDataMap[shipId] =
-                ShipInPhysicsFrameData(shipId, inertiaData, shipTransform, shipVoxelOffset, vel, omega)
+                ShipInPhysicsFrameData(shipId, inertiaData, shipTransform, shipVoxelOffset, vel, omega, aabb)
         }
         return VSPhysicsFrame(shipDataMap, voxelUpdatesMap)
     }

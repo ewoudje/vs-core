@@ -5,6 +5,7 @@ import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3i
+import org.joml.primitives.AABBi
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipInertiaData
@@ -83,6 +84,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                     shipData.physicsData.linearVelocity = shipInPhysicsFrameData.vel
                     shipData.physicsData.angularVelocity = shipInPhysicsFrameData.omega
                     shipData.shipTransform = newShipTransform
+                    shipData.shipAABB = shipInPhysicsFrameData.aabb
                 }
             } else {
                 // Check ground rigid body objects
@@ -150,7 +152,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
             val maxDefined = Vector3i()
             it.shipData.shipActiveChunksSet.getMinMaxWorldPos(minDefined, maxDefined)
 
-            val totalVoxelRegion = it.shipData.chunkClaim.getTotalVoxelRegion()
+            val totalVoxelRegion = it.shipData.chunkClaim.getTotalVoxelRegion(AABBi())
 
             val rigidBodyInertiaData = getRigidBodyInertiaData(it.shipData.inertiaData)
 

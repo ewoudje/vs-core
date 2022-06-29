@@ -99,7 +99,7 @@ data class ChunkClaim(val xIndex: Int, val zIndex: Int) {
     /**
      * The region of all blocks contained in this [ChunkClaim].
      */
-    fun getTotalVoxelRegion(destination: AABBi = AABBi()): AABBic {
+    fun getTotalVoxelRegion(destination: AABBi): AABBic {
         destination.minX = xStart shl 4
         destination.minY = 0
         destination.minZ = zStart shl 4
