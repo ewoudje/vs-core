@@ -6,7 +6,7 @@ plugins {
     `maven-publish`
 }
 
-group = "org.valkyrienskies"
+group = "org.valkyrienskies.core"
 // Determine the version
 if (project.hasProperty("CustomReleaseVersion")) {
     version = project.property("CustomReleaseVersion") as String
@@ -39,10 +39,6 @@ repositories {
                 username = vsMavenUsername
                 password = vsMavenPassword
             }
-        }
-        content {
-            // this repository *only* contains artifacts with group "org.valkyrienskies"
-            includeGroup("org.valkyrienskies")
         }
     }
 }
