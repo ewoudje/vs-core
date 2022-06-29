@@ -40,10 +40,6 @@ repositories {
                 password = vsMavenPassword
             }
         }
-        content {
-            // this repository *only* contains artifacts with group "org.valkyrienskies"
-            includeGroup("org.valkyrienskies")
-        }
     }
 }
 
@@ -55,7 +51,7 @@ dependencies {
     val nettyVersion = "4.1.25.Final"
 
     // VS Physics
-    api("org.valkyrienskies:physics_api_krunch:1.0.0+d8a31da092")
+    api("org.valkyrienskies:physics_api_krunch:1.0.0+2a26f4a0c1")
 
     // JOML for Math
     api("org.joml:joml:1.10.0")
@@ -169,7 +165,7 @@ publishing {
     publishing {
         publications {
             create<MavenPublication>("maven") {
-                groupId = "org.valkyrienskies"
+                groupId = "org.valkyrienskies.core"
                 artifactId = "vs-core"
                 version = project.version as String
 

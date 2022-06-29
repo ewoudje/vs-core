@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.core.game.DimensionId
+import org.joml.primitives.AABBd
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
@@ -77,13 +78,14 @@ class VSPhysicsPipelineStage {
             val dimension = newShipInGameFrameData.dimensionId
             val minDefined = newShipInGameFrameData.minDefined
             val maxDefined = newShipInGameFrameData.maxDefined
+            val totalVoxelRegion = newShipInGameFrameData.totalVoxelRegion
             val inertiaData = newShipInGameFrameData.inertiaData
             val shipTransform = newShipInGameFrameData.shipTransform
             val isStatic = newShipInGameFrameData.isStatic
             val shipVoxelsFullyLoaded = newShipInGameFrameData.shipVoxelsFullyLoaded
 
             val newRigidBodyReference =
-                physicsEngine.createVoxelRigidBody(getKrunchDimensionId(dimension), minDefined, maxDefined)
+                physicsEngine.createVoxelRigidBody(getKrunchDimensionId(dimension), minDefined, maxDefined, totalVoxelRegion)
             newRigidBodyReference.inertiaData = inertiaData
             newRigidBodyReference.rigidBodyTransform = shipTransform
             newRigidBodyReference.collisionShapeOffset = newShipInGameFrameData.voxelOffset
@@ -141,19 +143,18 @@ class VSPhysicsPipelineStage {
         val voxelUpdatesMap: Map<ShipId, List<IVoxelShapeUpdate>> = emptyMap()
         shipIdToRigidBodyMap.forEach { (shipId, shipIdAndRigidBodyReference) ->
             val rigidBodyReference = shipIdAndRigidBodyReference.rigidBodyReference
-
-            val shipId: ShipId = shipId
-            val dimensionId = rigidBodyReference.initialDimension
             val inertiaData: RigidBodyInertiaData = rigidBodyReference.inertiaData
             val shipTransform: RigidBodyTransform = rigidBodyReference.rigidBodyTransform
             val shipVoxelOffset: Vector3dc = rigidBodyReference.collisionShapeOffset
             val vel: Vector3dc = rigidBodyReference.velocity
             val omega: Vector3dc = rigidBodyReference.omega
+            val aabb = AABBd()
+            rigidBodyReference.getAABB(aabb)
 
             shipDataMap[shipId] =
                 ShipInPhysicsFrameData(
                     shipId, getMinecraftDimensionId(dimensionId), inertiaData, shipTransform, shipVoxelOffset, vel,
-                    omega
+                    omega, aabb
                 )
         }
         return VSPhysicsFrame(shipDataMap, voxelUpdatesMap)
