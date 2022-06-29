@@ -11,6 +11,7 @@ class ChunkUnwatchTask(
     private val chunkPos: Long,
     val dimensionId: DimensionId,
     val playersNeedUnwatching: Iterable<IPlayer>,
+    val shouldUnload: Boolean,
     val distanceSqToClosestPlayer: Double,
     private val onExecute: () -> Unit
 ) : Comparable<ChunkUnwatchTask> {

@@ -81,14 +81,15 @@ class ShipObjectServerWorldChunkTracker(
                 var minWatchingDistanceSq = Double.MAX_VALUE
                 var minUnwatchingDistanceSq = Double.MAX_VALUE
 
+                val playersWatchingChunk = getPlayersWatchingChunk(chunkX, chunkZ, shipData.chunkClaimDimension)
+
                 for (player in players) {
 
                     val playerPositionInWorldCoordinates: Vector3dc = player.getPosition(tempVector1)
                     val displacementDistanceSq =
                         chunkPosInWorldCoordinates.distanceSquared(playerPositionInWorldCoordinates)
 
-                    val isPlayerWatchingThisChunk =
-                        isPlayerWatchingChunk(chunkX, chunkZ, shipData.chunkClaimDimension, player)
+                    val isPlayerWatchingThisChunk = playersWatchingChunk.contains(player)
 
                     if (shipData.chunkClaimDimension != player.dimension) {
                         // if the chunk dimension is different from the player dimension, lets just ignore it for now
@@ -116,21 +117,22 @@ class ShipObjectServerWorldChunkTracker(
                 // TODO distanceSqToClosestPlayer is for the watch and unwatch tasks incorrect
                 // ( doesn't matter as long as we still do all of the watching in one tick though )
                 if (newPlayersWatching.isNotEmpty()) {
-                    val newChunkWatchTask =
-                        ChunkWatchTask(
-                            chunkPosAsLong, shipData.chunkClaimDimension, newPlayersWatching, minWatchingDistanceSq
-                        ) {
-                            addWatchersToChunk(shipData, chunkPosAsLong, newPlayersWatching)
-                        }
+                    val newChunkWatchTask = ChunkWatchTask(
+                        chunkPosAsLong, shipData.chunkClaimDimension, newPlayersWatching, minWatchingDistanceSq
+                    ) {
+                        addWatchersToChunk(shipData, chunkPosAsLong, newPlayersWatching)
+                    }
                     newChunkWatchTasks.add(newChunkWatchTask)
                 }
                 if (newPlayersUnwatching.isNotEmpty()) {
-                    val newChunkUnwatchTask =
-                        ChunkUnwatchTask(
-                            chunkPosAsLong, shipData.chunkClaimDimension, newPlayersUnwatching, minUnwatchingDistanceSq
-                        ) {
-                            removeWatchersFromChunk(shipData, chunkPosAsLong, newPlayersUnwatching)
-                        }
+                    // If the all the currently watching players have unwatched, we should unload this chunk
+                    val shouldUnloadChunk = playersWatchingChunk.size == newPlayersUnwatching.size
+                    val newChunkUnwatchTask = ChunkUnwatchTask(
+                        chunkPosAsLong, shipData.chunkClaimDimension,
+                        newPlayersUnwatching, shouldUnloadChunk, minUnwatchingDistanceSq
+                    ) {
+                        removeWatchersFromChunk(shipData, chunkPosAsLong, newPlayersUnwatching)
+                    }
                     newChunkUnwatchTasks.add(newChunkUnwatchTask)
                 }
             }
@@ -154,7 +156,7 @@ class ShipObjectServerWorldChunkTracker(
     }
 
     // note dimensionId intentionally ignored for now
-    fun getPlayersWatchingChunk(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): Iterable<IPlayer> {
+    fun getPlayersWatchingChunk(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): Collection<IPlayer> {
         val chunkPosAsLong = IShipActiveChunksSet.chunkPosToLong(chunkX, chunkZ)
         return chunkToPlayersWatchingMap[chunkPosAsLong] ?: listOf()
     }
