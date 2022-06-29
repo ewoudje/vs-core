@@ -9,6 +9,7 @@ import org.joml.primitives.AABBi
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipInertiaData
+import org.valkyrienskies.core.game.ships.ShipObjectServer
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
 import org.valkyrienskies.core.game.ships.ShipTransform
@@ -60,7 +61,8 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
     private fun applyPhysicsFrame(physicsFrame: VSPhysicsFrame) {
         physicsFrame.shipDataMap.forEach { (shipId, shipInPhysicsFrameData) ->
             // Only apply physics updates to ShipObjects. Do not apply them to ShipData without a ShipObject
-            val shipData: ShipData? = shipWorld.shipObjects[shipId]?.shipData
+            val shipObject: ShipObjectServer? = shipWorld.shipObjects[shipId]
+            val shipData: ShipData? = shipObject?.shipData
             if (shipData != null) {
                 // TODO: Don't apply the transform if we are forcing the ship to move somewhere else
                 val applyTransform = true // For now just set [applyTransform] to always be true
@@ -84,7 +86,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                     shipData.physicsData.linearVelocity = shipInPhysicsFrameData.vel
                     shipData.physicsData.angularVelocity = shipInPhysicsFrameData.omega
                     shipData.shipTransform = newShipTransform
-                    shipData.shipAABB = shipInPhysicsFrameData.aabb
+                    shipObject.debugShipPhysicsAABB = shipInPhysicsFrameData.aabb
                 }
             } else {
                 // Check ground rigid body objects
