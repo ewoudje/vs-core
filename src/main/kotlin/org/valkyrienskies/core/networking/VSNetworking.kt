@@ -1,10 +1,5 @@
 package org.valkyrienskies.core.networking
 
-import org.valkyrienskies.core.game.IPlayer
-
-typealias ClientHandler = (packet: Packet) -> Unit
-typealias ServerHandler = (packet: Packet, player: IPlayer) -> Unit
-
 object VSNetworking {
     /**
      * Valkyrien Skies UDP channel

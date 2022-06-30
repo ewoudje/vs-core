@@ -27,20 +27,24 @@ class NetworkChannel {
             .also { packetTypes.add(it) }
     }
 
-    fun registerGlobalServerHandler(handler: ServerHandler) {
+    fun registerGlobalServerHandler(handler: ServerHandler): RegisteredHandler {
         globalServerHandlers.add(handler)
+        return RegisteredHandler { globalServerHandlers.remove(handler) }
     }
 
-    fun registerGlobalClientHandler(handler: ClientHandler) {
+    fun registerGlobalClientHandler(handler: ClientHandler): RegisteredHandler {
         globalClientHandlers.add(handler)
+        return RegisteredHandler { globalClientHandlers.remove(handler) }
     }
 
-    fun registerServerHandler(packetType: PacketType, handler: ServerHandler) {
+    fun registerServerHandler(packetType: PacketType, handler: ServerHandler): RegisteredHandler {
         serverHandlers.computeIfAbsent(packetType.id, IntFunction { HashSet() }).add(handler)
+        return RegisteredHandler { serverHandlers[packetType.id]?.remove(handler) }
     }
 
-    fun registerClientHandler(packetType: PacketType, handler: ClientHandler) {
+    fun registerClientHandler(packetType: PacketType, handler: ClientHandler): RegisteredHandler {
         clientHandlers.computeIfAbsent(packetType.id, IntFunction { HashSet() }).add(handler)
+        return RegisteredHandler { clientHandlers[packetType.id]?.remove(handler) }
     }
 
     /**
@@ -48,8 +52,8 @@ class NetworkChannel {
      */
     fun onReceiveClient(data: ByteBuf) {
         val packet = bytesToPacket(data)
-        globalClientHandlers.forEach { it(packet) }
-        clientHandlers.get(packet.type.id)?.forEach { it(packet) }
+        globalClientHandlers.forEach { it.handlePacket(packet) }
+        clientHandlers.get(packet.type.id)?.forEach { it.handlePacket(packet) }
     }
 
     /**
@@ -57,8 +61,8 @@ class NetworkChannel {
      */
     fun onReceiveServer(data: ByteBuf, player: IPlayer) {
         val packet = bytesToPacket(data)
-        globalServerHandlers.forEach { it(packet, player) }
-        serverHandlers.get(packet.type.id)?.forEach { it(packet, player) }
+        globalServerHandlers.forEach { it.handlePacket(packet, player) }
+        serverHandlers.get(packet.type.id)?.forEach { it.handlePacket(packet, player) }
     }
 
     private fun bytesToPacket(data: ByteBuf): Packet {
