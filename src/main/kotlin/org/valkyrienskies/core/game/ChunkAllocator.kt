@@ -37,35 +37,38 @@ data class ChunkAllocator(
 
             return (claimXIndex in X_INDEX_START..X_INDEX_END) and (claimZIndex in Z_INDEX_START..Z_INDEX_END)
         }
-    }
 
-    /**
-     * Determines whether or not a chunk is in the shipyard
-     * @param chunkPos The position of the chunk
-     * @return True if the chunk is in the shipyard
-     */
-    fun isChunkInShipyard(chunkPos: Vector2i): Boolean {
-        return isChunkInShipyard(chunkPos.x, chunkPos.y)
-    }
+        /**
+         * Determines whether or not a chunk is in the shipyard
+         * @param chunkPos The position of the chunk
+         * @return True if the chunk is in the shipyard
+         */
+        @JvmStatic
+        fun isChunkInShipyard(chunkPos: Vector2i): Boolean {
+            return isChunkInShipyard(chunkPos.x, chunkPos.y)
+        }
 
-    /**
-     * Determines whether or not a block is in the shipyard
-     * @param posX The X position of the block
-     * @param posY The Y position of the block
-     * @param posZ The Z position of the block
-     * @return True if the block is in the shipyard
-     */
-    fun isBlockInShipyard(posX: Int, posY: Int, posZ: Int): Boolean {
-        return isChunkInShipyard(posX shr 4, posZ shr 4)
-    }
+        /**
+         * Determines whether or not a block is in the shipyard
+         * @param posX The X position of the block
+         * @param posY The Y position of the block
+         * @param posZ The Z position of the block
+         * @return True if the block is in the shipyard
+         */
+        @JvmStatic
+        fun isBlockInShipyard(posX: Int, posY: Int, posZ: Int): Boolean {
+            return isChunkInShipyard(posX shr 4, posZ shr 4)
+        }
 
-    /**
-     * Determines whether or not a block is in the shipyard
-     * @param blockPos The position of the block
-     * @return True if the block is in the shipyard
-     */
-    fun isBlockInShipyard(blockPos: Vector3ic): Boolean {
-        return isBlockInShipyard(blockPos.x(), blockPos.y(), blockPos.z())
+        /**
+         * Determines whether or not a block is in the shipyard
+         * @param blockPos The position of the block
+         * @return True if the block is in the shipyard
+         */
+        @JvmStatic
+        fun isBlockInShipyard(blockPos: Vector3ic): Boolean {
+            return isBlockInShipyard(blockPos.x(), blockPos.y(), blockPos.z())
+        }
     }
 
     /**
