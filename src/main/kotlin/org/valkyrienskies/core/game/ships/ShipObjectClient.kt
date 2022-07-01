@@ -1,5 +1,9 @@
 package org.valkyrienskies.core.game.ships
 
+import org.joml.primitives.AABBd
+import org.joml.primitives.AABBdc
+import org.valkyrienskies.core.util.toAABBd
+
 class ShipObjectClient(shipData: ShipDataCommon) : ShipObject(shipData) {
     // The last ship transform sent by the sever
     private var nextShipTransform: ShipTransform
@@ -8,9 +12,13 @@ class ShipObjectClient(shipData: ShipDataCommon) : ShipObject(shipData) {
     var renderTransform: ShipTransform
         private set
 
+    var renderAABB: AABBdc
+        private set
+
     init {
         nextShipTransform = shipData.shipTransform
         renderTransform = shipData.shipTransform
+        renderAABB = shipData.shipTransform.createEmptyAABB()
     }
 
     fun updateNextShipTransform(nextShipTransform: ShipTransform) {
@@ -18,13 +26,15 @@ class ShipObjectClient(shipData: ShipDataCommon) : ShipObject(shipData) {
     }
 
     fun tickUpdateShipTransform() {
-        shipData.prevTickShipTransform = shipData.shipTransform
+        shipData.updatePrevTickShipTransform()
         shipData.shipTransform = ShipTransform.createFromSlerp(shipData.shipTransform, nextShipTransform, EMA_ALPHA)
     }
 
     fun updateRenderShipTransform(partialTicks: Double) {
         renderTransform =
             ShipTransform.createFromSlerp(shipData.prevTickShipTransform, shipData.shipTransform, partialTicks)
+        renderAABB = shipData.shipVoxelAABB?.toAABBd(AABBd())?.transform(renderTransform.shipToWorldMatrix, AABBd())
+            ?: renderTransform.createEmptyAABB()
     }
 
     companion object {

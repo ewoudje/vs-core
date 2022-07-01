@@ -6,6 +6,8 @@ import org.joml.Quaterniond
 import org.joml.Quaterniondc
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.joml.primitives.AABBd
+import org.joml.primitives.AABBdc
 
 /**
  * The [ShipTransform] class is responsible for transforming position and direction vectors between ship coordinates and world coordinates.
@@ -126,5 +128,12 @@ data class ShipTransform(
 
     fun transformDirectionNoScalingFromWorldToShip(directionInWorld: Vector3dc, dest: Vector3d): Vector3d {
         return shipCoordinatesToWorldCoordinatesRotation.transformInverse(directionInWorld, dest)
+    }
+
+    /**
+     * Create an empty [AABBdc] centered around [shipPositionInWorldCoordinates].
+     */
+    fun createEmptyAABB(): AABBdc {
+        return AABBd(shipPositionInWorldCoordinates, shipPositionInWorldCoordinates)
     }
 }

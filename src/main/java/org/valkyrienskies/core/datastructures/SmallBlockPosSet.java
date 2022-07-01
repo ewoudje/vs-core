@@ -19,7 +19,6 @@ import java.util.Iterator;
 import javax.annotation.Nonnull;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
-import org.valkyrienskies.core.game.ChunkClaim;
 import org.valkyrienskies.core.util.IntTernaryConsumer;
 
 /**
@@ -40,20 +39,14 @@ public class SmallBlockPosSet implements IBlockPosSet {
     @Nonnull
     private final Int2IntMap listValueToIndex;
     private final int centerX;
+    private final int centerY;
     private final int centerZ;
 
-    public SmallBlockPosSet(final ChunkClaim chunkClaim) {
-        final Vector3ic centerCoordinates = chunkClaim.getCenterBlockCoordinates(new Vector3i());
-        this.compressedBlockPosList = new IntArrayList();
-        this.listValueToIndex = new Int2IntOpenHashMap();
-        this.centerX = centerCoordinates.x();
-        this.centerZ = centerCoordinates.z();
-    }
-
-    public SmallBlockPosSet(final int centerX, final int centerZ) {
+    public SmallBlockPosSet(final int centerX, final int centerY, final int centerZ) {
         this.compressedBlockPosList = new IntArrayList();
         this.listValueToIndex = new Int2IntOpenHashMap();
         this.centerX = centerX;
+        this.centerY = centerY;
         this.centerZ = centerZ;
     }
 
@@ -109,8 +102,9 @@ public class SmallBlockPosSet implements IBlockPosSet {
     @Override
     public boolean canStore(final int x, final int y, final int z) {
         final int xLocal = x - centerX;
+        final int yLocal = y - centerY;
         final int zLocal = z - centerZ;
-        return !(y < 0 | y > 255 | xLocal < -2048 | xLocal > 2047 | zLocal < -2048 | zLocal > 2047);
+        return !(yLocal < -128 | yLocal > 127 | xLocal < -2048 | xLocal > 2047 | zLocal < -2048 | zLocal > 2047);
     }
 
     @Override
@@ -131,11 +125,15 @@ public class SmallBlockPosSet implements IBlockPosSet {
             final int compressed = iterator.nextInt();
             // Repeated code from decompress() because java has no output parameters.
             final int z = compressed >> 20;
-            final int y = (compressed >> 12) & BOT_8_BITS;
+            int y = (compressed >> 12) & BOT_8_BITS;
+            // Sign-extend all the upper bits to be 1
+            if ((y & 0x80) != 0) {
+                y |= ~BOT_8_BITS;
+            }
             // this basically left-pads the int when casting so that the sign is preserved
             // not sure if there is a better way
             final int x = (compressed & BOT_12_BITS) << 20 >> 20;
-            action.accept(x + centerX, y, z + centerZ);
+            action.accept(x + centerX, y + centerY, z + centerZ);
         }
     }
 
@@ -152,18 +150,22 @@ public class SmallBlockPosSet implements IBlockPosSet {
 
     private Vector3i decompressMutable(final int compressed, final Vector3i mutableBlockPos) {
         final int z = compressed >> 20;
-        final int y = (compressed >> 12) & BOT_8_BITS;
+        int y = (compressed >> 12) & BOT_8_BITS;
+        // Sign-extend all the upper bits to be 1
+        if ((y & 0x80) != 0) {
+            y |= ~BOT_8_BITS;
+        }
         // this basically left-pads the int when casting so that the sign is preserved
         // not sure if there is a better way
         final int x = (compressed & BOT_12_BITS) << 20 >> 20;
-        mutableBlockPos.set(x + centerX, y, z + centerZ);
+        mutableBlockPos.set(x + centerX, y + centerY, z + centerZ);
         return mutableBlockPos;
     }
 
     private int compress(final int x, final int y, final int z) {
         // Allocate 12 bits for x, 12 bits for z, and 8 bits for y.
         final int xBits = (x - centerX) & BOT_12_BITS;
-        final int yBits = y & BOT_8_BITS;
+        final int yBits = (y - centerY) & BOT_8_BITS;
         final int zBits = (z - centerZ) & BOT_12_BITS;
         return xBits | (yBits << 12) | (zBits << 20);
     }
@@ -187,6 +189,10 @@ public class SmallBlockPosSet implements IBlockPosSet {
 
     public int getCenterX() {
         return centerX;
+    }
+
+    public int getCenterY() {
+        return centerY;
     }
 
     public int getCenterZ() {
@@ -243,6 +249,7 @@ public class SmallBlockPosSet implements IBlockPosSet {
             gen.writeEndArray();
 
             gen.writeNumberField("centerX", value.centerX);
+            gen.writeNumberField("centerY", value.centerY);
             gen.writeNumberField("centerZ", value.centerZ);
 
             gen.writeEndObject();
@@ -262,9 +269,10 @@ public class SmallBlockPosSet implements IBlockPosSet {
             final JsonNode node = p.getCodec().readTree(p);
 
             final int centerX = node.get("centerX").asInt();
+            final int centerY = node.get("centerY").asInt();
             final int centerZ = node.get("centerZ").asInt();
 
-            final SmallBlockPosSet set = new SmallBlockPosSet(centerX, centerZ);
+            final SmallBlockPosSet set = new SmallBlockPosSet(centerX, centerY, centerZ);
 
             for (final JsonNode elem : node.get("positions")) {
                 final int positionInt = elem.asInt();
