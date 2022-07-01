@@ -5,7 +5,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
-import org.joml.primitives.AABBd;
+import org.joml.primitives.AABBi;
 
 /**
  * Only used for testing, don't actually use this ever. Its inefficient.
@@ -21,7 +21,7 @@ public class ExtremelyNaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
     }
 
     @Override
-    public AABBd makeVoxelFieldAABB() {
+    public AABBi makeVoxelFieldAABB() {
         int minX;
         int minY;
         int minZ;
@@ -42,7 +42,7 @@ public class ExtremelyNaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
             maxY = Math.max(maxY, pos.y());
             maxZ = Math.max(maxZ, pos.z());
         }
-        return new AABBd(minX, minY, minZ, maxX, maxY, maxZ);
+        return new AABBi(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     @Override

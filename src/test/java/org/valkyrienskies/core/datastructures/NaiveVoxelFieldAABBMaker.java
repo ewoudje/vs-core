@@ -5,7 +5,7 @@ import java.util.TreeSet;
 import javax.annotation.Nonnull;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
-import org.joml.primitives.AABBd;
+import org.joml.primitives.AABBi;
 
 /**
  * Do not serialize.
@@ -31,12 +31,12 @@ public class NaiveVoxelFieldAABBMaker implements IVoxelFieldAABBMaker {
     }
 
     @Override
-    public AABBd makeVoxelFieldAABB() {
+    public AABBi makeVoxelFieldAABB() {
         if (voxelCount == 0) {
             return null;
         }
-        final AABBd inLocal =
-            new AABBd(minCoords.x(), minCoords.y(), minCoords.z(), maxCoords.x(), maxCoords.y(), maxCoords.z());
+        final AABBi inLocal =
+            new AABBi(minCoords.x(), minCoords.y(), minCoords.z(), maxCoords.x(), maxCoords.y(), maxCoords.z());
         return inLocal.translate(centerPos.x(), centerPos.y(), centerPos.z());
     }
 

@@ -3,7 +3,7 @@ package org.valkyrienskies.core.datastructures;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.joml.Vector3ic;
-import org.joml.primitives.AABBd;
+import org.joml.primitives.AABBi;
 
 /**
  * This class enables the updating of ship AABBs in O(1) time
@@ -23,7 +23,7 @@ public interface IVoxelFieldAABBMaker {
      * @return Null if there are no voxels in the voxel field.
      */
     @Nullable
-    AABBd makeVoxelFieldAABB();
+    AABBi makeVoxelFieldAABB();
 
     /**
      * Adds a voxel to the field
