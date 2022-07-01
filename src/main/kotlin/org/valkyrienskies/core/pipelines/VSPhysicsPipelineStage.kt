@@ -2,6 +2,8 @@ package org.valkyrienskies.core.pipelines
 
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.joml.primitives.AABBd
+import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyReference
@@ -9,7 +11,6 @@ import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import org.valkyrienskies.physics_api.voxel_updates.VoxelRigidBodyShapeUpdates
 import org.valkyrienskies.physics_api_krunch.KrunchBootstrap
-import java.util.UUID
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class VSPhysicsPipelineStage {
@@ -17,7 +18,7 @@ class VSPhysicsPipelineStage {
     private val physicsEngine: PhysicsWorldReference = KrunchBootstrap.createKrunchPhysicsWorld()
 
     // Map ships ids to rigid bodies, and map rigid bodies to ship ids
-    private val shipIdToRigidBodyMap: MutableMap<UUID, ShipIdAndRigidBodyReference> = HashMap()
+    private val shipIdToRigidBodyMap: MutableMap<ShipId, ShipIdAndRigidBodyReference> = HashMap()
 
     /**
      * Push a game frame to the physics engine stage
@@ -74,12 +75,14 @@ class VSPhysicsPipelineStage {
             val dimension = newShipInGameFrameData.dimensionId
             val minDefined = newShipInGameFrameData.minDefined
             val maxDefined = newShipInGameFrameData.maxDefined
+            val totalVoxelRegion = newShipInGameFrameData.totalVoxelRegion
             val inertiaData = newShipInGameFrameData.inertiaData
             val shipTransform = newShipInGameFrameData.shipTransform
             val isStatic = newShipInGameFrameData.isStatic
             val shipVoxelsFullyLoaded = newShipInGameFrameData.shipVoxelsFullyLoaded
 
-            val newRigidBodyReference = physicsEngine.createVoxelRigidBody(dimension, minDefined, maxDefined)
+            val newRigidBodyReference =
+                physicsEngine.createVoxelRigidBody(dimension, minDefined, maxDefined, totalVoxelRegion)
             newRigidBodyReference.inertiaData = inertiaData
             newRigidBodyReference.rigidBodyTransform = shipTransform
             newRigidBodyReference.collisionShapeOffset = newShipInGameFrameData.voxelOffset
@@ -132,25 +135,24 @@ class VSPhysicsPipelineStage {
     }
 
     private fun createPhysicsFrame(): VSPhysicsFrame {
-        val shipDataMap: MutableMap<UUID, ShipInPhysicsFrameData> = HashMap()
+        val shipDataMap: MutableMap<ShipId, ShipInPhysicsFrameData> = HashMap()
         // For now the physics doesn't send voxel updates, but it will in the future
-        val voxelUpdatesMap: Map<UUID, List<IVoxelShapeUpdate>> = emptyMap()
+        val voxelUpdatesMap: Map<ShipId, List<IVoxelShapeUpdate>> = emptyMap()
         shipIdToRigidBodyMap.forEach { (shipId, shipIdAndRigidBodyReference) ->
             val rigidBodyReference = shipIdAndRigidBodyReference.rigidBodyReference
-
-            val uuid: UUID = shipId
-            val dimensionId = rigidBodyReference.initialDimension
             val inertiaData: RigidBodyInertiaData = rigidBodyReference.inertiaData
             val shipTransform: RigidBodyTransform = rigidBodyReference.rigidBodyTransform
             val shipVoxelOffset: Vector3dc = rigidBodyReference.collisionShapeOffset
             val vel: Vector3dc = rigidBodyReference.velocity
             val omega: Vector3dc = rigidBodyReference.omega
+            val aabb = AABBd()
+            rigidBodyReference.getAABB(aabb)
 
-            shipDataMap[uuid] =
-                ShipInPhysicsFrameData(uuid, dimensionId, inertiaData, shipTransform, shipVoxelOffset, vel, omega)
+            shipDataMap[shipId] =
+                ShipInPhysicsFrameData(shipId, inertiaData, shipTransform, shipVoxelOffset, vel, omega, aabb)
         }
         return VSPhysicsFrame(shipDataMap, voxelUpdatesMap)
     }
 }
 
-private data class ShipIdAndRigidBodyReference(val shipId: UUID, val rigidBodyReference: RigidBodyReference)
+private data class ShipIdAndRigidBodyReference(val shipId: ShipId, val rigidBodyReference: RigidBodyReference)

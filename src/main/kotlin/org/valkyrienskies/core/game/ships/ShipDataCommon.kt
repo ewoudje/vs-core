@@ -5,29 +5,46 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
+import org.joml.primitives.AABBic
 import org.valkyrienskies.core.chunk_tracking.IShipActiveChunksSet
 import org.valkyrienskies.core.chunk_tracking.ShipActiveChunksSet
 import org.valkyrienskies.core.datastructures.IBlockPosSet
 import org.valkyrienskies.core.game.ChunkClaim
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
-import org.valkyrienskies.core.util.serialization.VSPacketIgnore
+import org.valkyrienskies.core.util.toAABBd
 import java.util.UUID
 
 open class ShipDataCommon(
-    val shipUUID: UUID,
+    val id: ShipId,
     var name: String,
     val chunkClaim: ChunkClaim,
     val chunkClaimDimension: DimensionId,
     val physicsData: ShipPhysicsData,
-    @VSPacketIgnore
-    var shipTransform: ShipTransform,
-    @VSPacketIgnore
-    var prevTickShipTransform: ShipTransform,
-    @VSPacketIgnore
-    var shipAABB: AABBdc,
+    shipTransform_: ShipTransform,
+    prevTickShipTransform_: ShipTransform,
+    shipAABB_: AABBdc,
+    var shipVoxelAABB: AABBic?,
     val shipActiveChunksSet: IShipActiveChunksSet
 ) {
+    var shipTransform: ShipTransform = shipTransform_
+        set(shipTransform) {
+            field = shipTransform
+            // Update the [shipAABB]
+            shipAABB = shipVoxelAABB?.toAABBd(AABBd())?.transform(shipTransform.shipToWorldMatrix, AABBd())
+                ?: shipTransform.createEmptyAABB()
+        }
+
+    var prevTickShipTransform: ShipTransform = prevTickShipTransform_
+        private set
+
+    var shipAABB: AABBdc = shipAABB_
+        private set
+
+    fun updatePrevTickShipTransform() {
+        prevTickShipTransform = shipTransform
+    }
+
     /**
      * Updates the [IBlockPosSet] and [ShipInertiaData] for this [ShipData]
      */
@@ -64,7 +81,7 @@ open class ShipDataCommon(
 
         other as ShipDataCommon
 
-        if (shipUUID != other.shipUUID) return false
+        if (id != other.id) return false
         if (name != other.name) return false
         if (chunkClaim != other.chunkClaim) return false
         if (physicsData != other.physicsData) return false
@@ -77,7 +94,7 @@ open class ShipDataCommon(
     }
 
     override fun hashCode(): Int {
-        var result = shipUUID.hashCode()
+        var result = id.hashCode()
         result = 31 * result + name.hashCode()
         result = 31 * result + chunkClaim.hashCode()
         result = 31 * result + physicsData.hashCode()
@@ -108,14 +125,15 @@ open class ShipDataCommon(
             )
 
             return ShipDataCommon(
-                shipUUID = UUID.randomUUID(),
+                id = UUID.randomUUID(),
                 name = name,
                 chunkClaim = chunkClaim,
                 chunkClaimDimension = chunkClaimDimension,
                 physicsData = ShipPhysicsData.createEmpty(),
-                shipTransform = shipTransform,
-                prevTickShipTransform = shipTransform,
-                shipAABB = AABBd(),
+                shipTransform_ = shipTransform,
+                prevTickShipTransform_ = shipTransform,
+                shipAABB_ = shipTransform.createEmptyAABB(),
+                shipVoxelAABB = null,
                 shipActiveChunksSet = ShipActiveChunksSet.create()
             )
         }

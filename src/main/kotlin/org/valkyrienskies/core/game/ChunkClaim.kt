@@ -1,6 +1,8 @@
 package org.valkyrienskies.core.game
 
 import org.joml.Vector3i
+import org.joml.primitives.AABBi
+import org.joml.primitives.AABBic
 import org.valkyrienskies.core.game.ChunkClaim.Companion.DIAMETER
 import java.lang.Math.floorDiv
 
@@ -76,10 +78,10 @@ data class ChunkClaim(val xIndex: Int, val zIndex: Int) {
         (x in xStart..xEnd) and (z in zStart..zEnd)
 
     fun getCenterBlockCoordinates(destination: Vector3i): Vector3i {
-        val minBlockX = xStart * 16
-        val maxBlockX = (xEnd * 16) - 1
-        val minBlockZ = zStart * 16
-        val maxBlockZ = (zEnd * 16) - 1
+        val minBlockX = xStart shl 4
+        val maxBlockX = (xEnd shl 4) + 15
+        val minBlockZ = zStart shl 4
+        val maxBlockZ = (zEnd shl 4) + 15
 
         val centerX = (minBlockX + maxBlockX) / 2
         val centerY = 127
@@ -92,5 +94,18 @@ data class ChunkClaim(val xIndex: Int, val zIndex: Int) {
         val ySize = 256
         val zSize = (zEnd - zStart + 1) * 16
         return destination.set(xSize, ySize, zSize)
+    }
+
+    /**
+     * The region of all blocks contained in this [ChunkClaim].
+     */
+    fun getTotalVoxelRegion(destination: AABBi): AABBic {
+        destination.minX = xStart shl 4
+        destination.minY = 0
+        destination.minZ = zStart shl 4
+        destination.maxX = (xEnd shl 4) + 15
+        destination.maxY = 255
+        destination.maxZ = (zEnd shl 4) + 15
+        return destination
     }
 }

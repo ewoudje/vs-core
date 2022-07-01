@@ -5,10 +5,12 @@ import com.google.common.collect.MutableClassToInstanceMap
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
+import org.joml.primitives.AABBic
 import org.valkyrienskies.core.chunk_tracking.IShipActiveChunksSet
 import org.valkyrienskies.core.chunk_tracking.ShipActiveChunksSet
+import org.valkyrienskies.core.datastructures.IBlockPosSetAABB
+import org.valkyrienskies.core.datastructures.SmallBlockPosSetAABB
 import org.valkyrienskies.core.game.ChunkClaim
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
@@ -21,7 +23,7 @@ import java.util.UUID
  * See [ShipObject] to find the code that defines ship behavior (movement, player interactions, etc)
  */
 class ShipData(
-    shipUUID: UUID,
+    id: ShipId,
     name: String,
     chunkClaim: ChunkClaim,
     chunkClaimDimension: DimensionId,
@@ -30,11 +32,12 @@ class ShipData(
     shipTransform: ShipTransform,
     prevTickShipTransform: ShipTransform,
     shipAABB: AABBdc,
+    shipVoxelAABB: AABBic?,
     shipActiveChunksSet: IShipActiveChunksSet,
     var isStatic: Boolean = false
 ) : ShipDataCommon(
-    shipUUID, name, chunkClaim, chunkClaimDimension, physicsData, shipTransform, prevTickShipTransform,
-    shipAABB, shipActiveChunksSet
+    id, name, chunkClaim, chunkClaimDimension, physicsData, shipTransform, prevTickShipTransform,
+    shipAABB, shipVoxelAABB, shipActiveChunksSet
 ) {
     /**
      * The set of chunks that must be loaded before this ship is fully loaded.
@@ -46,6 +49,15 @@ class ShipData(
     @JsonIgnore
     private val missingLoadedChunks: IShipActiveChunksSet = ShipActiveChunksSet.create()
     private val persistentAttachedData = MutableClassToInstanceMap.create<Any>() // TODO a serializable class
+
+    /**
+     * Generates the [shipVoxelAABB] in O(1) time. However, this object is too large for us to persistently store it,
+     * so we make it transient.
+     *
+     * This can also be used to quickly iterate over every block in this ship.
+     */
+    @JsonIgnore
+    private val shipAABBGenerator: IBlockPosSetAABB = SmallBlockPosSetAABB(chunkClaim)
 
     init {
         shipActiveChunksSet.iterateChunkPos { chunkX: Int, chunkZ: Int ->
@@ -66,6 +78,28 @@ class ShipData(
 
         // Update [inertiaData]
         inertiaData.onSetBlock(posX, posY, posZ, oldBlockMass, newBlockMass)
+
+        // Update [shipVoxelAABB]
+        updateShipAABBGenerator(posX, posY, posZ, newBlockType != VSBlockType.AIR)
+    }
+
+    /**
+     * Update the [shipVoxelAABB] to when a block is added/removed.
+     */
+    fun updateShipAABBGenerator(posX: Int, posY: Int, posZ: Int, set: Boolean) {
+        if (set) {
+            shipAABBGenerator.add(posX, posY, posZ)
+        } else {
+            shipAABBGenerator.remove(posX, posY, posZ)
+        }
+        val rawVoxelAABB = shipAABBGenerator.makeAABB()
+        if (rawVoxelAABB != null) {
+            // Increment the maximums by 1
+            rawVoxelAABB.maxX += 1
+            rawVoxelAABB.maxY += 1
+            rawVoxelAABB.maxZ += 1
+        }
+        shipVoxelAABB = rawVoxelAABB
     }
 
     fun onLoadChunk(chunkX: Int, chunkZ: Int) {
@@ -139,7 +173,7 @@ class ShipData(
             )
 
             return ShipData(
-                shipUUID = UUID.randomUUID(),
+                id = UUID.randomUUID(),
                 name = name,
                 chunkClaim = chunkClaim,
                 chunkClaimDimension = chunkClaimDimension,
@@ -147,7 +181,8 @@ class ShipData(
                 inertiaData = ShipInertiaData.newEmptyShipInertiaData(),
                 shipTransform = shipTransform,
                 prevTickShipTransform = shipTransform,
-                shipAABB = AABBd(),
+                shipAABB = shipTransform.createEmptyAABB(),
+                shipVoxelAABB = null,
                 shipActiveChunksSet = ShipActiveChunksSet.create(),
                 isStatic = isStatic
             )

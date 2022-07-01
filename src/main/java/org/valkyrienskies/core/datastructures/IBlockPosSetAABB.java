@@ -1,7 +1,7 @@
 package org.valkyrienskies.core.datastructures;
 
 import javax.annotation.Nullable;
-import org.joml.primitives.AABBd;
+import org.joml.primitives.AABBi;
 
 /**
  * An IBlockPosSet that also has support for creating an AxisAlignedBB that contains all positions in the set.
@@ -14,5 +14,5 @@ public interface IBlockPosSetAABB extends IBlockPosSet {
      * @return Null if there are no block positions in this set.
      */
     @Nullable
-    AABBd makeAABB();
+    AABBi makeAABB();
 }

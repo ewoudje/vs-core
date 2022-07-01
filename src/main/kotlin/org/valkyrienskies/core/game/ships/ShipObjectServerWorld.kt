@@ -24,23 +24,32 @@ import java.util.UUID
 class ShipObjectServerWorld(
     override val queryableShipData: MutableQueryableShipDataServer,
     val chunkAllocator: ChunkAllocator,
-) : ShipObjectWorld(queryableShipData) {
+) : ShipObjectWorld<ShipObjectServer>(queryableShipData) {
 
     var lastPlayersSet: Set<IPlayer> = setOf()
         private set
 
     var players: Set<IPlayer> = setOf()
 
-    private val shipObjectMap = HashMap<UUID, ShipObjectServer>()
+    private val shipObjectMap = HashMap<ShipId, ShipObjectServer>()
 
     // Explicitly make [shipObjects] a MutableMap so that we can use Iterator::remove()
-    override val shipObjects: MutableMap<UUID, ShipObjectServer> = shipObjectMap
-    val groundBodyUUID: UUID = UUID.randomUUID() // The UUID used when sending voxel updates for the ground shape
+    override val shipObjects: MutableMap<ShipId, ShipObjectServer> = shipObjectMap
+
+    private val dimensionToGroundBodyId: MutableMap<DimensionId, ShipId> = HashMap()
+    // An immutable view of [dimensionToGroundBodyId]
+    val dimensionToGroundBodyIdImmutable: Map<DimensionId, ShipId>
+        get() = dimensionToGroundBodyId
+
+    private val dimensionsAddedThisTick = ArrayList<DimensionId>()
+    private val dimensionsRemovedThisTick = ArrayList<DimensionId>()
+
+    private val newLoadedChunksList = ArrayList<Pair<DimensionId, List<IVoxelShapeUpdate>>>()
 
     // These fields are used to generate [VSGameFrame]
     private val newShipObjects: MutableList<ShipObjectServer> = ArrayList()
     private val updatedShipObjects: MutableList<ShipObjectServer> = ArrayList()
-    private val deletedShipObjects: MutableList<UUID> = ArrayList()
+    private val deletedShipObjects: MutableList<ShipId> = ArrayList()
 
     /**
      * A map of voxel updates pending to be applied to ships.
@@ -48,7 +57,7 @@ class ShipObjectServerWorld(
      * These updates will be sent to the physics engine, however they are not applied immediately. The physics engine
      * has full control of when the updates are applied.
      */
-    private val shipToVoxelUpdates: MutableMap<UUID?, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
+    private val shipToVoxelUpdates: MutableMap<ShipId, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
 
     private var firstGameFrame = true
 
@@ -56,17 +65,24 @@ class ShipObjectServerWorld(
      * Add the update to [shipToVoxelUpdates].
      */
     override fun onSetBlock(
-        posX: Int, posY: Int, posZ: Int, oldBlockType: VSBlockType, newBlockType: VSBlockType, oldBlockMass: Double,
+        posX: Int,
+        posY: Int,
+        posZ: Int,
+        dimensionId: DimensionId,
+        oldBlockType: VSBlockType,
+        newBlockType: VSBlockType,
+        oldBlockMass: Double,
         newBlockMass: Double
     ) {
-        super.onSetBlock(posX, posY, posZ, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
+        super.onSetBlock(posX, posY, posZ, dimensionId, oldBlockType, newBlockType, oldBlockMass, newBlockMass)
 
         if (oldBlockType != newBlockType) {
             val chunkPos: Vector3ic = Vector3i(posX shr 4, posY shr 4, posZ shr 4)
 
-            val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
+            val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z(), dimensionId)
 
-            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData?.shipUUID) { HashMap() }
+            val shipId: ShipId = shipData?.id ?: dimensionToGroundBodyId[dimensionId]!!
+            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipId) { HashMap() }
 
             val voxelShapeUpdate =
                 voxelUpdates.getOrPut(chunkPos) { SparseVoxelShapeUpdate.createSparseVoxelShapeUpdate(chunkPos) }
@@ -98,15 +114,19 @@ class ShipObjectServerWorld(
         }
     }
 
-    fun tickShips(newLoadedChunks: List<IVoxelShapeUpdate>) {
+    fun addNewLoadedChunks(dimensionId: DimensionId, newLoadedChunks: List<IVoxelShapeUpdate>) {
+        newLoadedChunksList.add(Pair(dimensionId, newLoadedChunks))
+    }
+
+    fun tickShips() {
         val it = shipObjects.iterator()
         while (it.hasNext()) {
             val shipObjectServer = it.next().value
             if (shipObjectServer.shipData.inertiaData.getShipMass() < 1e-8) {
                 // Delete this ship
-                deletedShipObjects.add(shipObjectServer.shipData.shipUUID)
+                deletedShipObjects.add(shipObjectServer.shipData.id)
                 queryableShipData.removeShipData(shipObjectServer.shipData)
-                shipToVoxelUpdates.remove(shipObjectServer.shipData.shipUUID)
+                shipToVoxelUpdates.remove(shipObjectServer.shipData.id)
                 it.remove()
             }
         }
@@ -118,7 +138,7 @@ class ShipObjectServerWorld(
 
         // For now, just make a [ShipObject] for every [ShipData]
         for (shipData in queryableShipData) {
-            val shipID = shipData.shipUUID
+            val shipID = shipData.id
             if (!shipObjectMap.containsKey(shipID)) {
                 val newShipObject = ShipObjectServer(shipData)
                 newShipObjects.add(newShipObject)
@@ -127,11 +147,19 @@ class ShipObjectServerWorld(
         }
 
         // region Add voxel shape updates for chunks that loaded this tick
-        for (newLoadedChunk in newLoadedChunks) {
-            val chunkPos: Vector3ic = Vector3i(newLoadedChunk.regionX, newLoadedChunk.regionY, newLoadedChunk.regionZ)
-            val shipData: ShipData? = queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z())
-            val voxelUpdates = shipToVoxelUpdates.getOrPut(shipData?.shipUUID) { HashMap() }
-            voxelUpdates[chunkPos] = newLoadedChunk
+        for (newLoadedChunkAndDimension in newLoadedChunksList) {
+            val dimensionId = newLoadedChunkAndDimension.first
+            for (newLoadedChunk in newLoadedChunkAndDimension.second) {
+                val chunkPos: Vector3ic =
+                    Vector3i(newLoadedChunk.regionX, newLoadedChunk.regionY, newLoadedChunk.regionZ)
+                val shipData: ShipData? =
+                    queryableShipData.getShipDataFromChunkPos(chunkPos.x(), chunkPos.z(), dimensionId)
+
+                val shipId: ShipId = shipData?.id ?: dimensionToGroundBodyId[dimensionId]!!
+
+                val voxelUpdates = shipToVoxelUpdates.getOrPut(shipId) { HashMap() }
+                voxelUpdates[chunkPos] = newLoadedChunk
+            }
         }
         // endregion
     }
@@ -141,14 +169,14 @@ class ShipObjectServerWorld(
      *
      * If the chunk at [chunkX], [chunkZ] is not a ship chunk, then this returns nothing.
      */
-    fun getIPlayersWatchingShipChunk(chunkX: Int, chunkZ: Int): Iterator<IPlayer> {
+    fun getIPlayersWatchingShipChunk(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): Iterator<IPlayer> {
         // Check if this chunk potentially belongs to a ship
         if (ChunkAllocator.isChunkInShipyard(chunkX, chunkZ)) {
             // Then look for the shipData that owns this chunk
-            val shipDataManagingPos = queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ)
+            val shipDataManagingPos = queryableShipData.getShipDataFromChunkPos(chunkX, chunkZ, dimensionId)
             if (shipDataManagingPos != null) {
                 // Then check if there exists a ShipObject for this ShipData
-                val shipObjectManagingPos = shipObjects[shipDataManagingPos.shipUUID]
+                val shipObjectManagingPos = shipObjects[shipDataManagingPos.id]
                 if (shipObjectManagingPos != null) {
                     return shipObjectManagingPos.shipChunkTracker.getPlayersWatchingChunk(chunkX, chunkZ)
                 }
@@ -163,11 +191,16 @@ class ShipObjectServerWorld(
      * It only returns the tasks, it is up to the caller to execute the tasks; however they do not have to execute all of them.
      * It is up to the caller to decide which tasks to execute, and which ones to skip.
      */
-    fun tickShipChunkLoading(): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
+    fun tickShipChunkLoading(
+        dimensionId: DimensionId
+    ): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
         val chunkWatchTasksSorted = TreeSet<ChunkWatchTask>()
         val chunkUnwatchTasksSorted = TreeSet<ChunkUnwatchTask>()
 
         for (shipObject in shipObjects.values) {
+            // Only tick ship chunk loading for ships with the correct dimension
+            if (shipObject.shipData.chunkClaimDimension != dimensionId) continue
+
             shipObject.shipChunkTracker.tick(
                 players = players,
                 shipTransform = shipObject.shipData.shipTransform
@@ -220,13 +253,12 @@ class ShipObjectServerWorld(
     override fun destroyWorld() {
     }
 
-    fun getNewGroundRigidBodyObjects(): List<UUID> {
-        return if (firstGameFrame) {
-            firstGameFrame = false
-            listOf(groundBodyUUID)
-        } else {
-            listOf()
+    fun getNewGroundRigidBodyObjects(): List<Pair<DimensionId, ShipId>> {
+        val newDimensionsObjects = ArrayList<Pair<DimensionId, ShipId>>(dimensionsAddedThisTick.size)
+        dimensionsAddedThisTick.forEach { dimensionId: DimensionId ->
+            newDimensionsObjects.add(Pair(dimensionId, dimensionToGroundBodyId[dimensionId]!!))
         }
+        return newDimensionsObjects
     }
 
     fun getNewShipObjects(): List<ShipObjectServer> {
@@ -237,11 +269,15 @@ class ShipObjectServerWorld(
         return updatedShipObjects
     }
 
-    fun getDeletedShipObjects(): List<UUID> {
-        return deletedShipObjects
+    fun getDeletedShipObjects(): List<ShipId> {
+        val deletedGroundShips = ArrayList<ShipId>()
+        dimensionsRemovedThisTick.forEach { dimensionRemovedThisTick: DimensionId ->
+            deletedGroundShips.add(dimensionToGroundBodyId[dimensionRemovedThisTick]!!)
+        }
+        return deletedGroundShips + deletedShipObjects
     }
 
-    fun getShipToVoxelUpdates(): Map<UUID?, Map<Vector3ic, IVoxelShapeUpdate>> {
+    fun getShipToVoxelUpdates(): Map<ShipId, Map<Vector3ic, IVoxelShapeUpdate>> {
         return shipToVoxelUpdates
     }
 
@@ -250,5 +286,23 @@ class ShipObjectServerWorld(
         updatedShipObjects.clear()
         deletedShipObjects.clear()
         shipToVoxelUpdates.clear()
+        newLoadedChunksList.clear()
+        dimensionsAddedThisTick.clear()
+        dimensionsRemovedThisTick.forEach { dimensionRemovedThisTick: DimensionId ->
+            val removedSuccessfully = dimensionToGroundBodyId.remove(dimensionRemovedThisTick) != null
+            assert(removedSuccessfully)
+        }
+        dimensionsRemovedThisTick.clear()
+    }
+
+    fun addDimension(dimensionId: DimensionId) {
+        assert(!dimensionToGroundBodyId.contains(dimensionId))
+        dimensionsAddedThisTick.add(dimensionId)
+        dimensionToGroundBodyId[dimensionId] = UUID.randomUUID()
+    }
+
+    fun removeDimension(dimensionId: DimensionId) {
+        assert(dimensionToGroundBodyId.contains(dimensionId))
+        dimensionsRemovedThisTick.add(dimensionId)
     }
 }
