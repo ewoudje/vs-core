@@ -1,6 +1,7 @@
 package org.valkyrienskies.core.game.ships
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.google.common.collect.MutableClassToInstanceMap
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
@@ -47,6 +48,7 @@ class ShipData(
      */
     @JsonIgnore
     private val missingLoadedChunks: IShipActiveChunksSet = ShipActiveChunksSet.create()
+    private val persistentAttachedData = MutableClassToInstanceMap.create<Any>() // TODO a serializable class
 
     /**
      * Generates the [shipVoxelAABB] in O(1) time. However, this object is too large for us to persistently store it,
@@ -128,6 +130,20 @@ class ShipData(
 
         return true
     }
+
+    // Java friendly
+    fun <T> saveAttachment(clazz: Class<T>, value: T) {
+        persistentAttachedData[clazz] = value
+    }
+
+    // Kotlin Only Inlining
+    inline fun <reified T> saveAttachment(value: T) = saveAttachment(T::class.java, value)
+
+    // Java friendly
+    fun <T> getAttachment(clazz: Class<T>) = persistentAttachedData[clazz]
+
+    // Kotlin Only Inlining
+    inline fun <reified T> getAttachment() = getAttachment(T::class.java)
 
     override fun hashCode(): Int {
         var result = super.hashCode()
