@@ -194,7 +194,7 @@ internal object VSRandomUtils {
             shipAABB = randomAABBd(random),
             shipVoxelAABB = null,
             shipActiveChunksSet = randomShipActiveChunkSet(random, random.nextInt(100))
-        )
+        ).apply { saveAttachment(random.nextInt()) }
     }
 
     @Suppress("WeakerAccess")
