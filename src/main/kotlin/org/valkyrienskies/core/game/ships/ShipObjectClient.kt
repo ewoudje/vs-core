@@ -1,12 +1,21 @@
 package org.valkyrienskies.core.game.ships
 
-class ShipObjectClient(shipData: ShipDataCommon) : ShipObject(shipData) {
+import com.fasterxml.jackson.databind.JsonNode
+import org.valkyrienskies.core.networking.delta.DeltaEncodedChannelClientTCP
+import org.valkyrienskies.core.util.serialization.VSJacksonUtil
+
+class ShipObjectClient(
+    shipData: ShipDataCommon,
+    shipDataJson: JsonNode = VSJacksonUtil.defaultMapper.valueToTree(shipData)
+) : ShipObject(shipData) {
     // The last ship transform sent by the sever
     private var nextShipTransform: ShipTransform
 
     // The transform used when rendering the ship
     var renderTransform: ShipTransform
         private set
+
+    val shipDataChannel = DeltaEncodedChannelClientTCP(jsonDiffDeltaAlgorithm, shipDataJson)
 
     init {
         nextShipTransform = shipData.shipTransform

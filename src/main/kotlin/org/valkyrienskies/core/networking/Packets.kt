@@ -1,6 +1,6 @@
 package org.valkyrienskies.core.networking
 
-import org.valkyrienskies.core.networking.impl.PacketShipDataList
+import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
 import org.valkyrienskies.core.networking.simple.register
 
 /**
@@ -19,7 +19,7 @@ object Packets {
     val UDP_SHIP_TRANSFORM = VSNetworking.UDP.registerPacket("Ship transform update")
 
     init {
-        PacketShipDataList::class.register()
+        PacketShipDataCreate::class.register()
     }
 
     // no-op to force the class to load

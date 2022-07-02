@@ -11,6 +11,7 @@ import org.valkyrienskies.core.game.ChunkAllocator
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.VSBlockType
+import org.valkyrienskies.core.game.ships.networking.ShipObjectNetworkManagerServer
 import org.valkyrienskies.core.util.names.NounListNameGenerator
 import org.valkyrienskies.physics_api.voxel_updates.DenseVoxelShapeUpdate
 import org.valkyrienskies.physics_api.voxel_updates.EmptyVoxelShapeUpdate
@@ -59,8 +60,10 @@ class ShipObjectServerWorld(
      */
     private val shipToVoxelUpdates: MutableMap<ShipId, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
 
-    private val chunkTracker =
+    val chunkTracker =
         ShipObjectServerWorldChunkTracker(this, DEFAULT_CHUNK_WATCH_DISTANCE, DEFAULT_CHUNK_UNWATCH_DISTANCE)
+
+    private val networkManager = ShipObjectNetworkManagerServer(this)
 
     companion object {
         private const val DEFAULT_CHUNK_WATCH_DISTANCE = 12.0 // 128.0
@@ -124,7 +127,9 @@ class ShipObjectServerWorld(
         newLoadedChunksList.add(Pair(dimensionId, newLoadedChunks))
     }
 
-    fun tickShips() {
+    public override fun tickShips() {
+        super.tickShips()
+
         val it = shipObjects.iterator()
         while (it.hasNext()) {
             val shipObjectServer = it.next().value
@@ -168,6 +173,8 @@ class ShipObjectServerWorld(
             }
         }
         // endregion
+
+        networkManager.tick()
     }
 
     /**

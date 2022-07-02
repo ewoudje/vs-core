@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.networking.PacketType
+import org.valkyrienskies.core.networking.RegisteredHandler
 import org.valkyrienskies.core.networking.VSNetworking
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.serialization.readValue
@@ -34,14 +35,18 @@ fun <T : SimplePacket> KClass<T>.deserialize(buf: ByteBuf): T {
 }
 
 // todo: stop deserializing the packet multiple times for each handler...
-fun <T : SimplePacket> KClass<T>.registerServerHandler(handler: (T, IPlayer) -> Unit) {
+fun <T : SimplePacket> KClass<T>.registerServerHandler(handler: (T, IPlayer) -> Unit): RegisteredHandler {
     @Suppress("UNCHECKED_CAST")
     this.java.getSimplePacketInfo().serverHandlers.add(handler as (SimplePacket, IPlayer) -> Unit)
+
+    return RegisteredHandler { this.java.getSimplePacketInfo().serverHandlers.remove(handler) }
 }
 
-fun <T : SimplePacket> KClass<T>.registerClientHandler(handler: (T) -> Unit) {
+fun <T : SimplePacket> KClass<T>.registerClientHandler(handler: (T) -> Unit): RegisteredHandler {
     @Suppress("UNCHECKED_CAST")
     this.java.getSimplePacketInfo().clientHandlers.add(handler as (SimplePacket) -> Unit)
+
+    return RegisteredHandler { this.java.getSimplePacketInfo().clientHandlers.remove(handler) }
 }
 
 fun SimplePacket.sendToServer() {

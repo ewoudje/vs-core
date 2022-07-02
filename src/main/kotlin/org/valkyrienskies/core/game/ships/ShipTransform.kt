@@ -54,6 +54,12 @@ data class ShipTransform(
         // The vector that represents no scaling
         private val UNIT_SCALING: Vector3dc = Vector3d(1.0, 1.0, 1.0)
 
+        private val ZERO: Vector3dc = Vector3d()
+
+        fun createEmpty(): ShipTransform {
+            return createFromCoordinates(ZERO, ZERO)
+        }
+
         fun createFromCoordinates(
             centerCoordinateInWorld: Vector3dc,
             centerCoordinateInShip: Vector3dc

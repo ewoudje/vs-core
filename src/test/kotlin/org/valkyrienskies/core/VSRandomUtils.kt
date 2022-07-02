@@ -15,7 +15,6 @@ import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipInertiaData
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
 import org.valkyrienskies.core.game.ships.ShipTransform
-import java.util.UUID
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -180,10 +179,10 @@ internal object VSRandomUtils {
     @Suppress("WeakerAccess")
     fun randomShipData(random: Random = defaultRandom): ShipData {
         return ShipData(
-            id = UUID.randomUUID(),
+            id = random.nextLong(),
             name = randomString(random, random.nextInt(10)),
             chunkClaim = randomChunkClaim(random),
-            chunkClaimDimension = random.nextInt(),
+            chunkClaimDimension = randomString(random, random.nextInt(10)),
             physicsData = randomShipPhysicsData(random),
             inertiaData = randomShipInertiaData(random),
             shipTransform = randomShipTransform(random),

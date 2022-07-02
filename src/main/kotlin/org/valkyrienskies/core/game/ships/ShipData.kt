@@ -82,24 +82,6 @@ class ShipData(
         return missingLoadedChunks.getTotalChunks() == 0
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        if (!super.equals(other)) return false
-
-        other as ShipData
-
-        if (inertiaData != other.inertiaData) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + inertiaData.hashCode()
-        return result
-    }
-
     companion object {
         /**
          * Creates a new [ShipData] from the given name and coordinates. The resulting [ShipData] is completely empty,

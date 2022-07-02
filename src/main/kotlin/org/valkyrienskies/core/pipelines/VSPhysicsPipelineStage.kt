@@ -3,8 +3,8 @@ package org.valkyrienskies.core.pipelines
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.valkyrienskies.core.game.DimensionId
 import org.joml.primitives.AABBd
+import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
@@ -85,14 +85,17 @@ class VSPhysicsPipelineStage {
             val shipVoxelsFullyLoaded = newShipInGameFrameData.shipVoxelsFullyLoaded
 
             val newRigidBodyReference =
-                physicsEngine.createVoxelRigidBody(getKrunchDimensionId(dimension), minDefined, maxDefined, totalVoxelRegion)
+                physicsEngine.createVoxelRigidBody(
+                    getKrunchDimensionId(dimension), minDefined, maxDefined, totalVoxelRegion
+                )
             newRigidBodyReference.inertiaData = inertiaData
             newRigidBodyReference.rigidBodyTransform = shipTransform
             newRigidBodyReference.collisionShapeOffset = newShipInGameFrameData.voxelOffset
             newRigidBodyReference.isStatic = isStatic
             newRigidBodyReference.isVoxelTerrainFullyLoaded = shipVoxelsFullyLoaded
 
-            shipIdToRigidBodyMap[shipId] = ShipIdAndRigidBodyReference(shipId, newRigidBodyReference)
+            // todo: this class probably shouldn't hold the dimension
+            shipIdToRigidBodyMap[shipId] = ShipIdAndRigidBodyReference(shipId, newRigidBodyReference, dimension)
         }
 
         // Update existing ships
@@ -153,8 +156,7 @@ class VSPhysicsPipelineStage {
 
             shipDataMap[shipId] =
                 ShipInPhysicsFrameData(
-                    shipId, getMinecraftDimensionId(dimensionId), inertiaData, shipTransform, shipVoxelOffset, vel,
-                    omega, aabb
+                    shipId, inertiaData, shipTransform, shipVoxelOffset, vel, omega, aabb
                 )
         }
         return VSPhysicsFrame(shipDataMap, voxelUpdatesMap)
@@ -172,4 +174,6 @@ class VSPhysicsPipelineStage {
     }
 }
 
-private data class ShipIdAndRigidBodyReference(val shipId: ShipId, val rigidBodyReference: RigidBodyReference)
+private data class ShipIdAndRigidBodyReference(
+    val shipId: ShipId, val rigidBodyReference: RigidBodyReference, val dimensionId: DimensionId
+)

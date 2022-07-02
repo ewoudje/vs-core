@@ -142,15 +142,6 @@ class ShipObjectServerWorldChunkTracker(
         chunkUnwatchTasks = newChunkUnwatchTasks
     }
 
-    /**
-     * Run at the end of each tick. Clears [playersToShipsNewlyWatchingMap] and [playersToShipsNoLongerWatchingMap],
-     * [shipsToUnload] and [shipsToLoad]
-     */
-    fun clearNewMaps() {
-        playersToShipsNewlyWatchingMap.clear()
-        playersToShipsNoLongerWatchingMap.clear()
-    }
-
     private fun isPlayerWatchingChunk(chunkX: Int, chunkZ: Int, dimensionId: DimensionId, player: IPlayer): Boolean {
         return getPlayersWatchingChunk(chunkX, chunkZ, dimensionId).contains(player)
     }
