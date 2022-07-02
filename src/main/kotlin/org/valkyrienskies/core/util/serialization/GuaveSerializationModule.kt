@@ -57,7 +57,7 @@ class GuaveSerializationModule : SimpleModule() {
                     "Expected field name", p.currentLocation.lineNr
                 )
 
-                val clazz = Class.forName(p.currentName);
+                val clazz = Class.forName(p.currentName)
                 token = p.nextToken()
                 val value = p.codec.readValue(p, clazz)
 
