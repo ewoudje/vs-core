@@ -85,7 +85,7 @@ class ShipObjectNetworkManagerClient(
             val shipId = buf.readLong()
             val latest = latestReceived[shipId] ?: Int.MIN_VALUE
             if (latest >= tickNum) {
-                buf.skipBytes((3 + 3 + 4 + 3 + 3 + 3) * 4)
+                buf.skipBytes((3 + 3 + 4 + 3 + 3 + 3) * 8)
             } else {
                 val shipObject = parent.shipObjects[shipId]
                 if (shipObject == null) {

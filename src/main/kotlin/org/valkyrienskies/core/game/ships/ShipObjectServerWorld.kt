@@ -224,12 +224,12 @@ class ShipObjectServerWorld(
         val shipCenterInShipCoordinates: Vector3dc = Vector3d(blockPosInShipCoordinates).add(0.5, 0.5, 0.5)
         val newShipData = ShipData.createEmpty(
             name = shipName,
-            chunkClaim = chunkClaim,
             shipId = chunkAllocator.allocateShipId(),
+            chunkClaim = chunkClaim,
+            chunkClaimDimension = dimensionId,
             shipCenterInWorldCoordinates = shipCenterInWorldCoordinates,
             shipCenterInShipCoordinates = shipCenterInShipCoordinates,
-            scaling = scaling,
-            chunkClaimDimension = dimensionId
+            scaling = scaling
         )
 
         queryableShipData.addShipData(newShipData)

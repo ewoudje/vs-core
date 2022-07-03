@@ -139,9 +139,9 @@ class ShipData(
          */
         internal fun createEmpty(
             name: String,
+            shipId: ShipId,
             chunkClaim: ChunkClaim,
             chunkClaimDimension: DimensionId,
-            shipId: ShipId,
             shipCenterInWorldCoordinates: Vector3dc,
             shipCenterInShipCoordinates: Vector3dc,
             scaling: Double = 1.0,

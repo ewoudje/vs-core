@@ -95,7 +95,7 @@ class VSPhysicsPipelineStage {
             newRigidBodyReference.isVoxelTerrainFullyLoaded = shipVoxelsFullyLoaded
 
             // todo: this class probably shouldn't hold the dimension
-            shipIdToRigidBodyMap[shipId] = ShipIdAndRigidBodyReference(shipId, newRigidBodyReference, dimension)
+            shipIdToRigidBodyMap[shipId] = ShipIdAndRigidBodyReference(shipId, newRigidBodyReference)
         }
 
         // Update existing ships
@@ -175,5 +175,5 @@ class VSPhysicsPipelineStage {
 }
 
 private data class ShipIdAndRigidBodyReference(
-    val shipId: ShipId, val rigidBodyReference: RigidBodyReference, val dimensionId: DimensionId
+    val shipId: ShipId, val rigidBodyReference: RigidBodyReference
 )
