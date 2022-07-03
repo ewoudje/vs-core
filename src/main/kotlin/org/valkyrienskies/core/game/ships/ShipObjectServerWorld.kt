@@ -66,8 +66,8 @@ class ShipObjectServerWorld(
     private val networkManager = ShipObjectNetworkManagerServer(this)
 
     companion object {
-        private const val DEFAULT_CHUNK_WATCH_DISTANCE = 12.0 // 128.0
-        private const val DEFAULT_CHUNK_UNWATCH_DISTANCE = 24.0 // 192.0
+        private const val DEFAULT_CHUNK_WATCH_DISTANCE = 128.0
+        private const val DEFAULT_CHUNK_UNWATCH_DISTANCE = 192.0
     }
 
     /**
