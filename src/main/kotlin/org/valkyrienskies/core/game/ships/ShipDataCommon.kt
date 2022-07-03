@@ -19,14 +19,14 @@ open class ShipDataCommon(
     val chunkClaimDimension: DimensionId,
     @DeltaIgnore
     val physicsData: ShipPhysicsData,
-    shipTransform_: ShipTransform,
-    prevTickShipTransform_: ShipTransform = shipTransform_,
-    shipAABB_: AABBdc,
+    shipTransform: ShipTransform,
+    prevTickShipTransform: ShipTransform = shipTransform,
+    shipAABB: AABBdc = shipTransform.createEmptyAABB(),
     var shipVoxelAABB: AABBic?,
     val shipActiveChunksSet: IShipActiveChunksSet
 ) {
     @DeltaIgnore
-    var shipTransform: ShipTransform = shipTransform_
+    var shipTransform: ShipTransform = shipTransform
         set(shipTransform) {
             field = shipTransform
             // Update the [shipAABB]
@@ -35,11 +35,11 @@ open class ShipDataCommon(
         }
 
     @PacketIgnore
-    var prevTickShipTransform: ShipTransform = prevTickShipTransform_
+    var prevTickShipTransform: ShipTransform = prevTickShipTransform
         private set
 
     @DeltaIgnore
-    var shipAABB: AABBdc = shipAABB_
+    var shipAABB: AABBdc = shipAABB
         private set
 
     fun updatePrevTickShipTransform() {
