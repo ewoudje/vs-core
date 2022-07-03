@@ -1,5 +1,8 @@
 package org.valkyrienskies.core.game.ships
 
+import org.joml.primitives.AABBd
+import org.joml.primitives.AABBdc
+import org.valkyrienskies.core.util.toAABBd
 import com.fasterxml.jackson.databind.JsonNode
 import org.valkyrienskies.core.networking.delta.DeltaEncodedChannelClientTCP
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
@@ -15,11 +18,15 @@ class ShipObjectClient(
     var renderTransform: ShipTransform
         private set
 
+    var renderAABB: AABBdc
+        private set
+
     val shipDataChannel = DeltaEncodedChannelClientTCP(jsonDiffDeltaAlgorithm, shipDataJson)
 
     init {
         nextShipTransform = shipData.shipTransform
         renderTransform = shipData.shipTransform
+        renderAABB = shipData.shipTransform.createEmptyAABB()
     }
 
     fun updateNextShipTransform(nextShipTransform: ShipTransform) {
@@ -27,13 +34,15 @@ class ShipObjectClient(
     }
 
     fun tickUpdateShipTransform() {
-        shipData.prevTickShipTransform = shipData.shipTransform
+        shipData.updatePrevTickShipTransform()
         shipData.shipTransform = ShipTransform.createFromSlerp(shipData.shipTransform, nextShipTransform, EMA_ALPHA)
     }
 
     fun updateRenderShipTransform(partialTicks: Double) {
         renderTransform =
             ShipTransform.createFromSlerp(shipData.prevTickShipTransform, shipData.shipTransform, partialTicks)
+        renderAABB = shipData.shipVoxelAABB?.toAABBd(AABBd())?.transform(renderTransform.shipToWorldMatrix, AABBd())
+            ?: renderTransform.createEmptyAABB()
     }
 
     companion object {

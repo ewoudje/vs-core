@@ -3,6 +3,7 @@ package org.valkyrienskies.core.util
 import org.joml.Vector3dc
 import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
+import org.joml.primitives.AABBic
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -50,4 +51,18 @@ fun AABBdc.signedDistanceTo(pos: Vector3dc): Double {
         val closestSurfacePointZ = max(minZ(), min(maxZ(), pos.z()))
         return pos.distance(closestSurfacePointX, closestSurfacePointY, closestSurfacePointZ)
     }
+}
+
+fun AABBic.toAABBd(dest: AABBd): AABBd {
+    dest.minX = minX().toDouble()
+    dest.minY = minY().toDouble()
+    dest.minZ = minZ().toDouble()
+    dest.maxX = maxX().toDouble()
+    dest.maxY = maxY().toDouble()
+    dest.maxZ = maxZ().toDouble()
+    return dest
+}
+
+fun AABBdc.intersectsAABBImmutable(other: AABBdc): Boolean {
+    return other.intersectsAABB(other as AABBd)
 }

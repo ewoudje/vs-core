@@ -24,7 +24,7 @@ import java.util.Spliterator
 class ShipObjectServerWorld(
     override val queryableShipData: MutableQueryableShipDataServer,
     val chunkAllocator: ChunkAllocator,
-) : ShipObjectWorld(queryableShipData) {
+) : ShipObjectWorld<ShipObjectServer>(queryableShipData) {
 
     var lastPlayersSet: Set<IPlayer> = setOf()
         private set

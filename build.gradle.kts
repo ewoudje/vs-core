@@ -13,7 +13,7 @@ if (project.hasProperty("CustomReleaseVersion")) {
 } else {
     // Yes, I know there is a gradle plugin to detect git version.
     // But its made by Palantir 0_0.
-    val gitRevisionProcess = Runtime.getRuntime().exec("git rev-parse HEAD", emptyArray(), File("."))
+    val gitRevisionProcess = Runtime.getRuntime().exec("git rev-parse HEAD", emptyArray(), projectDir)
     val processInputStream = gitRevisionProcess.inputStream
 
     var gitRevision = ""
