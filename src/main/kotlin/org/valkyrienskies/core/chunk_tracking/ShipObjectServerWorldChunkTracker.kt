@@ -56,7 +56,17 @@ class ShipObjectServerWorldChunkTracker(
     var chunkUnwatchTasks: SortedSet<ChunkUnwatchTask> = sortedSetOf()
         private set
 
+    fun cleanDeletedShips() {
+        for (ship in parent.deletedShipObjects) {
+            playersToShipsWatchingMap.values.forEach { it.removeInt(ship) }
+            shipsToPlayersWatchingMap.remove(ship.id)
+            shipsToUnload.add(ship)
+        }
+    }
+
     fun updateTracking(players: Iterable<IPlayer>) {
+        cleanDeletedShips()
+
         val newChunkWatchTasks = TreeSet<ChunkWatchTask>()
         val newChunkUnwatchTasks = TreeSet<ChunkUnwatchTask>()
 

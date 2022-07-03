@@ -108,7 +108,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
         val newGroundRigidBodyObjects = shipWorld.getNewGroundRigidBodyObjects()
         val newShipObjects = shipWorld.getNewShipObjects()
         val updatedShipObjects = shipWorld.getUpdatedShipObjects()
-        val deletedShipObjects = shipWorld.getDeletedShipObjects()
+        val deletedShipObjects = shipWorld.getDeletedShipObjectsIncludingGround()
         val shipVoxelUpdates = shipWorld.getShipToVoxelUpdates()
 
         newGroundRigidBodyObjects.forEach { newGroundObjectData ->

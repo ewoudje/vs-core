@@ -50,7 +50,9 @@ class ShipObjectServerWorld(
     // These fields are used to generate [VSGameFrame]
     private val newShipObjects: MutableList<ShipObjectServer> = ArrayList()
     private val updatedShipObjects: MutableList<ShipObjectServer> = ArrayList()
-    private val deletedShipObjects: MutableList<ShipId> = ArrayList()
+    private val _deletedShipObjects: MutableList<ShipData> = ArrayList()
+
+    val deletedShipObjects: Collection<ShipData> = _deletedShipObjects
 
     /**
      * A map of voxel updates pending to be applied to ships.
@@ -135,7 +137,7 @@ class ShipObjectServerWorld(
             val shipObjectServer = it.next().value
             if (shipObjectServer.shipData.inertiaData.getShipMass() < 1e-8) {
                 // Delete this ship
-                deletedShipObjects.add(shipObjectServer.shipData.id)
+                _deletedShipObjects.add(shipObjectServer.shipData)
                 queryableShipData.removeShipData(shipObjectServer.shipData)
                 shipToVoxelUpdates.remove(shipObjectServer.shipData.id)
                 it.remove()
@@ -174,7 +176,12 @@ class ShipObjectServerWorld(
         }
         // endregion
 
+        chunkTracker.updateTracking(players)
         networkManager.tick()
+
+        // for now don't do anything with this
+        chunkTracker.shipsToUnload.clear()
+        chunkTracker.shipsToLoad.clear()
     }
 
     /**
@@ -196,9 +203,7 @@ class ShipObjectServerWorld(
      * It only returns the tasks, it is up to the caller to execute the tasks; however they do not have to execute all of them.
      * It is up to the caller to decide which tasks to execute, and which ones to skip.
      */
-    fun tickShipChunkLoading(): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
-        chunkTracker.updateTracking(players)
-
+    fun getChunkWatchUnwatchTasks(): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
         return Pair(chunkTracker.chunkWatchTasks.spliterator(), chunkTracker.chunkUnwatchTasks.spliterator())
     }
 
@@ -255,12 +260,12 @@ class ShipObjectServerWorld(
         return updatedShipObjects
     }
 
-    fun getDeletedShipObjects(): List<ShipId> {
+    fun getDeletedShipObjectsIncludingGround(): List<ShipId> {
         val deletedGroundShips = ArrayList<ShipId>()
         dimensionsRemovedThisTick.forEach { dimensionRemovedThisTick: DimensionId ->
             deletedGroundShips.add(dimensionToGroundBodyId[dimensionRemovedThisTick]!!)
         }
-        return deletedGroundShips + deletedShipObjects
+        return deletedGroundShips + _deletedShipObjects.map { it.id }
     }
 
     fun getShipToVoxelUpdates(): Map<ShipId, Map<Vector3ic, IVoxelShapeUpdate>> {
@@ -270,7 +275,7 @@ class ShipObjectServerWorld(
     fun clearNewUpdatedDeletedShipObjectsAndVoxelUpdates() {
         newShipObjects.clear()
         updatedShipObjects.clear()
-        deletedShipObjects.clear()
+        _deletedShipObjects.clear()
         shipToVoxelUpdates.clear()
         newLoadedChunksList.clear()
         dimensionsAddedThisTick.clear()

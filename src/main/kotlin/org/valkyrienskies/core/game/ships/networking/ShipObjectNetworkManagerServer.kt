@@ -44,18 +44,22 @@ class ShipObjectNetworkManagerServer(
         tracker.playersToShipsNoLongerWatchingMap
             .forEach { (player, ships) -> endTracking(player, ships) }
 
+        players.forEach { player -> endTracking(player, tracker.shipsToUnload) }
+
         tracker.playersToShipsNewlyWatchingMap.clear()
         tracker.playersToShipsNoLongerWatchingMap.clear()
     }
 
     private fun endTracking(player: IPlayer, shipsToNotTrack: Iterable<ShipData>) {
         val shipIds = shipsToNotTrack.map { it.id }
+        if (shipIds.isEmpty()) return
         println("${player.uuid} unwatched ships $shipIds")
         PacketShipRemove(shipIds).sendToClient(player)
     }
 
     private fun startTracking(player: IPlayer, shipsToTrack: Iterable<ShipData>) {
         val ships = shipsToTrack.toList()
+        if (ships.isEmpty()) return
         println("${player.uuid} watched ships: ${ships.map { it.id }}")
         PacketShipDataCreate(ships).sendToClient(player)
     }

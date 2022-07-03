@@ -29,4 +29,9 @@ class ShipObjectServer(
 
     // Kotlin Only Inlining
     inline fun <reified T> getAttachment() = getAttachment(T::class.java)
+
+    companion object {
+        private const val DEFAULT_CHUNK_WATCH_DISTANCE = 128.0
+        private const val DEFAULT_CHUNK_UNWATCH_DISTANCE = 192.0
+    }
 }
