@@ -16,7 +16,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.joml.Vector3i;
 import org.joml.Vector3ic;
-import org.joml.primitives.AABBd;
+import org.joml.primitives.AABBi;
 import org.valkyrienskies.core.game.ChunkClaim;
 import org.valkyrienskies.core.util.IntTernaryConsumer;
 
@@ -43,7 +43,7 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
         final Vector3ic centerCoordinates = chunkClaim.getCenterBlockCoordinates(new Vector3i());
         final Vector3ic claimSize = chunkClaim.getBlockSize(new Vector3i());
 
-        this.blockPosSet = new SmallBlockPosSet(centerCoordinates.x(), centerCoordinates.z());
+        this.blockPosSet = new SmallBlockPosSet(centerCoordinates.x(), centerCoordinates.y(), centerCoordinates.z());
         this.centerX = centerCoordinates.x();
         this.centerY = centerCoordinates.y();
         this.centerZ = centerCoordinates.z();
@@ -57,7 +57,7 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
 
     public SmallBlockPosSetAABB(final int centerX, final int centerY, final int centerZ, final int xSize,
         final int ySize, final int zSize) {
-        this(new SmallBlockPosSet(centerX, centerZ), centerX, centerY, centerZ, xSize, ySize, zSize);
+        this(new SmallBlockPosSet(centerX, centerY, centerZ), centerX, centerY, centerZ, xSize, ySize, zSize);
     }
 
     private SmallBlockPosSetAABB(final SmallBlockPosSet blockPosSet, final int centerX, final int centerY,
@@ -77,21 +77,23 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
 
     @Nullable
     @Override
-    public AABBd makeAABB() {
+    public AABBi makeAABB() {
         if (blockPosSet.isEmpty()) {
             return null;
         } else {
             int minX = xMap.getFront() - (xSize / 2);
             int maxX = xMap.getBack() - (xSize / 2);
-            final int minY = yMap.getFront() - (ySize / 2);
-            final int maxY = yMap.getBack() - (ySize / 2);
+            int minY = yMap.getFront() - (ySize / 2);
+            int maxY = yMap.getBack() - (ySize / 2);
             int minZ = zMap.getFront() - (zSize / 2);
             int maxZ = zMap.getBack() - (zSize / 2);
             minX += blockPosSet.getCenterX();
             maxX += blockPosSet.getCenterX();
+            minY += blockPosSet.getCenterY();
+            maxY += blockPosSet.getCenterY();
             minZ += blockPosSet.getCenterZ();
             maxZ += blockPosSet.getCenterZ();
-            return new AABBd(minX, minY, minZ, maxX, maxY, maxZ);
+            return new AABBi(minX, minY, minZ, maxX, maxY, maxZ);
         }
     }
 
@@ -106,7 +108,7 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
 
     private void incrementAABBMaker(final int x, final int y, final int z) {
         xMap.increment(x - blockPosSet.getCenterX() + (xSize / 2));
-        yMap.increment(y + (ySize / 2));
+        yMap.increment(y - blockPosSet.getCenterY() + (ySize / 2));
         zMap.increment(z - blockPosSet.getCenterZ() + (zSize / 2));
     }
 
@@ -121,7 +123,7 @@ public class SmallBlockPosSetAABB implements IBlockPosSetAABB {
 
     private void decrementAABBMaker(final int x, final int y, final int z) {
         xMap.decrement(x - blockPosSet.getCenterX() + (xSize / 2));
-        yMap.decrement(y + (ySize / 2));
+        yMap.decrement(y - blockPosSet.getCenterY() + (ySize / 2));
         zMap.decrement(z - blockPosSet.getCenterZ() + (zSize / 2));
     }
 

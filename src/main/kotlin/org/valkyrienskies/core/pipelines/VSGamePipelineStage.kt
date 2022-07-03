@@ -40,7 +40,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
     fun preTickGame() {
         // Set the values of prevTickShipTransform
         shipWorld.shipObjects.forEach { (_, shipObject) ->
-            shipObject.shipData.prevTickShipTransform = shipObject.shipData.shipTransform
+            shipObject.shipData.updatePrevTickShipTransform()
         }
 
         // Apply the physics frames

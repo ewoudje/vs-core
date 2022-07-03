@@ -146,18 +146,20 @@ internal object VSRandomUtils {
     @Suppress("WeakerAccess")
     fun randomBlockPosSetAABB(random: Random = defaultRandom, size: Int): SmallBlockPosSetAABB {
         val centerX = randomIntegerNotCloseToLimit(random)
+        val centerY = randomIntegerNotCloseToLimit(random)
         val centerZ = randomIntegerNotCloseToLimit(random)
-        val blockPosSet = SmallBlockPosSetAABB(centerX, 0, centerZ, 4096, 4096, 4096)
-        fillBlockPosSet(random, blockPosSet, centerX, centerZ, size)
+        val blockPosSet = SmallBlockPosSetAABB(centerX, centerY, centerZ, 4096, 256, 4096)
+        fillBlockPosSet(random, blockPosSet, centerX, centerY, centerZ, size)
         return blockPosSet
     }
 
     @Suppress("WeakerAccess")
     fun randomBlockPosSet(random: Random = defaultRandom, size: Int): SmallBlockPosSet {
         val centerX = randomIntegerNotCloseToLimit(random)
+        val centerY = randomIntegerNotCloseToLimit(random)
         val centerZ = randomIntegerNotCloseToLimit(random)
-        val blockPosSet = SmallBlockPosSet(centerX, centerZ)
-        fillBlockPosSet(random, blockPosSet, centerX, centerZ, size)
+        val blockPosSet = SmallBlockPosSet(centerX, centerY, centerZ)
+        fillBlockPosSet(random, blockPosSet, centerX, centerY, centerZ, size)
         return blockPosSet
     }
 
@@ -165,12 +167,13 @@ internal object VSRandomUtils {
         random: Random = defaultRandom,
         blockPosSet: IBlockPosSet,
         centerX: Int,
+        centerY: Int,
         centerZ: Int,
         size: Int
     ) {
         for (i in 1 until size) {
             val x = random.nextInt(-2048, 2047) + centerX
-            val y = random.nextInt(0, 255)
+            val y = random.nextInt(-128, 127) + centerY
             val z = random.nextInt(-2048, 2047) + centerZ
             blockPosSet.add(x, y, z)
         }
@@ -188,8 +191,9 @@ internal object VSRandomUtils {
             shipTransform = randomShipTransform(random),
             prevTickShipTransform = randomShipTransform(random),
             shipAABB = randomAABBd(random),
+            shipVoxelAABB = null,
             shipActiveChunksSet = randomShipActiveChunkSet(random, random.nextInt(100))
-        )
+        ).apply { saveAttachment(random.nextInt()) }
     }
 
     @Suppress("WeakerAccess")

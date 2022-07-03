@@ -78,10 +78,10 @@ data class ChunkClaim(val xIndex: Int, val zIndex: Int) {
         (x in xStart..xEnd) and (z in zStart..zEnd)
 
     fun getCenterBlockCoordinates(destination: Vector3i): Vector3i {
-        val minBlockX = xStart * 16
-        val maxBlockX = (xEnd * 16) - 1
-        val minBlockZ = zStart * 16
-        val maxBlockZ = (zEnd * 16) - 1
+        val minBlockX = xStart shl 4
+        val maxBlockX = (xEnd shl 4) + 15
+        val minBlockZ = zStart shl 4
+        val maxBlockZ = (zEnd shl 4) + 15
 
         val centerX = (minBlockX + maxBlockX) / 2
         val centerY = 127

@@ -66,6 +66,7 @@ object VSJacksonUtil {
         mapper
             .registerModule(JOMLSerializationModule())
             .registerModule(VSSerializationModule())
+            .registerModule(GuaveSerializationModule())
             .setVisibility(
                 mapper.visibilityChecker
                     .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
