@@ -21,6 +21,7 @@ interface QueryableShipData<out ShipDataType : ShipDataCommon> : Iterable<ShipDa
 interface MutableQueryableShipData<ShipDataType : ShipDataCommon> : QueryableShipData<ShipDataType> {
     fun addShipData(shipData: ShipDataType)
     fun removeShipData(shipData: ShipDataType)
+    fun removeShipData(id: ShipId)
 }
 
 open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
@@ -28,6 +29,7 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
 ) : MutableQueryableShipData<ShipDataType> {
 
     private val _idToShipData: HashMap<ShipId, ShipDataType> = HashMap()
+
     override val idToShipData: Map<ShipId, ShipDataType> = _idToShipData
 
     /**
@@ -68,9 +70,12 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
     }
 
     override fun removeShipData(shipData: ShipDataType) {
-        if (getById(shipData.id) == null) {
-            throw IllegalArgumentException("Removing $shipData failed because it wasn't in the UUID map.")
-        }
+        removeShipData(shipData.id)
+    }
+
+    override fun removeShipData(id: ShipId) {
+        val shipData = getById(id)
+            ?: throw IllegalArgumentException("Removing ship id:$id failed because it wasn't in the UUID map.")
         _idToShipData.remove(shipData.id)
         chunkClaimToShipData.remove(shipData.chunkClaim)
     }

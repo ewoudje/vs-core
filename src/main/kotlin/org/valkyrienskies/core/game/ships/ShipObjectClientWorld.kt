@@ -19,6 +19,11 @@ class ShipObjectClientWorld(
         shipObjectMap[ship.id] = ShipObjectClient(ship)
     }
 
+    fun removeShip(shipId: ShipId) {
+        queryableShipData.removeShipData(shipId)
+        shipObjectMap.remove(shipId)
+    }
+
     public override fun tickShips() {
         super.tickShips()
 

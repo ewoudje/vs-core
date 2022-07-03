@@ -7,6 +7,7 @@ import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.networking.Packets
 import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
+import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.simple.sendToClient
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.writeQuatd
@@ -48,16 +49,15 @@ class ShipObjectNetworkManagerServer(
     }
 
     private fun endTracking(player: IPlayer, shipsToNotTrack: Iterable<ShipData>) {
-        val s = shipsToNotTrack.toList()
-        if (s.isNotEmpty()) {
-            println("${player.uuid} unwatched ships ${s.map { it.id }}")
-        }
+        val shipIds = shipsToNotTrack.map { it.id }
+        println("${player.uuid} unwatched ships $shipIds")
+        PacketShipRemove(shipIds).sendToClient(player)
     }
 
     private fun startTracking(player: IPlayer, shipsToTrack: Iterable<ShipData>) {
-        val s = shipsToTrack.toList()
-        println("${player.uuid} watched ships: ${s.map { it.id }}")
-        PacketShipDataCreate(s).sendToClient(player)
+        val ships = shipsToTrack.toList()
+        println("${player.uuid} watched ships: ${ships.map { it.id }}")
+        PacketShipDataCreate(ships).sendToClient(player)
     }
 
     /**

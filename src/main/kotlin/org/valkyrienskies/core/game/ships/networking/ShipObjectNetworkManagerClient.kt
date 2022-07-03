@@ -9,6 +9,7 @@ import org.valkyrienskies.core.networking.Packet
 import org.valkyrienskies.core.networking.Packets
 import org.valkyrienskies.core.networking.RegisteredHandler
 import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
+import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.simple.registerClientHandler
 import org.valkyrienskies.core.networking.unregisterAll
 import org.valkyrienskies.core.util.readQuatd
@@ -29,7 +30,8 @@ class ShipObjectNetworkManagerClient(
         handlers = listOf(
             Packets.UDP_SHIP_TRANSFORM.registerClientHandler(this::onShipTransform),
             Packets.TCP_SHIP_DATA_DELTA.registerClientHandler(this::onShipDataDelta),
-            PacketShipDataCreate::class.registerClientHandler(this::onShipDataCreate)
+            PacketShipDataCreate::class.registerClientHandler(this::onShipDataCreate),
+            PacketShipRemove::class.registerClientHandler(this::onShipDataRemove)
         )
     }
 
@@ -37,11 +39,17 @@ class ShipObjectNetworkManagerClient(
         handlers.unregisterAll()
     }
 
+    private fun onShipDataRemove(packet: PacketShipRemove) = worldScope.launch {
+        packet.toRemove.forEach(parent::removeShip)
+    }
+
     private fun onShipDataCreate(packet: PacketShipDataCreate) = worldScope.launch {
         for (ship in packet.toCreate) {
             if (parent.queryableShipData.getById(ship.id) == null) {
                 parent.addShip(ship)
             } else {
+                // todo: just throw if this is the case, this should never happen
+                println("WARN: Received ship create packet for already loaded ship?!")
                 // Update the next ship transform
                 parent.shipObjects[ship.id]?.updateNextShipTransform(ship.shipTransform)
             }
