@@ -4,6 +4,7 @@ import org.joml.Matrix3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.primitives.AABBd
+import org.valkyrienskies.core.api.saveAttachment
 import org.valkyrienskies.core.chunk_tracking.ShipActiveChunksSet
 import org.valkyrienskies.core.datastructures.IBlockPosSet
 import org.valkyrienskies.core.datastructures.SmallBlockPosSet

@@ -2,11 +2,13 @@ package org.valkyrienskies.core.game.ships
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.google.common.collect.MutableClassToInstanceMap
+import org.joml.Matrix4dc
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBdc
 import org.joml.primitives.AABBic
+import org.valkyrienskies.core.api.Ship
 import org.valkyrienskies.core.chunk_tracking.IShipActiveChunksSet
 import org.valkyrienskies.core.chunk_tracking.ShipActiveChunksSet
 import org.valkyrienskies.core.datastructures.IBlockPosSetAABB
@@ -36,9 +38,10 @@ class ShipData(
     shipActiveChunksSet: IShipActiveChunksSet,
     var isStatic: Boolean = false
 ) : ShipDataCommon(
-    id, name, chunkClaim, chunkClaimDimension, physicsData, shipTransform, prevTickShipTransform,
-    shipAABB, shipVoxelAABB, shipActiveChunksSet
-) {
+        id, name, chunkClaim, chunkClaimDimension, physicsData, shipTransform, prevTickShipTransform,
+        shipAABB, shipVoxelAABB, shipActiveChunksSet
+    ),
+    Ship {
     /**
      * The set of chunks that must be loaded before this ship is fully loaded.
      *
@@ -58,6 +61,11 @@ class ShipData(
      */
     @JsonIgnore
     private val shipAABBGenerator: IBlockPosSetAABB = SmallBlockPosSetAABB(chunkClaim)
+
+    override val shipToWorld: Matrix4dc
+        get() = shipTransform.shipToWorldMatrix
+    override val worldToShip: Matrix4dc
+        get() = shipTransform.worldToShipMatrix
 
     init {
         shipActiveChunksSet.iterateChunkPos { chunkX: Int, chunkZ: Int ->
@@ -131,19 +139,19 @@ class ShipData(
         return true
     }
 
-    // Java friendly
-    fun <T> saveAttachment(clazz: Class<T>, value: T) {
-        persistentAttachedData[clazz] = value
+    override fun <T> saveAttachment(clazz: Class<T>, value: T?) {
+        if (value == null)
+            persistentAttachedData.remove(clazz)
+        else
+            persistentAttachedData[clazz] = value
     }
 
-    // Kotlin Only Inlining
-    inline fun <reified T> saveAttachment(value: T) = saveAttachment(T::class.java, value)
+    override fun <T> getAttachment(clazz: Class<T>): T? = persistentAttachedData[clazz] as T?
 
-    // Java friendly
-    fun <T> getAttachment(clazz: Class<T>) = persistentAttachedData[clazz]
-
-    // Kotlin Only Inlining
-    inline fun <reified T> getAttachment() = getAttachment(T::class.java)
+    // Does nothing is for tmp storage
+    override fun <T> setAttachment(clazz: Class<T>, value: T?) {
+        // Nothin
+    }
 
     override fun hashCode(): Int {
         var result = super.hashCode()
