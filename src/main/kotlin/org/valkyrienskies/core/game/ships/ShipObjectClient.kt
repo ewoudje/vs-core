@@ -1,11 +1,11 @@
 package org.valkyrienskies.core.game.ships
 
+import com.fasterxml.jackson.databind.JsonNode
 import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
-import org.valkyrienskies.core.util.toAABBd
-import com.fasterxml.jackson.databind.JsonNode
 import org.valkyrienskies.core.networking.delta.DeltaEncodedChannelClientTCP
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
+import org.valkyrienskies.core.util.toAABBd
 
 class ShipObjectClient(
     shipData: ShipDataCommon,

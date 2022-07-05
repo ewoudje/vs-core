@@ -3,11 +3,8 @@ package org.valkyrienskies.core.game.ships
 import com.google.common.collect.MutableClassToInstanceMap
 import org.joml.Matrix4dc
 import org.valkyrienskies.core.api.Ship
-import org.valkyrienskies.core.chunk_tracking.IShipChunkTracker
-import org.valkyrienskies.core.chunk_tracking.ShipChunkTracker
 import org.valkyrienskies.core.networking.delta.DeltaEncodedChannelServerTCP
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
-
 
 class ShipObjectServer(
     override val shipData: ShipData

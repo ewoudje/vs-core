@@ -27,7 +27,7 @@ class DeltaEncodedChannelServer<T>(
     private val clientHistory = HashMap<NetworkChannel, Snapshot<T>>()
 
     init {
-        //clients.forEach { clientHistory[it] = Snapshot(0) }
+        // clients.forEach { clientHistory[it] = Snapshot(0) }
     }
 
     fun receiveAck(client: NetworkChannel, idx: Int, dest: ByteBuf): ByteBuf {

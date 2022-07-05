@@ -49,4 +49,3 @@ class DeltaEncodedChannelClientUDP<T>(
         history.subMap(Int.MIN_VALUE, current).clear()
     }
 }
-

@@ -7,5 +7,3 @@ interface SimplePacket {
 
     fun receivedByServer(player: IPlayer) {}
 }
-
-
