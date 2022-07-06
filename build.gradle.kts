@@ -69,6 +69,10 @@ dependencies {
     api("com.fasterxml.jackson.dataformat", "jackson-dataformat-cbor", jacksonVersion)
     api("com.fasterxml.jackson.datatype", "jackson-datatype-guava", jacksonVersion)
 
+    implementation("com.github.java-json-tools", "json-schema-validator", "2.2.14")
+    implementation("com.github.imifou", "jsonschema-module-addon", "1.2.1")
+    implementation("com.github.victools", "jsonschema-module-jackson", "4.25.0")
+    implementation("com.github.victools", "jsonschema-generator", "4.25.0")
     implementation("com.flipkart.zjsonpatch", "zjsonpatch", "0.4.11")
 
     // FastUtil for Fast Primitive Collections
