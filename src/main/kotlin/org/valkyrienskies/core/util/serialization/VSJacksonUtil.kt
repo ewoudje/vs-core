@@ -3,6 +3,7 @@ package org.valkyrienskies.core.util.serialization
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.databind.AnnotationIntrospector
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper
@@ -22,25 +23,37 @@ object VSJacksonUtil {
     val defaultMapper = CBORMapper()
 
     /**
-     * the default mapper for Valkyrien Skies network transmissions (e.g., it ignores
+     * the mapper for Valkyrien Skies network transmissions (e.g., it ignores
      * [org.valkyrienskies.core.util.serialization.PacketIgnore] annotated fields
      */
     val packetMapper = CBORMapper()
 
     /**
-     * The default mapper for serializing delta updates to ShipData
+     * the mapper for serializing delta updates to ShipData
+     * It ignores [org.valkyrienskies.core.util.serialization.DeltaIgnore]
      */
     val deltaMapper = CBORMapper()
+
+    /**
+     * the mapper for configuration data
+     */
+    val configMapper = ObjectMapper()
 
     init {
         // Configure the mappers
         configureMapper(defaultMapper)
         configurePacketMapper(packetMapper)
         configureDeltaMapper(deltaMapper)
+        configureConfigMapper(configMapper)
     }
 
     @JsonSerialize(`as` = ShipDataCommon::class)
     private object ShipDataServerMixin
+
+    private fun configureConfigMapper(mapper: ObjectMapper) {
+        mapper.enable(INDENT_OUTPUT)
+        configureMapper(mapper)
+    }
 
     private fun configurePacketMapper(mapper: ObjectMapper) {
         configureMapper(mapper)
