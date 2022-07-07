@@ -15,4 +15,7 @@ interface IPlayer {
     val dimension: DimensionId
 
     val uuid: UUID
+
+    // todo: everyone is an admin! woohoo!
+    val isAdmin: Boolean get() = true
 }

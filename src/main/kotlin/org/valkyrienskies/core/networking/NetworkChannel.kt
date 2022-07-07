@@ -52,8 +52,14 @@ class NetworkChannel {
      */
     fun onReceiveClient(data: ByteBuf) {
         val packet = bytesToPacket(data)
+        val handlers = clientHandlers.get(packet.type.id)
+
         globalClientHandlers.forEach { it.handlePacket(packet) }
-        clientHandlers.get(packet.type.id)?.forEach { it.handlePacket(packet) }
+        handlers?.forEach { it.handlePacket(packet) }
+
+        if (globalClientHandlers.isEmpty() && (handlers == null || handlers.isEmpty())) {
+            println("WARN: received a packet ${packet.type.name} on the client, but no handlers were registered")
+        }
     }
 
     /**
@@ -61,8 +67,14 @@ class NetworkChannel {
      */
     fun onReceiveServer(data: ByteBuf, player: IPlayer) {
         val packet = bytesToPacket(data)
+        val handlers = serverHandlers.get(packet.type.id)
+
         globalServerHandlers.forEach { it.handlePacket(packet, player) }
-        serverHandlers.get(packet.type.id)?.forEach { it.handlePacket(packet, player) }
+        handlers?.forEach { it.handlePacket(packet, player) }
+
+        if (globalServerHandlers.isEmpty() && (handlers == null || handlers.isEmpty())) {
+            println("WARN: received a packet ${packet.type.name} on the server, but no handlers were registered")
+        }
     }
 
     private fun bytesToPacket(data: ByteBuf): Packet {
@@ -82,6 +94,10 @@ class NetworkChannel {
 
     fun sendToClient(packet: Packet, player: IPlayer) =
         rawSendToClient(packetToBytes(packet), player)
+
+    fun sendToClients(packet: Packet, vararg players: IPlayer) {
+        players.forEach { player -> sendToClient(packet, player) }
+    }
 
     /**
      * To be implemented by Forge or Fabric networking. Should not be called.
