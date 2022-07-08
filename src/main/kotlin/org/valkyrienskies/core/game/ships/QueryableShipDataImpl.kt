@@ -13,7 +13,7 @@ typealias MutableQueryableShipDataCommon = MutableQueryableShipData<ShipDataComm
 interface QueryableShipData<out ShipDataType : ShipDataCommon> : Iterable<ShipDataType> {
     val idToShipData: Map<ShipId, ShipDataType>
     override fun iterator(): Iterator<ShipDataType>
-    fun getById(uuid: ShipId): ShipDataType?
+    fun getById(shipId: ShipId): ShipDataType?
     fun getShipDataFromChunkPos(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): ShipDataType?
     fun getShipDataIntersecting(aabb: AABBdc): Iterator<ShipDataType>
 }
@@ -46,8 +46,8 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
         return _idToShipData.values.iterator()
     }
 
-    override fun getById(uuid: ShipId): ShipDataType? {
-        return _idToShipData[uuid]
+    override fun getById(shipId: ShipId): ShipDataType? {
+        return _idToShipData[shipId]
     }
 
     override fun getShipDataFromChunkPos(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): ShipDataType? {
