@@ -3,6 +3,7 @@ package org.valkyrienskies.core.game.ships
 import com.google.common.collect.MutableClassToInstanceMap
 import org.joml.Matrix4dc
 import org.valkyrienskies.core.api.Ship
+import org.valkyrienskies.core.api.ShipForcesInducer
 import org.valkyrienskies.core.chunk_tracking.IShipChunkTracker
 import org.valkyrienskies.core.chunk_tracking.ShipChunkTracker
 
@@ -19,19 +20,37 @@ class ShipObjectServer(
         ShipChunkTracker(shipData.shipActiveChunksSet, DEFAULT_CHUNK_WATCH_DISTANCE, DEFAULT_CHUNK_UNWATCH_DISTANCE)
 
     // runtime attached data only server-side, cus syncing to clients would be pain
-    private val attachedData = MutableClassToInstanceMap.create<Any>()
+    internal val attachedData = MutableClassToInstanceMap.create<Any>()
+    internal val forceInducers = mutableListOf<ShipForcesInducer>()
+
+    init {
+        for (data in shipData.persistentAttachedData) {
+            if (ShipForcesInducer::class.java.isAssignableFrom(data.key)) {
+                forceInducers.add(data.value as ShipForcesInducer)
+            }
+        }
+    }
 
     override fun <T> setAttachment(clazz: Class<T>, value: T?) {
         if (value == null)
             attachedData.remove(clazz)
-        else
+        else {
+            if (ShipForcesInducer::class.java.isAssignableFrom(clazz)) {
+                forceInducers.add(value as ShipForcesInducer)
+            }
+
             attachedData[clazz] = value
+        }
     }
 
     override fun <T> getAttachment(clazz: Class<T>): T? =
         attachedData[clazz] as T? ?: shipData.getAttachment(clazz) as T?
 
     override fun <T> saveAttachment(clazz: Class<T>, value: T?) {
+        if (value != null && ShipForcesInducer::class.java.isAssignableFrom(clazz)) {
+            forceInducers.add(value as ShipForcesInducer)
+        }
+
         shipData.saveAttachment(clazz, value)
     }
 

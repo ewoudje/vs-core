@@ -3,6 +3,8 @@ package org.valkyrienskies.core.pipelines
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBd
+import org.valkyrienskies.core.api.ShipForcesInducer
+import org.valkyrienskies.core.api.impl.APIForcesApplier
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
@@ -40,6 +42,12 @@ class VSPhysicsPipelineStage {
             val gameFrame = gameFramesQueue.remove()
             applyGameFrame(gameFrame)
         }
+
+        shipIdToRigidBodyMap.values.forEach {
+            val applier = APIForcesApplier(it.rigidBodyReference)
+            it.forceInducers.forEach { i -> i.applyForces(applier) }
+        }
+
         physicsEngine.tick(gravity, timeStep, simulatePhysics)
         return createPhysicsFrame()
     }
@@ -89,7 +97,8 @@ class VSPhysicsPipelineStage {
             newRigidBodyReference.isStatic = isStatic
             newRigidBodyReference.isVoxelTerrainFullyLoaded = shipVoxelsFullyLoaded
 
-            shipIdToRigidBodyMap[shipId] = ShipIdAndRigidBodyReference(shipId, newRigidBodyReference)
+            shipIdToRigidBodyMap[shipId] =
+                ShipIdAndRigidBodyReference(shipId, newRigidBodyReference, newShipInGameFrameData.forcesInducers)
         }
 
         // Update existing ships
@@ -155,4 +164,6 @@ class VSPhysicsPipelineStage {
     }
 }
 
-private data class ShipIdAndRigidBodyReference(val shipId: ShipId, val rigidBodyReference: RigidBodyReference)
+private data class ShipIdAndRigidBodyReference(
+    val shipId: ShipId, val rigidBodyReference: RigidBodyReference, val forceInducers: List<ShipForcesInducer>
+)
