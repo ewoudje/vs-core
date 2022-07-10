@@ -143,7 +143,8 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 shipTransform,
                 voxelOffset,
                 isStatic,
-                isVoxelsFullyLoaded
+                isVoxelsFullyLoaded,
+                emptyList()
             )
             newShips.add(newShipInGameFrameData)
         }
@@ -176,7 +177,8 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 shipTransform,
                 voxelOffset,
                 isStatic,
-                isVoxelsFullyLoaded
+                isVoxelsFullyLoaded,
+                it.forceInducers
             )
             newShips.add(newShipInGameFrameData)
         }

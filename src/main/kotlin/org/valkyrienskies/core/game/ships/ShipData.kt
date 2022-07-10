@@ -37,9 +37,9 @@ class ShipData(
     shipActiveChunksSet: IShipActiveChunksSet,
     var isStatic: Boolean = false
 ) : ShipDataCommon(
-        id, name, chunkClaim, chunkClaimDimension, physicsData, shipTransform, prevTickShipTransform,
-        shipAABB, shipVoxelAABB, shipActiveChunksSet
-    ),
+    id, name, chunkClaim, chunkClaimDimension, physicsData, shipTransform, prevTickShipTransform,
+    shipAABB, shipVoxelAABB, shipActiveChunksSet
+),
     Ship {
     /**
      * The set of chunks that must be loaded before this ship is fully loaded.
@@ -50,7 +50,8 @@ class ShipData(
      */
     @JsonIgnore
     private val missingLoadedChunks: IShipActiveChunksSet = ShipActiveChunksSet.create()
-    private val persistentAttachedData = MutableClassToInstanceMap.create<Any>() // TODO a serializable class
+
+    internal val persistentAttachedData = MutableClassToInstanceMap.create<Any>() // TODO a serializable class
 
     /**
      * Generates the [shipVoxelAABB] in O(1) time. However, this object is too large for us to persistently store it,
