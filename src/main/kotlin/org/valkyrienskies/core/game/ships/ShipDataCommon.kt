@@ -1,11 +1,13 @@
 package org.valkyrienskies.core.game.ships
 
+import org.joml.Matrix4dc
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
 import org.joml.primitives.AABBic
+import org.valkyrienskies.core.api.Ship
 import org.valkyrienskies.core.chunk_tracking.IShipActiveChunksSet
 import org.valkyrienskies.core.chunk_tracking.ShipActiveChunksSet
 import org.valkyrienskies.core.datastructures.IBlockPosSet
@@ -26,7 +28,7 @@ open class ShipDataCommon(
     shipAABB_: AABBdc,
     var shipVoxelAABB: AABBic?,
     val shipActiveChunksSet: IShipActiveChunksSet
-) {
+) : Ship {
     var shipTransform: ShipTransform = shipTransform_
         set(shipTransform) {
             field = shipTransform
@@ -74,6 +76,18 @@ open class ShipDataCommon(
         shipActiveChunksSet.addChunkPos((posX shr 4), (posZ shr 4) - 1)
         shipActiveChunksSet.addChunkPos((posX shr 4), (posZ shr 4) + 1)
     }
+
+    override val shipToWorld: Matrix4dc
+        get() = shipTransform.shipToWorldMatrix
+    override val worldToShip: Matrix4dc
+        get() = shipTransform.worldToShipMatrix
+
+    // Client side doesn't have any attachments, this is replaced in the server's [ShipData]
+    override fun <T> getAttachment(clazz: Class<T>): T? = null
+
+    override fun <T> setAttachment(clazz: Class<T>, value: T?) {}
+
+    override fun <T> saveAttachment(clazz: Class<T>, value: T?) {}
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
