@@ -51,7 +51,7 @@ class ShipData(
      */
     @JsonIgnore
     private val missingLoadedChunks: IShipActiveChunksSet = ShipActiveChunksSet.create()
-    
+
     internal val persistentAttachedData = MutableClassToInstanceMap.create<Any>() // TODO a serializable class
 
     /**
