@@ -13,6 +13,7 @@ import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import org.valkyrienskies.physics_api.voxel_updates.VoxelRigidBodyShapeUpdates
 import org.valkyrienskies.physics_api_krunch.KrunchBootstrap
+import org.valkyrienskies.physics_api_krunch.KrunchPhysicsWorldSettings
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class VSPhysicsPipelineStage {
@@ -21,6 +22,14 @@ class VSPhysicsPipelineStage {
 
     // Map ships ids to rigid bodies, and map rigid bodies to ship ids
     private val shipIdToRigidBodyMap: MutableMap<ShipId, ShipIdAndRigidBodyReference> = HashMap()
+
+    init {
+        // Apply physics engine settings
+        val settings = KrunchPhysicsWorldSettings()
+        // Only use 10 sub-steps
+        settings.subSteps = 10
+        KrunchBootstrap.setKrunchSettings(physicsEngine, settings)
+    }
 
     /**
      * Push a game frame to the physics engine stage
