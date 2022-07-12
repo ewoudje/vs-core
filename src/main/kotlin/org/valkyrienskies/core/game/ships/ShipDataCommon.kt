@@ -1,9 +1,6 @@
 package org.valkyrienskies.core.game.ships
 
 import org.joml.Matrix4dc
-import org.joml.Quaterniond
-import org.joml.Vector3d
-import org.joml.Vector3dc
 import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
 import org.joml.primitives.AABBic
