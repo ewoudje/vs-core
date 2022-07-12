@@ -96,6 +96,10 @@ data class ShipInertiaData(
     fun getMomentOfInertiaTensor(): Matrix3dc {
         return momentOfInertiaTensor
     }
+
+    fun copyToPhyInertia(): PhysInertia {
+        return PhysInertia(getShipMass(), Matrix3d(getMomentOfInertiaTensor()))
+    }
     // endregion
 
     companion object {
@@ -116,3 +120,6 @@ data class ShipInertiaData(
         private const val INERTIA_OFFSET = 0.4
     }
 }
+
+// A deep copy of ShipInertiaData. This is used by the physics pipeline.
+data class PhysInertia(val shipMass: Double, val momentOfInertiaTensor: Matrix3dc)
