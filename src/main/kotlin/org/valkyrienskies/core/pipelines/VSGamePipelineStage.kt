@@ -6,6 +6,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.primitives.AABBi
+import org.valkyrienskies.core.game.ships.PhysInertia
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipInertiaData
@@ -14,7 +15,6 @@ import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
 import org.valkyrienskies.core.game.ships.ShipTransform
 import org.valkyrienskies.physics_api.PhysicsWorldReference
-import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -118,12 +118,12 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
             val maxDefined = Vector3i(Int.MAX_VALUE, 255, Int.MAX_VALUE)
             val totalVoxelRegion = PhysicsWorldReference.INFINITE_VOXEL_REGION
             // Some random inertia values, the ground body is static so these don't matter
-            val inertiaData = RigidBodyInertiaData(
-                1e-1,
+            val inertiaData = PhysInertia(
+                10.0,
                 Matrix3d(
-                    1e-1, 0.0, 0.0,
-                    0.0, 1e-1, 0.0,
-                    0.0, 0.0, 1e-1
+                    10.0, 0.0, 0.0,
+                    0.0, 10.0, 0.0,
+                    0.0, 0.0, 10.0
                 )
             )
             // Set the transform to be the origin with no rotation
@@ -157,8 +157,6 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
 
             val totalVoxelRegion = it.shipData.chunkClaim.getTotalVoxelRegion(AABBi())
 
-            val rigidBodyInertiaData = getRigidBodyInertiaData(it.shipData.inertiaData)
-
             val shipTransform = RigidBodyTransform(
                 it.shipData.shipTransform.shipPositionInWorldCoordinates,
                 it.shipData.shipTransform.shipCoordinatesToWorldCoordinatesRotation
@@ -166,19 +164,20 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
             val voxelOffset = getShipVoxelOffset(it.shipData.inertiaData)
             val isStatic = it.shipData.isStatic
             val isVoxelsFullyLoaded = it.shipData.areVoxelsFullyLoaded()
+            // Deep copy objects from ShipData, since we don't want VSGameFrame to be modified
             val newShipInGameFrameData = NewShipInGameFrameData(
                 uuid,
                 it.shipData.chunkClaimDimension,
                 minDefined,
                 maxDefined,
                 totalVoxelRegion,
-                rigidBodyInertiaData,
+                it.shipData.inertiaData.copyToPhyInertia(),
                 it.shipData.physicsData,
                 shipTransform,
                 voxelOffset,
                 isStatic,
                 isVoxelsFullyLoaded,
-                it.forceInducers
+                it.forceInducers.toMutableList()
             )
             newShips.add(newShipInGameFrameData)
         }
@@ -186,13 +185,13 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
         updatedShipObjects.forEach {
             val uuid = it.shipData.id
             val newVoxelOffset = getShipVoxelOffset(it.shipData.inertiaData)
-            val rigidBodyInertiaData = getRigidBodyInertiaData(it.shipData.inertiaData)
             val isStatic = it.shipData.isStatic
             val isVoxelsFullyLoaded = it.shipData.areVoxelsFullyLoaded()
+            // Deep copy objects from ShipData, since we don't want VSGameFrame to be modified
             val updateShipInGameFrameData = UpdateShipInGameFrameData(
                 uuid,
                 newVoxelOffset,
-                rigidBodyInertiaData,
+                it.shipData.inertiaData.copyToPhyInertia(),
                 it.shipData.physicsData,
                 isStatic,
                 isVoxelsFullyLoaded
@@ -214,18 +213,6 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
         private fun getShipVoxelOffset(inertiaData: ShipInertiaData): Vector3dc {
             val cm = inertiaData.getCenterOfMassInShipSpace()
             return Vector3d(-cm.x(), -cm.y(), -cm.z())
-        }
-
-        private fun getRigidBodyInertiaData(shipInertiaData: ShipInertiaData): RigidBodyInertiaData {
-            val invMass = 1.0 / shipInertiaData.getShipMass()
-            if (!invMass.isFinite())
-                throw IllegalStateException("invMass is not finite!")
-
-            val invInertiaMatrix = shipInertiaData.getMomentOfInertiaTensor().invert(Matrix3d())
-            if (!invInertiaMatrix.isFinite)
-                throw IllegalStateException("invInertiaMatrix is not finite!")
-
-            return RigidBodyInertiaData(invMass, invInertiaMatrix)
         }
     }
 }

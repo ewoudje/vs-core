@@ -1,16 +1,18 @@
 package org.valkyrienskies.core.pipelines
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import org.joml.Matrix3d
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBd
-import org.valkyrienskies.core.api.ShipForcesInducer
 import org.valkyrienskies.core.api.impl.APIForcesApplier
 import org.valkyrienskies.core.game.DimensionId
+import org.valkyrienskies.core.game.ships.PhysInertia
+import org.valkyrienskies.core.game.ships.PhysShip
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
-import org.valkyrienskies.physics_api.RigidBodyReference
 import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import org.valkyrienskies.physics_api.voxel_updates.VoxelRigidBodyShapeUpdates
@@ -23,7 +25,7 @@ class VSPhysicsPipelineStage {
     private val physicsEngine: PhysicsWorldReference = KrunchBootstrap.createKrunchPhysicsWorld()
 
     // Map ships ids to rigid bodies, and map rigid bodies to ship ids
-    private val shipIdToRigidBodyMap: MutableMap<ShipId, ShipIdAndRigidBodyReference> = HashMap()
+    private val shipIdToPhysShip: MutableMap<ShipId, PhysShip> = HashMap()
     private val dimensionIntIdToString = Int2ObjectOpenHashMap<String>()
 
     init {
@@ -53,17 +55,30 @@ class VSPhysicsPipelineStage {
      * Process queued game frames, tick the physics, then create a new physics frame
      */
     fun tickPhysics(gravity: Vector3dc, timeStep: Double, simulatePhysics: Boolean): VSPhysicsFrame {
+        // Apply game frames
         while (gameFramesQueue.isNotEmpty()) {
             val gameFrame = gameFramesQueue.remove()
             applyGameFrame(gameFrame)
         }
 
-        shipIdToRigidBodyMap.values.forEach {
-            val applier = APIForcesApplier(it.rigidBodyReference)
-            it.forceInducers.forEach { i -> i.applyForces(applier) }
+        // Update the [velocity] and [omega] stored in [PhysShip]
+        shipIdToPhysShip.values.forEach {
+            it.rigidBodyReference.rigidBodyTransform.position.get(it.position as Vector3d)
+            it.rigidBodyReference.rigidBodyTransform.rotation.get(it.rotation as Quaterniond)
+            it.rigidBodyReference.velocity.get(it.velocity as Vector3d)
+            it.rigidBodyReference.omega.get(it.omega as Vector3d)
         }
 
+        // Compute and apply forces/torques for ships
+        shipIdToPhysShip.values.forEach {
+            val applier = APIForcesApplier(it.rigidBodyReference)
+            it.forceInducers.forEach { i -> i.applyForces(applier, it) }
+        }
+
+        // Run the physics engine
         physicsEngine.tick(gravity, timeStep, simulatePhysics)
+
+        // Return a new physics frame
         return createPhysicsFrame()
     }
 
@@ -75,7 +90,7 @@ class VSPhysicsPipelineStage {
     private fun applyGameFrame(gameFrame: VSGameFrame) {
         // Delete deleted ships
         gameFrame.deletedShips.forEach { deletedShipId ->
-            val shipRigidBodyReferenceAndId = shipIdToRigidBodyMap[deletedShipId]
+            val shipRigidBodyReferenceAndId = shipIdToPhysShip[deletedShipId]
                 ?: throw IllegalStateException(
                     "Tried deleting rigid body from ship with UUID $deletedShipId," +
                         " but no rigid body exists for this ship!"
@@ -83,13 +98,13 @@ class VSPhysicsPipelineStage {
 
             val shipRigidBodyReference = shipRigidBodyReferenceAndId.rigidBodyReference
             physicsEngine.deleteRigidBody(shipRigidBodyReference.rigidBodyId)
-            shipIdToRigidBodyMap.remove(deletedShipId)
+            shipIdToPhysShip.remove(deletedShipId)
         }
 
         // Create new ships
         gameFrame.newShips.forEach { newShipInGameFrameData ->
             val shipId = newShipInGameFrameData.uuid
-            if (shipIdToRigidBodyMap.containsKey(shipId)) {
+            if (shipIdToPhysShip.containsKey(shipId)) {
                 throw IllegalStateException(
                     "Tried creating rigid body from ship with UUID $shipId," +
                         " but a rigid body already exists for this ship!"
@@ -108,24 +123,33 @@ class VSPhysicsPipelineStage {
                 physicsEngine.createVoxelRigidBody(
                     getKrunchDimensionId(dimension), minDefined, maxDefined, totalVoxelRegion
                 )
-            newRigidBodyReference.inertiaData = inertiaData
+            newRigidBodyReference.inertiaData = physInertiaToRigidBodyInertiaData(inertiaData)
             newRigidBodyReference.rigidBodyTransform = shipTransform
             newRigidBodyReference.collisionShapeOffset = newShipInGameFrameData.voxelOffset
             newRigidBodyReference.isStatic = isStatic
             newRigidBodyReference.isVoxelTerrainFullyLoaded = shipVoxelsFullyLoaded
 
-            shipIdToRigidBodyMap[shipId] =
-                ShipIdAndRigidBodyReference(shipId, newRigidBodyReference, newShipInGameFrameData.forcesInducers)
+            shipIdToPhysShip[shipId] =
+                PhysShip(
+                    shipId,
+                    newRigidBodyReference,
+                    newShipInGameFrameData.forcesInducers,
+                    inertiaData,
+                    newRigidBodyReference.rigidBodyTransform.position,
+                    newRigidBodyReference.rigidBodyTransform.rotation,
+                    newRigidBodyReference.velocity,
+                    newRigidBodyReference.omega,
+                )
         }
 
         // Update existing ships
         gameFrame.updatedShips.forEach { (shipId, shipUpdate) ->
-            val shipRigidBodyReferenceAndId = shipIdToRigidBodyMap[shipId]
+            val physShip = shipIdToPhysShip[shipId]
                 ?: throw IllegalStateException(
                     "Tried updating rigid body from ship with UUID $shipId, but no rigid body exists for this ship!"
                 )
 
-            val shipRigidBody = shipRigidBodyReferenceAndId.rigidBodyReference
+            val shipRigidBody = physShip.rigidBodyReference
             val oldShipTransform = shipRigidBody.rigidBodyTransform
 
             val oldVoxelOffset = shipRigidBody.collisionShapeOffset
@@ -138,16 +162,18 @@ class VSPhysicsPipelineStage {
                 oldShipTransform.position.sub(deltaVoxelOffset, Vector3d()), oldShipTransform.rotation
             )
 
+            physShip._inertia = shipUpdate.inertiaData
+
             shipRigidBody.collisionShapeOffset = newVoxelOffset
             shipRigidBody.rigidBodyTransform = newShipTransform
-            shipRigidBody.inertiaData = shipUpdate.inertiaData
+            shipRigidBody.inertiaData = physInertiaToRigidBodyInertiaData(shipUpdate.inertiaData)
             shipRigidBody.isStatic = isStatic
             shipRigidBody.isVoxelTerrainFullyLoaded = shipVoxelsFullyLoaded
         }
 
         // Send voxel updates
         gameFrame.voxelUpdatesMap.forEach { (shipId, voxelUpdatesList) ->
-            val shipRigidBodyReferenceAndId = shipIdToRigidBodyMap[shipId]
+            val shipRigidBodyReferenceAndId = shipIdToPhysShip[shipId]
                 ?: throw IllegalStateException(
                     "Tried sending voxel updates to rigid body from ship with UUID $shipId," +
                         " but no rigid body exists for this ship!"
@@ -164,7 +190,7 @@ class VSPhysicsPipelineStage {
         val shipDataMap: MutableMap<ShipId, ShipInPhysicsFrameData> = HashMap()
         // For now the physics doesn't send voxel updates, but it will in the future
         val voxelUpdatesMap: Map<ShipId, List<IVoxelShapeUpdate>> = emptyMap()
-        shipIdToRigidBodyMap.forEach { (shipId, shipIdAndRigidBodyReference) ->
+        shipIdToPhysShip.forEach { (shipId, shipIdAndRigidBodyReference) ->
             val rigidBodyReference = shipIdAndRigidBodyReference.rigidBodyReference
             val inertiaData: RigidBodyInertiaData = rigidBodyReference.inertiaData
             val shipTransform: RigidBodyTransform = rigidBodyReference.rigidBodyTransform
@@ -192,8 +218,18 @@ class VSPhysicsPipelineStage {
     private fun getMinecraftDimensionId(id: Int): String {
         return dimensionIntIdToString.get(id)
     }
-}
 
-private data class ShipIdAndRigidBodyReference(
-    val shipId: ShipId, val rigidBodyReference: RigidBodyReference, val forceInducers: List<ShipForcesInducer>
-)
+    companion object {
+        private fun physInertiaToRigidBodyInertiaData(inertia: PhysInertia): RigidBodyInertiaData {
+            val invMass = 1.0 / inertia.shipMass
+            if (!invMass.isFinite())
+                throw IllegalStateException("invMass is not finite!")
+
+            val invInertiaMatrix = inertia.momentOfInertiaTensor.invert(Matrix3d())
+            if (!invInertiaMatrix.isFinite)
+                throw IllegalStateException("invInertiaMatrix is not finite!")
+
+            return RigidBodyInertiaData(invMass, invInertiaMatrix)
+        }
+    }
+}
