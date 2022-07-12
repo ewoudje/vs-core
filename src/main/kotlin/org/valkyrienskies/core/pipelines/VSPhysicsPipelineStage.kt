@@ -28,6 +28,9 @@ class VSPhysicsPipelineStage {
         val settings = KrunchPhysicsWorldSettings()
         // Only use 10 sub-steps
         settings.subSteps = 10
+        // Decrease max de-penetration speed so that rigid bodies don't go
+        // flying apart when they overlap
+        settings.maxDePenetrationSpeed = 10.0
         KrunchBootstrap.setKrunchSettings(physicsEngine, settings)
     }
 
