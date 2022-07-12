@@ -1,6 +1,7 @@
 package org.valkyrienskies.core.pipelines
 
 import org.joml.Matrix3d
+import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBd
@@ -59,6 +60,8 @@ class VSPhysicsPipelineStage {
 
         // Update the [velocity] and [omega] stored in [PhysShip]
         shipIdToPhysShip.values.forEach {
+            it.rigidBodyReference.rigidBodyTransform.position.get(it.position as Vector3d)
+            it.rigidBodyReference.rigidBodyTransform.rotation.get(it.rotation as Quaterniond)
             it.rigidBodyReference.velocity.get(it.velocity as Vector3d)
             it.rigidBodyReference.omega.get(it.omega as Vector3d)
         }
@@ -126,9 +129,11 @@ class VSPhysicsPipelineStage {
                     shipId,
                     newRigidBodyReference,
                     newShipInGameFrameData.forcesInducers,
+                    newRigidBodyReference.rigidBodyTransform.position,
+                    newRigidBodyReference.rigidBodyTransform.rotation,
                     inertiaData,
                     newRigidBodyReference.velocity,
-                    newRigidBodyReference.omega
+                    newRigidBodyReference.omega,
                 )
         }
 
