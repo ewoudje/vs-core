@@ -94,15 +94,16 @@ class ShipObjectServerWorldChunkTracker(
                 val playersWatchingChunk = getPlayersWatchingChunk(chunkX, chunkZ, shipData.chunkClaimDimension)
 
                 for (player in players) {
-
                     val playerPositionInWorldCoordinates: Vector3dc = player.getPosition(tempVector1)
                     val displacementDistanceSq =
                         chunkPosInWorldCoordinates.distanceSquared(playerPositionInWorldCoordinates)
 
                     val isPlayerWatchingThisChunk = playersWatchingChunk.contains(player)
 
-                    if (shipData.chunkClaimDimension != player.dimension) {
-                        // if the chunk dimension is different from the player dimension, lets just ignore it for now
+                    if (shipData.chunkClaimDimension != player.dimension && isPlayerWatchingThisChunk) {
+                        // if the chunk dimension is different from the player dimension,
+                        // lets just unwatch it for now
+                        newPlayersUnwatching.add(player)
                         continue
                     }
 
@@ -152,11 +153,8 @@ class ShipObjectServerWorldChunkTracker(
         chunkUnwatchTasks = newChunkUnwatchTasks
     }
 
-    private fun isPlayerWatchingChunk(chunkX: Int, chunkZ: Int, dimensionId: DimensionId, player: IPlayer): Boolean {
-        return getPlayersWatchingChunk(chunkX, chunkZ, dimensionId).contains(player)
-    }
-
     // note dimensionId intentionally ignored for now
+    @Suppress("UNUSED_PARAMETER")
     fun getPlayersWatchingChunk(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): Collection<IPlayer> {
         val chunkPosAsLong = IShipActiveChunksSet.chunkPosToLong(chunkX, chunkZ)
         return chunkToPlayersWatchingMap[chunkPosAsLong] ?: listOf()

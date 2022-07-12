@@ -41,11 +41,11 @@ class ShipObjectNetworkManagerServer(
         tracker.playersToShipsNewlyWatchingMap
             .forEach { (player, ships) -> startTracking(player, ships) }
 
-        tracker.playersToShipsNoLongerWatchingMap
-            .forEach { (player, ships) -> endTracking(player, ships) }
-
-        players.forEach { player -> endTracking(player, tracker.shipsToUnload) }
-
+        for (player in players) {
+            val shipsNoLongerWatching = tracker.playersToShipsNoLongerWatchingMap[player] ?: emptySet()
+            endTracking(player, tracker.shipsToUnload + shipsNoLongerWatching)
+        }
+        
         tracker.playersToShipsNewlyWatchingMap.clear()
         tracker.playersToShipsNoLongerWatchingMap.clear()
     }
