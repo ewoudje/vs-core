@@ -84,7 +84,7 @@ data class ChunkClaim(val xIndex: Int, val zIndex: Int) {
         val maxBlockZ = (zEnd shl 4) + 15
 
         val centerX = (minBlockX + maxBlockX) / 2
-        val centerY = 127
+        val centerY = 128
         val centerZ = (minBlockZ + maxBlockZ) / 2
         return destination.set(centerX, centerY, centerZ)
     }

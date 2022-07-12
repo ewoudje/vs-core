@@ -52,7 +52,7 @@ dependencies {
     val nettyVersion = "4.1.25.Final"
 
     // VS Physics
-    api("org.valkyrienskies:physics_api_krunch:1.0.0+cd04a4b716")
+    api("org.valkyrienskies:physics_api_krunch:1.0.0+e0d3a05d58")
 
     // JOML for Math
     api("org.joml:joml:1.10.0")

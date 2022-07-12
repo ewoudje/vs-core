@@ -4,6 +4,7 @@ import com.google.common.collect.MutableClassToInstanceMap
 import org.joml.Matrix4dc
 import org.valkyrienskies.core.api.Ship
 import org.valkyrienskies.core.api.ShipForcesInducer
+import org.valkyrienskies.core.api.ShipUser
 import org.valkyrienskies.core.networking.delta.DeltaEncodedChannelServerTCP
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 
@@ -27,9 +28,7 @@ class ShipObjectServer(
 
     init {
         for (data in shipData.persistentAttachedData) {
-            if (ShipForcesInducer::class.java.isAssignableFrom(data.key)) {
-                forceInducers.add(data.value as ShipForcesInducer)
-            }
+            applyAttachmentInterfaces(data.key, data.value)
         }
     }
 
@@ -37,10 +36,7 @@ class ShipObjectServer(
         if (value == null)
             attachedData.remove(clazz)
         else {
-            if (ShipForcesInducer::class.java.isAssignableFrom(clazz)) {
-                forceInducers.add(value as ShipForcesInducer)
-            }
-
+            applyAttachmentInterfaces(clazz, value)
             attachedData[clazz] = value
         }
     }
@@ -49,11 +45,19 @@ class ShipObjectServer(
         attachedData[clazz] as T? ?: shipData.getAttachment(clazz) as T?
 
     override fun <T> saveAttachment(clazz: Class<T>, value: T?) {
-        if (value != null && ShipForcesInducer::class.java.isAssignableFrom(clazz)) {
+        applyAttachmentInterfaces(clazz, value)
+
+        shipData.saveAttachment(clazz, value)
+    }
+
+    private fun applyAttachmentInterfaces(clazz: Class<*>, value: Any?) {
+        if (ShipForcesInducer::class.java.isAssignableFrom(clazz)) {
             forceInducers.add(value as ShipForcesInducer)
         }
 
-        shipData.saveAttachment(clazz, value)
+        if (ShipUser::class.java.isAssignableFrom(clazz)) {
+            (value as ShipUser).ship = this
+        }
     }
 
     companion object {

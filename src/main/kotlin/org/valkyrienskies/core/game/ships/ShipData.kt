@@ -9,6 +9,7 @@ import org.joml.Vector3dc
 import org.joml.primitives.AABBdc
 import org.joml.primitives.AABBic
 import org.valkyrienskies.core.api.Ship
+import org.valkyrienskies.core.api.ShipUser
 import org.valkyrienskies.core.chunk_tracking.IShipActiveChunksSet
 import org.valkyrienskies.core.chunk_tracking.ShipActiveChunksSet
 import org.valkyrienskies.core.datastructures.IBlockPosSetAABB
@@ -71,6 +72,12 @@ class ShipData(
         shipActiveChunksSet.iterateChunkPos { chunkX: Int, chunkZ: Int ->
             missingLoadedChunks.addChunkPos(chunkX, chunkZ)
         }
+
+        for (attachment in this.persistentAttachedData) {
+            if (ShipUser::class.java.isAssignableFrom(attachment.key) && (attachment.value as ShipUser).ship == null) {
+                (attachment.value as ShipUser).ship = this
+            }
+        }
     }
 
     override fun onSetBlock(
@@ -128,6 +135,10 @@ class ShipData(
     }
 
     override fun <T> saveAttachment(clazz: Class<T>, value: T?) {
+        if (ShipUser::class.java.isAssignableFrom(clazz) && (value as ShipUser).ship == null) {
+            (value as ShipUser).ship = this
+        }
+
         if (value == null)
             persistentAttachedData.remove(clazz)
         else

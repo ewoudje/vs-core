@@ -17,13 +17,13 @@ interface ShipForcesInducer {
  */
 interface ForcesApplier {
 
-    fun addRotDependentForce(force: Vector3dc)
+    fun applyRotDependentForce(force: Vector3dc)
 
-    fun addInvariantForce(force: Vector3dc)
+    fun applyInvariantForce(force: Vector3dc)
 
-    fun addInvariantForceToPos(force: Vector3dc, pos: Vector3dc)
+    fun applyInvariantForceToPos(force: Vector3dc, pos: Vector3dc)
 
-    fun addRotDependentTorque(torque: Vector3dc)
+    fun applyRotDependentTorque(torque: Vector3dc)
 
-    fun addInvariantTorque(torque: Vector3dc)
+    fun applyInvariantTorque(torque: Vector3dc)
 }

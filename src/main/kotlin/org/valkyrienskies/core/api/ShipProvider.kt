@@ -6,3 +6,7 @@ package org.valkyrienskies.core.api
 interface ShipProvider {
     val ship: Ship?
 }
+
+interface ShipUser : ShipProvider {
+    override var ship: Ship?
+}
