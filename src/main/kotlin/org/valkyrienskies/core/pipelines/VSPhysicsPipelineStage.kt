@@ -157,7 +157,6 @@ class VSPhysicsPipelineStage {
                 oldShipTransform.position.sub(deltaVoxelOffset, Vector3d()), oldShipTransform.rotation
             )
 
-
             physShip._inertia = shipUpdate.inertiaData
 
             shipRigidBody.collisionShapeOffset = newVoxelOffset
