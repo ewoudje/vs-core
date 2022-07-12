@@ -129,9 +129,9 @@ class VSPhysicsPipelineStage {
                     shipId,
                     newRigidBodyReference,
                     newShipInGameFrameData.forcesInducers,
+                    inertiaData,
                     newRigidBodyReference.rigidBodyTransform.position,
                     newRigidBodyReference.rigidBodyTransform.rotation,
-                    inertiaData,
                     newRigidBodyReference.velocity,
                     newRigidBodyReference.omega,
                 )
@@ -139,12 +139,12 @@ class VSPhysicsPipelineStage {
 
         // Update existing ships
         gameFrame.updatedShips.forEach { (shipId, shipUpdate) ->
-            val shipRigidBodyReferenceAndId = shipIdToPhysShip[shipId]
+            val physShip = shipIdToPhysShip[shipId]
                 ?: throw IllegalStateException(
                     "Tried updating rigid body from ship with UUID $shipId, but no rigid body exists for this ship!"
                 )
 
-            val shipRigidBody = shipRigidBodyReferenceAndId.rigidBodyReference
+            val shipRigidBody = physShip.rigidBodyReference
             val oldShipTransform = shipRigidBody.rigidBodyTransform
 
             val oldVoxelOffset = shipRigidBody.collisionShapeOffset
@@ -156,6 +156,9 @@ class VSPhysicsPipelineStage {
             val newShipTransform = RigidBodyTransform(
                 oldShipTransform.position.sub(deltaVoxelOffset, Vector3d()), oldShipTransform.rotation
             )
+
+
+            physShip._inertia = shipUpdate.inertiaData
 
             shipRigidBody.collisionShapeOffset = newVoxelOffset
             shipRigidBody.rigidBodyTransform = newShipTransform
