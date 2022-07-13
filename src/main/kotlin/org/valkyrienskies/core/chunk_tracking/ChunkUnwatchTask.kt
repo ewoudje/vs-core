@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.chunk_tracking
 
+import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.IPlayer
 import kotlin.math.sign
 
@@ -8,7 +9,9 @@ import kotlin.math.sign
  */
 class ChunkUnwatchTask(
     private val chunkPos: Long,
+    val dimensionId: DimensionId,
     val playersNeedUnwatching: Iterable<IPlayer>,
+    val shouldUnload: Boolean,
     val distanceSqToClosestPlayer: Double,
     private val onExecute: () -> Unit
 ) : Comparable<ChunkUnwatchTask> {
@@ -18,7 +21,7 @@ class ChunkUnwatchTask(
     fun getChunkZ(): Int = IShipActiveChunksSet.longToChunkZ(chunkPos)
 
     /**
-     * Call this after the chunk at [chunkPos] has been unwatched by [playersNeedUnwatching] to update the [ShipChunkTracker].
+     * Call this after the chunk at [chunkPos] has been unwatched by [playersNeedUnwatching] to update the [ShipObjectServerWorldChunkTracker].
      */
     fun onExecuteChunkUnwatchTask() {
         require(hasBeenExecuted.not()) {

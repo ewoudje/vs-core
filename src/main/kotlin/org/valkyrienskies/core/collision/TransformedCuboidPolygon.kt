@@ -2,15 +2,15 @@ package org.valkyrienskies.core.collision
 
 import org.joml.Matrix4dc
 import org.joml.Vector3d
-import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
+import org.valkyrienskies.core.game.ships.ShipId
 
 /**
  * A [TransformedCuboidPolygon] is a polygon whose shape is a cuboid that been transformed by a 4x4 transform matrix. It is guaranteed to have 8 [points] and 3 [normals].
  */
 class TransformedCuboidPolygon private constructor(
-    private val _points: List<Vector3d>, private val _normals: List<Vector3d>
-) : ConvexPolygon(_points, _normals) {
+    private val _points: List<Vector3d>, private val _normals: List<Vector3d>, _shipFrom: ShipId? = null
+) : ConvexPolygon(_points, _normals, _shipFrom) {
 
     /**
      * Sets this [TransformedCuboidPolygon] to be the shape of [aabb] transformed by [transform].
@@ -41,24 +41,21 @@ class TransformedCuboidPolygon private constructor(
     companion object {
         private const val NUMBER_OF_POINTS = 8
         private const val NUMBER_OF_NORMALS = 3
-        private val UNIT_CUBE: AABBdc = AABBd(0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
 
         /**
          * Creates an empty polygon with 8 points and 3 vertices, all of them set to (0,0,0).
          */
-        private fun createEmptyRectangularPrismPolygon(): TransformedCuboidPolygon {
+        private fun createEmptyRectangularPrismPolygon(shipFrom: ShipId? = null): TransformedCuboidPolygon {
             val points: List<Vector3d> = List(NUMBER_OF_POINTS) { Vector3d() }
             val normals: List<Vector3d> = List(NUMBER_OF_NORMALS) { Vector3d() }
 
-            return TransformedCuboidPolygon(points, normals)
+            return TransformedCuboidPolygon(points, normals, shipFrom)
         }
 
-        fun createFromAABB(aabb: AABBdc, transform: Matrix4dc? = null): TransformedCuboidPolygon {
-            return createEmptyRectangularPrismPolygon().setFromAABB(aabb, transform)
-        }
-
-        fun createUnitCube(): TransformedCuboidPolygon {
-            return createFromAABB(UNIT_CUBE)
+        fun createFromAABB(
+            aabb: AABBdc, transform: Matrix4dc? = null, shipFrom: ShipId? = null
+        ): TransformedCuboidPolygon {
+            return createEmptyRectangularPrismPolygon(shipFrom).setFromAABB(aabb, transform)
         }
     }
 }

@@ -4,6 +4,7 @@ import org.joml.Vector3dc
 import org.joml.Vector3ic
 import org.joml.primitives.AABBic
 import org.valkyrienskies.core.api.ShipForcesInducer
+import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.ships.PhysInertia
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
@@ -25,7 +26,7 @@ data class VSGameFrame(
  */
 data class NewShipInGameFrameData(
     val uuid: ShipId,
-    val dimensionId: Int,
+    val dimensionId: DimensionId,
     val minDefined: Vector3ic,
     val maxDefined: Vector3ic,
     val totalVoxelRegion: AABBic,

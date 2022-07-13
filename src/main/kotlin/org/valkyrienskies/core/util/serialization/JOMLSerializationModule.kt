@@ -1,5 +1,8 @@
 package org.valkyrienskies.core.util.serialization
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.ANY
+import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.NONE
 import com.fasterxml.jackson.databind.module.SimpleModule
 import org.joml.Matrix3d
 import org.joml.Matrix3dc
@@ -27,26 +30,31 @@ import org.joml.primitives.AABBi
 import org.joml.primitives.AABBic
 
 class JOMLSerializationModule : SimpleModule() {
+
+    @JsonAutoDetect(fieldVisibility = ANY, setterVisibility = NONE, getterVisibility = NONE, isGetterVisibility = NONE)
+    private object JOMLMixin
+
     init {
-        addAbstractTypeMapping<Vector3ic, Vector3i>()
-        addAbstractTypeMapping<Vector3fc, Vector3f>()
-        addAbstractTypeMapping<Vector3dc, Vector3d>()
+        setupJOMLClass<Vector3ic, Vector3i>()
+        setupJOMLClass<Vector3fc, Vector3f>()
+        setupJOMLClass<Vector3dc, Vector3d>()
 
-        addAbstractTypeMapping<Quaternionfc, Quaternionf>()
-        addAbstractTypeMapping<Quaterniondc, Quaterniond>()
+        setupJOMLClass<Quaternionfc, Quaternionf>()
+        setupJOMLClass<Quaterniondc, Quaterniond>()
 
-        addAbstractTypeMapping<Matrix4fc, Matrix4f>()
-        addAbstractTypeMapping<Matrix4dc, Matrix4d>()
+        setupJOMLClass<Matrix4fc, Matrix4f>()
+        setupJOMLClass<Matrix4dc, Matrix4d>()
 
-        addAbstractTypeMapping<Matrix3fc, Matrix3f>()
-        addAbstractTypeMapping<Matrix3dc, Matrix3d>()
+        setupJOMLClass<Matrix3fc, Matrix3f>()
+        setupJOMLClass<Matrix3dc, Matrix3d>()
 
-        addAbstractTypeMapping<AABBic, AABBi>()
-        addAbstractTypeMapping<AABBfc, AABBf>()
-        addAbstractTypeMapping<AABBdc, AABBd>()
+        setupJOMLClass<AABBic, AABBi>()
+        setupJOMLClass<AABBfc, AABBf>()
+        setupJOMLClass<AABBdc, AABBd>()
     }
 
-    private inline fun <reified A, reified B : A> addAbstractTypeMapping() {
-        super.addAbstractTypeMapping(A::class.java, B::class.java)
+    private inline fun <reified A, reified B : A> setupJOMLClass() {
+        addAbstractTypeMapping<A, B>()
+        setMixInAnnotation<B, JOMLMixin>()
     }
 }

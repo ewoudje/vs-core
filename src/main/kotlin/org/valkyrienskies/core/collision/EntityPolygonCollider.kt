@@ -4,6 +4,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
+import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.util.extend
 import org.valkyrienskies.core.util.horizontalLength
 import org.valkyrienskies.core.util.signedDistanceTo
@@ -27,7 +28,7 @@ object EntityPolygonCollider {
         entityBoundingBox: AABBdc,
         entityStepHeight: Double,
         collidingPolygons: List<ConvexPolygonc>
-    ): Vector3dc {
+    ): Pair<Vector3dc, ShipId?> {
         val originalMovement: Vector3dc = movement
 
         return adjustMovementComponentWise(entityBoundingBox, originalMovement, collidingPolygons)
@@ -38,7 +39,7 @@ object EntityPolygonCollider {
      */
     private fun adjustMovementComponentWise(
         entityBoundingBox: AABBdc, entityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>
-    ): Vector3dc {
+    ): Pair<Vector3dc, ShipId?> {
         // Let the player climb slopes up to 45 degrees without being slowed down horizontally
         val maxSlopeClimbAngle = 46.0 // Slightly more than 45 to account for numerical error
 
@@ -66,7 +67,7 @@ object EntityPolygonCollider {
     private fun handleHorizontalCollisions(
         entityAABB: AABBdc, initialEntityVelocity: Vector3dc, collidingPolygons: List<ConvexPolygonc>,
         maxSlopeClimbAngle: Double
-    ): Vector3dc {
+    ): Pair<Vector3dc, ShipId?> {
         if (maxSlopeClimbAngle < 0 || maxSlopeClimbAngle > 90)
             throw IllegalArgumentException("Argument maxSlopeClimbAngle must be between 0 and 90 inclusive!")
 
@@ -89,6 +90,7 @@ object EntityPolygonCollider {
         }
 
         val newEntityVelocity = Vector3d(initialEntityVelocity)
+        var shipCollidingWith: ShipId? = null
 
         polysSorted.forEach { shipPoly ->
             val allNormals = generateAllNormals(shipPoly.normals)
@@ -122,6 +124,9 @@ object EntityPolygonCollider {
                 )
 
                 if (forcedYColResult.colliding) {
+                    // Make [shipCollidingWith] to be the first non-null ship we collide with
+                    if (shipCollidingWith == null) shipCollidingWith = shipPoly.shipFrom
+
                     var usingForcedYCol = false
 
                     val forcedYResponse: Vector3dc = forcedYColResult.getCollisionResponse(Vector3d())
@@ -171,7 +176,7 @@ object EntityPolygonCollider {
             }
         }
 
-        return newEntityVelocity
+        return newEntityVelocity to shipCollidingWith
     }
 
     /*

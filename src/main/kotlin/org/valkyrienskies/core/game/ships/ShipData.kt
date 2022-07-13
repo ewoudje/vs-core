@@ -17,8 +17,7 @@ import org.valkyrienskies.core.datastructures.SmallBlockPosSetAABB
 import org.valkyrienskies.core.game.ChunkClaim
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
-import org.valkyrienskies.core.util.serialization.VSPacketIgnore
-import java.util.UUID
+import org.valkyrienskies.core.util.serialization.PacketIgnore
 
 /**
  * The purpose of [ShipData] is to keep track of the state of a ship; it does not manage the behavior of a ship.
@@ -31,7 +30,7 @@ class ShipData(
     chunkClaim: ChunkClaim,
     chunkClaimDimension: DimensionId,
     physicsData: ShipPhysicsData,
-    @VSPacketIgnore val inertiaData: ShipInertiaData,
+    @PacketIgnore val inertiaData: ShipInertiaData,
     shipTransform: ShipTransform,
     prevTickShipTransform: ShipTransform,
     shipAABB: AABBdc,
@@ -135,18 +134,6 @@ class ShipData(
         return missingLoadedChunks.getTotalChunks() == 0
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        if (!super.equals(other)) return false
-
-        other as ShipData
-
-        if (inertiaData != other.inertiaData) return false
-
-        return true
-    }
-
     override fun <T> saveAttachment(clazz: Class<T>, value: T?) {
         if (ShipUser::class.java.isAssignableFrom(clazz) && (value as ShipUser).ship == null) {
             (value as ShipUser).ship = this
@@ -165,12 +152,6 @@ class ShipData(
         // Nothin
     }
 
-    override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + inertiaData.hashCode()
-        return result
-    }
-
     companion object {
         /**
          * Creates a new [ShipData] from the given name and coordinates. The resulting [ShipData] is completely empty,
@@ -178,6 +159,7 @@ class ShipData(
          */
         internal fun createEmpty(
             name: String,
+            shipId: ShipId,
             chunkClaim: ChunkClaim,
             chunkClaimDimension: DimensionId,
             shipCenterInWorldCoordinates: Vector3dc,
@@ -193,7 +175,7 @@ class ShipData(
             )
 
             return ShipData(
-                id = UUID.randomUUID(),
+                id = shipId,
                 name = name,
                 chunkClaim = chunkClaim,
                 chunkClaimDimension = chunkClaimDimension,

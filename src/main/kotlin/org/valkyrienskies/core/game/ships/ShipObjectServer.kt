@@ -5,8 +5,8 @@ import org.joml.Matrix4dc
 import org.valkyrienskies.core.api.Ship
 import org.valkyrienskies.core.api.ShipForcesInducer
 import org.valkyrienskies.core.api.ShipUser
-import org.valkyrienskies.core.chunk_tracking.IShipChunkTracker
-import org.valkyrienskies.core.chunk_tracking.ShipChunkTracker
+import org.valkyrienskies.core.networking.delta.DeltaEncodedChannelServerTCP
+import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 
 class ShipObjectServer(
     override val shipData: ShipData
@@ -17,8 +17,10 @@ class ShipObjectServer(
     override val worldToShip: Matrix4dc
         get() = shipData.worldToShip
 
-    internal val shipChunkTracker: IShipChunkTracker =
-        ShipChunkTracker(shipData.shipActiveChunksSet, DEFAULT_CHUNK_WATCH_DISTANCE, DEFAULT_CHUNK_UNWATCH_DISTANCE)
+    internal val shipDataChannel = DeltaEncodedChannelServerTCP(
+        jsonDiffDeltaAlgorithm,
+        VSJacksonUtil.deltaMapper.valueToTree(shipData)
+    )
 
     // runtime attached data only server-side, cus syncing to clients would be pain
     internal val attachedData = MutableClassToInstanceMap.create<Any>()

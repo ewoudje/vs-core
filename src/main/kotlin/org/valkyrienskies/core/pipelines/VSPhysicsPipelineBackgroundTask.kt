@@ -66,6 +66,7 @@ class VSPhysicsPipelineBackgroundTask(private val vsPipeline: VSPipeline, privat
         } catch (e: Exception) {
             e.printStackTrace()
             println(e)
+            repeat(10) { println("!!!!!!! VS PHYSICS THREAD CRASHED !!!!!!!") }
         }
         println("Task ending")
     }

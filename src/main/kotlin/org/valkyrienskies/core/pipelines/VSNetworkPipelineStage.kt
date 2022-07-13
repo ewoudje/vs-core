@@ -1,35 +1,41 @@
 package org.valkyrienskies.core.pipelines
 
-import java.util.concurrent.ConcurrentLinkedQueue
+import io.netty.buffer.Unpooled
+import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
+import org.valkyrienskies.core.networking.Packets
+import org.valkyrienskies.core.util.writeQuatd
+import org.valkyrienskies.core.util.writeVec3d
 
-class VSNetworkPipelineStage {
-    private val physicsFramesQueue: ConcurrentLinkedQueue<VSPhysicsFrame> = ConcurrentLinkedQueue()
+class VSNetworkPipelineStage(private val shipWorld: ShipObjectServerWorld) {
 
     /**
      * Push a physics frame to the game stage
      */
     fun pushPhysicsFrame(physicsFrame: VSPhysicsFrame) {
-        // TODO: Implement this
-        /*
-        if (physicsFramesQueue.size >= 100) {
-            throw IllegalStateException("Too many physics frames in the physics frame queue. Is the game stage broken?")
-        }
-        physicsFramesQueue.add(physicsFrame)
-         */
-    }
+        val ships = physicsFrame.shipDataMap
 
-    /**
-     * Process queued physics frames, tick the game, then create a new game frame
-     */
-    fun tickNetwork() {
-        while (physicsFramesQueue.isNotEmpty()) {
-            val physicsFrame = physicsFramesQueue.remove()
-            applyPhysicsFrame(physicsFrame)
-        }
-        TODO("Send network updates to players")
-    }
+        shipWorld.networkManager.playersToTrackedShips.forEach { (player, trackedShips) ->
 
-    private fun applyPhysicsFrame(physicsFrame: VSPhysicsFrame) {
-        TODO("Not yet implemented")
+            // Write ship transforms into a ByteBuf
+            val buf = Unpooled.buffer()
+
+            buf.writeInt(shipWorld.tickNumber)
+
+            trackedShips.forEach { shipData ->
+                val physicsFrameData = ships.getValue(shipData.id)
+                val transform = VSGamePipelineStage.generateTransformFromPhysicsFrameData(physicsFrameData, shipData)
+
+                buf.writeLong(shipData.id)
+                buf.writeVec3d(transform.shipPositionInShipCoordinates)
+                buf.writeVec3d(transform.shipCoordinatesToWorldCoordinatesScaling)
+                buf.writeQuatd(transform.shipCoordinatesToWorldCoordinatesRotation)
+                buf.writeVec3d(transform.shipPositionInWorldCoordinates)
+                buf.writeVec3d(physicsFrameData.vel)
+                buf.writeVec3d(physicsFrameData.omega)
+            }
+
+            // Send it to the player
+            Packets.UDP_SHIP_TRANSFORM.sendToClient(buf, player)
+        }
     }
 }

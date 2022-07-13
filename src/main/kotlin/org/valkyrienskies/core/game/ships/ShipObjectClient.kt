@@ -1,10 +1,16 @@
 package org.valkyrienskies.core.game.ships
 
+import com.fasterxml.jackson.databind.JsonNode
 import org.joml.primitives.AABBd
 import org.joml.primitives.AABBdc
+import org.valkyrienskies.core.networking.delta.DeltaEncodedChannelClientTCP
+import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.toAABBd
 
-class ShipObjectClient(shipData: ShipDataCommon) : ShipObject(shipData) {
+class ShipObjectClient(
+    shipData: ShipDataCommon,
+    shipDataJson: JsonNode = VSJacksonUtil.defaultMapper.valueToTree(shipData)
+) : ShipObject(shipData) {
     // The last ship transform sent by the sever
     private var nextShipTransform: ShipTransform
 
@@ -14,6 +20,8 @@ class ShipObjectClient(shipData: ShipDataCommon) : ShipObject(shipData) {
 
     var renderAABB: AABBdc
         private set
+
+    val shipDataChannel = DeltaEncodedChannelClientTCP(jsonDiffDeltaAlgorithm, shipDataJson)
 
     init {
         nextShipTransform = shipData.shipTransform

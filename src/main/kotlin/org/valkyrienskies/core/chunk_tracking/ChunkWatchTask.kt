@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.chunk_tracking
 
+import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.IPlayer
 
 /**
@@ -7,6 +8,7 @@ import org.valkyrienskies.core.game.IPlayer
  */
 class ChunkWatchTask(
     private val chunkPos: Long,
+    val dimensionId: DimensionId,
     val playersNeedWatching: Iterable<IPlayer>,
     val distanceSqToClosestPlayer: Double,
     private val onExecute: () -> Unit
@@ -18,7 +20,7 @@ class ChunkWatchTask(
     fun getChunkZ(): Int = IShipActiveChunksSet.longToChunkZ(chunkPos)
 
     /**
-     * Call this after the chunk at [chunkPos] has been watched by [playersNeedWatching] to update the [ShipChunkTracker].
+     * Call this after the chunk at [chunkPos] has been watched by [playersNeedWatching] to update the [ShipObjectServerWorldChunkTracker].
      */
     fun onExecuteChunkWatchTask() {
         require(!hasBeenExecuted) {

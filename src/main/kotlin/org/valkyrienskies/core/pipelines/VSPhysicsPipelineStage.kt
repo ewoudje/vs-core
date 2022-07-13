@@ -1,11 +1,13 @@
 package org.valkyrienskies.core.pipelines
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.joml.Matrix3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBd
 import org.valkyrienskies.core.api.impl.APIForcesApplier
+import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.ships.PhysInertia
 import org.valkyrienskies.core.game.ships.PhysShip
 import org.valkyrienskies.core.game.ships.ShipId
@@ -24,6 +26,7 @@ class VSPhysicsPipelineStage {
 
     // Map ships ids to rigid bodies, and map rigid bodies to ship ids
     private val shipIdToPhysShip: MutableMap<ShipId, PhysShip> = HashMap()
+    private val dimensionIntIdToString = Int2ObjectOpenHashMap<String>()
 
     init {
         // Apply physics engine settings
@@ -117,7 +120,9 @@ class VSPhysicsPipelineStage {
             val shipVoxelsFullyLoaded = newShipInGameFrameData.shipVoxelsFullyLoaded
 
             val newRigidBodyReference =
-                physicsEngine.createVoxelRigidBody(dimension, minDefined, maxDefined, totalVoxelRegion)
+                physicsEngine.createVoxelRigidBody(
+                    getKrunchDimensionId(dimension), minDefined, maxDefined, totalVoxelRegion
+                )
             newRigidBodyReference.inertiaData = physInertiaToRigidBodyInertiaData(inertiaData)
             newRigidBodyReference.rigidBodyTransform = shipTransform
             newRigidBodyReference.collisionShapeOffset = newShipInGameFrameData.voxelOffset
@@ -196,9 +201,22 @@ class VSPhysicsPipelineStage {
             rigidBodyReference.getAABB(aabb)
 
             shipDataMap[shipId] =
-                ShipInPhysicsFrameData(shipId, inertiaData, shipTransform, shipVoxelOffset, vel, omega, aabb)
+                ShipInPhysicsFrameData(
+                    shipId, inertiaData, shipTransform, shipVoxelOffset, vel, omega, aabb
+                )
         }
         return VSPhysicsFrame(shipDataMap, voxelUpdatesMap)
+    }
+
+    private fun getKrunchDimensionId(dimensionId: DimensionId): Int {
+        // TODO maybe don't use hashcode
+        val id = dimensionId.hashCode()
+        dimensionIntIdToString.put(id, dimensionId)
+        return id
+    }
+
+    private fun getMinecraftDimensionId(id: Int): String {
+        return dimensionIntIdToString.get(id)
     }
 
     companion object {

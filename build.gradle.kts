@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.6.10"
+    kotlin("jvm") version "1.7.0"
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
     java
     checkstyle
@@ -46,6 +46,7 @@ repositories {
 dependencies {
     // Kotlin
     implementation(kotlin("stdlib-jdk8"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
 
     val jacksonVersion = "2.12.1"
     val nettyVersion = "4.1.25.Final"

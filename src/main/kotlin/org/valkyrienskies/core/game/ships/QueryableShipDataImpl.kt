@@ -13,7 +13,7 @@ typealias MutableQueryableShipDataCommon = MutableQueryableShipData<ShipDataComm
 interface QueryableShipData<out ShipDataType : ShipDataCommon> : Iterable<ShipDataType> {
     val idToShipData: Map<ShipId, ShipDataType>
     override fun iterator(): Iterator<ShipDataType>
-    fun getById(uuid: ShipId): ShipDataType?
+    fun getById(shipId: ShipId): ShipDataType?
     fun getShipDataFromChunkPos(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): ShipDataType?
     fun getShipDataIntersecting(aabb: AABBdc): Iterator<ShipDataType>
 }
@@ -21,6 +21,7 @@ interface QueryableShipData<out ShipDataType : ShipDataCommon> : Iterable<ShipDa
 interface MutableQueryableShipData<ShipDataType : ShipDataCommon> : QueryableShipData<ShipDataType> {
     fun addShipData(shipData: ShipDataType)
     fun removeShipData(shipData: ShipDataType)
+    fun removeShipData(id: ShipId)
 }
 
 open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
@@ -28,6 +29,7 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
 ) : MutableQueryableShipData<ShipDataType> {
 
     private val _idToShipData: HashMap<ShipId, ShipDataType> = HashMap()
+
     override val idToShipData: Map<ShipId, ShipDataType> = _idToShipData
 
     /**
@@ -44,8 +46,8 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
         return _idToShipData.values.iterator()
     }
 
-    override fun getById(uuid: ShipId): ShipDataType? {
-        return _idToShipData[uuid]
+    override fun getById(shipId: ShipId): ShipDataType? {
+        return _idToShipData[shipId]
     }
 
     override fun getShipDataFromChunkPos(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): ShipDataType? {
@@ -68,9 +70,12 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
     }
 
     override fun removeShipData(shipData: ShipDataType) {
-        if (getById(shipData.id) == null) {
-            throw IllegalArgumentException("Removing $shipData failed because it wasn't in the UUID map.")
-        }
+        removeShipData(shipData.id)
+    }
+
+    override fun removeShipData(id: ShipId) {
+        val shipData = getById(id)
+            ?: throw IllegalArgumentException("Removing ship id:$id failed because it wasn't in the UUID map.")
         _idToShipData.remove(shipData.id)
         chunkClaimToShipData.remove(shipData.chunkClaim)
     }
