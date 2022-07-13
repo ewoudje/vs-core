@@ -14,10 +14,10 @@ import kotlin.concurrent.thread
  *
  * Game <--> Physics --> Network
  */
-class VSPipeline(shipWorld: ShipObjectServerWorld) {
+class VSPipeline(private val shipWorld: ShipObjectServerWorld) {
     private val gameStage = VSGamePipelineStage(shipWorld)
     private val physicsStage = VSPhysicsPipelineStage()
-    private val networkStage = VSNetworkPipelineStage()
+    private val networkStage = VSNetworkPipelineStage(shipWorld)
 
     private val physicsPipelineBackgroundTask: VSPhysicsPipelineBackgroundTask = VSPhysicsPipelineBackgroundTask(this)
 

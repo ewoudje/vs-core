@@ -1,6 +1,8 @@
 package org.valkyrienskies.core.game.ships.networking
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
 import io.netty.buffer.Unpooled
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.ships.ShipData
@@ -10,8 +12,7 @@ import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
 import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.simple.sendToClient
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
-import org.valkyrienskies.core.util.writeQuatd
-import org.valkyrienskies.core.util.writeVec3d
+import org.valkyrienskies.core.util.toImmutableSet
 
 class ShipObjectNetworkManagerServer(
     private val parent: ShipObjectServerWorld
@@ -26,13 +27,26 @@ class ShipObjectNetworkManagerServer(
         updateShipData()
         updateTracking()
 
-        // todo: send transforms directly from the physics rather than on game tick
-        sendTransforms()
+        updateTrackedShips()
+        // Transforms are sent in [VSNetworkPipelineStage]
     }
 
     private fun IPlayer.getTrackedShips(): Iterable<ShipData> {
         return tracker.getShipsPlayerIsWatching(this)
     }
+
+    private fun updateTrackedShips() {
+        val builder = ImmutableMap.builder<IPlayer, ImmutableSet<ShipData>>()
+        tracker.playersToShipsWatchingMap.forEach { (player, ships) ->
+            builder.put(player, ships.keys.toImmutableSet())
+        }
+        playersToTrackedShips = builder.build()
+    }
+
+    /**
+     * Used by VSNetworkPipeline as a threadsafe way to access the transforms to send
+     */
+    var playersToTrackedShips: ImmutableMap<IPlayer, ImmutableSet<ShipData>> = ImmutableMap.of()
 
     /**
      * Send create and destroy packets for ships that players have started/stopped watching
@@ -45,7 +59,7 @@ class ShipObjectNetworkManagerServer(
             val shipsNoLongerWatching = tracker.playersToShipsNoLongerWatchingMap[player] ?: emptySet()
             endTracking(player, tracker.shipsToUnload + shipsNoLongerWatching)
         }
-        
+
         tracker.playersToShipsNewlyWatchingMap.clear()
         tracker.playersToShipsNoLongerWatchingMap.clear()
     }
@@ -83,36 +97,6 @@ class ShipObjectNetworkManagerServer(
             }
 
             Packets.TCP_SHIP_DATA_DELTA.sendToClient(buf, player)
-        }
-    }
-
-    /**
-     * Send ship transforms to players
-     */
-    private fun sendTransforms() {
-        players.forEach { player ->
-            // Ships the player is tracking
-            val trackedShips = player.getTrackedShips().toList()
-            // Write ship transforms into a ByteBuf
-            val buf = Unpooled.buffer()
-
-            buf.writeInt(parent.tickNumber)
-
-            trackedShips.forEach { ship ->
-                val transform = ship.shipTransform
-                val physicsData = ship.physicsData
-
-                buf.writeLong(ship.id)
-                buf.writeVec3d(transform.shipPositionInShipCoordinates)
-                buf.writeVec3d(transform.shipCoordinatesToWorldCoordinatesScaling)
-                buf.writeQuatd(transform.shipCoordinatesToWorldCoordinatesRotation)
-                buf.writeVec3d(transform.shipPositionInWorldCoordinates)
-                buf.writeVec3d(physicsData.linearVelocity)
-                buf.writeVec3d(physicsData.angularVelocity)
-            }
-
-            // Send it to the player
-            Packets.UDP_SHIP_TRANSFORM.sendToClient(buf, player)
         }
     }
 }

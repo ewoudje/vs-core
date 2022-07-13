@@ -67,21 +67,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 // TODO: Don't apply the transform if we are forcing the ship to move somewhere else
                 val applyTransform = true // For now just set [applyTransform] to always be true
                 if (applyTransform) {
-                    val transformFromPhysics = shipInPhysicsFrameData.shipTransform
-                    val voxelOffsetFromPhysics = shipInPhysicsFrameData.shipVoxelOffset
-                    val voxelOffsetFromGame = getShipVoxelOffset(shipData.inertiaData)
-
-                    val deltaVoxelOffset = transformFromPhysics.rotation.transform(
-                        voxelOffsetFromGame.sub(voxelOffsetFromPhysics, Vector3d())
-                    )
-
-                    val shipPosAccountingForVoxelOffsetDifference =
-                        transformFromPhysics.position.sub(deltaVoxelOffset, Vector3d())
-                    val newShipTransform = ShipTransform.createFromCoordinatesAndRotation(
-                        shipPosAccountingForVoxelOffsetDifference,
-                        shipData.inertiaData.getCenterOfMassInShipSpace().add(.5, .5, .5, Vector3d()),
-                        transformFromPhysics.rotation
-                    )
+                    val newShipTransform = generateTransformFromPhysicsFrameData(shipInPhysicsFrameData, shipData)
 
                     shipData.physicsData.linearVelocity = shipInPhysicsFrameData.vel
                     shipData.physicsData.angularVelocity = shipInPhysicsFrameData.omega
@@ -209,10 +195,31 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
         return VSGameFrame(newShips, deletedShips, updatedShips, gameFrameVoxelUpdatesMap)
     }
 
-    private companion object {
+    companion object {
         private fun getShipVoxelOffset(inertiaData: ShipInertiaData): Vector3dc {
             val cm = inertiaData.getCenterOfMassInShipSpace()
             return Vector3d(-cm.x(), -cm.y(), -cm.z())
+        }
+
+        fun generateTransformFromPhysicsFrameData(
+            physicsFrameData: ShipInPhysicsFrameData, shipData: ShipData
+        ): ShipTransform {
+            val transformFromPhysics = physicsFrameData.shipTransform
+            val voxelOffsetFromPhysics = physicsFrameData.shipVoxelOffset
+            val voxelOffsetFromGame = getShipVoxelOffset(shipData.inertiaData)
+
+            val deltaVoxelOffset = transformFromPhysics.rotation.transform(
+                voxelOffsetFromGame.sub(voxelOffsetFromPhysics, Vector3d())
+            )
+
+            val shipPosAccountingForVoxelOffsetDifference =
+                transformFromPhysics.position.sub(deltaVoxelOffset, Vector3d())
+
+            return ShipTransform.createFromCoordinatesAndRotation(
+                shipPosAccountingForVoxelOffsetDifference,
+                shipData.inertiaData.getCenterOfMassInShipSpace().add(.5, .5, .5, Vector3d()),
+                transformFromPhysics.rotation
+            )
         }
     }
 }

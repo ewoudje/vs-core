@@ -65,7 +65,7 @@ class ShipObjectServerWorld(
     val chunkTracker =
         ShipObjectServerWorldChunkTracker(this, DEFAULT_CHUNK_WATCH_DISTANCE, DEFAULT_CHUNK_UNWATCH_DISTANCE)
 
-    private val networkManager = ShipObjectNetworkManagerServer(this)
+    internal val networkManager = ShipObjectNetworkManagerServer(this)
 
     companion object {
         private const val DEFAULT_CHUNK_WATCH_DISTANCE = 128.0

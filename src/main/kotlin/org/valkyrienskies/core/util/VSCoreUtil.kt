@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.util
 
+import com.google.common.collect.ImmutableSet
 import io.netty.buffer.ByteBuf
 import org.joml.Quaterniond
 import org.joml.Quaterniondc
@@ -11,6 +12,11 @@ import java.nio.ByteBuffer
 
 fun Int.squared(): Int = this * this
 fun Double.squared(): Double = this * this
+
+fun <T> Sequence<T>.toImmutableSet(): ImmutableSet<T> =
+    ImmutableSet.builder<T>().also { builder -> this.forEach { builder.add(it) } }.build()
+
+fun <T> Iterable<T>.toImmutableSet(): ImmutableSet<T> = ImmutableSet.copyOf(this)
 
 fun ByteBuf.readVec3fAsDouble(): Vector3d {
     return Vector3d(readFloat().toDouble(), readFloat().toDouble(), readFloat().toDouble())
