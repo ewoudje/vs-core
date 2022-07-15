@@ -73,7 +73,6 @@ class ShipObjectServerWorld(
         ShipObjectServerWorldChunkTracker(this, DEFAULT_CHUNK_WATCH_DISTANCE, DEFAULT_CHUNK_UNWATCH_DISTANCE)
 
     internal val networkManager = ShipObjectNetworkManagerServer(this)
-
     /**
      * Add the update to [shipToVoxelUpdates].
      */
