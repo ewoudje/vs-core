@@ -63,6 +63,4 @@ fun AABBic.toAABBd(dest: AABBd): AABBd {
     return dest
 }
 
-fun AABBdc.intersectsAABBImmutable(other: AABBdc): Boolean {
-    return other.intersectsAABB(other as AABBd)
-}
+fun AABBdc.intersectsAABBImmutable(other: AABBdc) = intersectsAABB(other as AABBd)
