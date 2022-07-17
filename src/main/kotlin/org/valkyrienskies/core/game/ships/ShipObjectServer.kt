@@ -33,9 +33,10 @@ class ShipObjectServer(
     }
 
     override fun <T> setAttachment(clazz: Class<T>, value: T?) {
-        if (value == null)
-            attachedData.remove(clazz)
-        else {
+        if (value == null) {
+            val r = attachedData.remove(clazz)
+            forceInducers.remove(r)
+        } else {
             applyAttachmentInterfaces(clazz, value)
             attachedData[clazz] = value
         }
