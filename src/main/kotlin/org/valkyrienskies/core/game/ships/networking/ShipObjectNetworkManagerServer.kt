@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import io.netty.buffer.Unpooled
+import mu.KotlinLogging
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
@@ -13,6 +14,8 @@ import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.simple.sendToClient
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.toImmutableSet
+
+private val logger = KotlinLogging.logger {}
 
 class ShipObjectNetworkManagerServer(
     private val parent: ShipObjectServerWorld
@@ -67,14 +70,14 @@ class ShipObjectNetworkManagerServer(
     private fun endTracking(player: IPlayer, shipsToNotTrack: Iterable<ShipData>) {
         val shipIds = shipsToNotTrack.map { it.id }
         if (shipIds.isEmpty()) return
-        println("${player.uuid} unwatched ships $shipIds")
+        logger.debug("${player.uuid} unwatched ships $shipIds")
         PacketShipRemove(shipIds).sendToClient(player)
     }
 
     private fun startTracking(player: IPlayer, shipsToTrack: Iterable<ShipData>) {
         val ships = shipsToTrack.toList()
         if (ships.isEmpty()) return
-        println("${player.uuid} watched ships: ${ships.map { it.id }}")
+        logger.debug("${player.uuid} watched ships: ${ships.map { it.id }}")
         PacketShipDataCreate(ships).sendToClient(player)
     }
 

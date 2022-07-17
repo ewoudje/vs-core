@@ -3,11 +3,14 @@ package org.valkyrienskies.core.game.ships
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.plus
+import mu.KotlinLogging
 import org.joml.primitives.AABBdc
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.util.coroutines.TickableCoroutineDispatcher
 import org.valkyrienskies.core.util.intersectsAABBImmutable
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * Manages all the [ShipObject]s in a world.
@@ -29,7 +32,7 @@ abstract class ShipObjectWorld<ShipObjectType : ShipObject>(
         try {
             _dispatcher.tick()
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            logger.catching(ex)
         }
         tickNumber++
     }

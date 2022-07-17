@@ -1,6 +1,7 @@
 package org.valkyrienskies.core.game.ships.networking
 
 import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import org.valkyrienskies.core.game.ships.ShipDataCommon
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipObjectClientWorld
@@ -15,6 +16,8 @@ import org.valkyrienskies.core.networking.unregisterAll
 import org.valkyrienskies.core.util.readQuatd
 import org.valkyrienskies.core.util.readVec3d
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
+
+private val logger = KotlinLogging.logger {}
 
 class ShipObjectNetworkManagerClient(
     private val parent: ShipObjectClientWorld
@@ -48,10 +51,12 @@ class ShipObjectNetworkManagerClient(
             if (parent.queryableShipData.getById(ship.id) == null) {
                 parent.addShip(ship)
             } else {
-                // todo: just throw if this is the case, this should never happen
-                println("WARN: Received ship create packet for already loaded ship?!")
                 // Update the next ship transform
                 parent.shipObjects[ship.id]?.updateNextShipTransform(ship.shipTransform)
+
+                throw logger.throwing(
+                    IllegalArgumentException("Received ship create packet for already loaded ship?!")
+                )
             }
         }
     }
@@ -64,7 +69,7 @@ class ShipObjectNetworkManagerClient(
 
             val ship = parent.shipObjects.get(shipId)
             if (ship == null) {
-                println("Received ship data delta for ship with unknown ID!!")
+                logger.warn("Received ship data delta for ship with unknown ID!")
                 buf.release()
                 return@launch
             }
@@ -89,7 +94,7 @@ class ShipObjectNetworkManagerClient(
             } else {
                 val shipObject = parent.shipObjects[shipId]
                 if (shipObject == null) {
-                    println("Received ship transform for ship with unknown ID!!")
+                    logger.warn("Received ship transform for ship with unknown ID!!")
                     buf.release()
                     return@launch
                 }

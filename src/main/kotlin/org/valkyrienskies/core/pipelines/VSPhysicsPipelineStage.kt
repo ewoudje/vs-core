@@ -1,6 +1,7 @@
 package org.valkyrienskies.core.pipelines
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
+import mu.KotlinLogging
 import org.joml.Matrix3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -19,6 +20,8 @@ import org.valkyrienskies.physics_api.voxel_updates.VoxelRigidBodyShapeUpdates
 import org.valkyrienskies.physics_api_krunch.KrunchBootstrap
 import org.valkyrienskies.physics_api_krunch.KrunchPhysicsWorldSettings
 import java.util.concurrent.ConcurrentLinkedQueue
+
+private val logger = KotlinLogging.logger {}
 
 class VSPhysicsPipelineStage {
     private val gameFramesQueue: ConcurrentLinkedQueue<VSGameFrame> = ConcurrentLinkedQueue()
@@ -45,7 +48,7 @@ class VSPhysicsPipelineStage {
     fun pushGameFrame(gameFrame: VSGameFrame) {
         if (gameFramesQueue.size >= 10) {
             // throw IllegalStateException("Too many game frames in the game frame queue. Is the physics stage broken?")
-            println("Too many game frames in the game frame queue. Is the physics stage broken?")
+            logger.warn("Too many game frames in the game frame queue. Is the physics stage broken?")
             Thread.sleep(1000L)
         }
         gameFramesQueue.add(gameFrame)

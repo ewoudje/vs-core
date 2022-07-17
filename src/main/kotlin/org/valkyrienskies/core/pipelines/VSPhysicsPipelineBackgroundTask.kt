@@ -1,9 +1,12 @@
 package org.valkyrienskies.core.pipelines
 
+import mu.KotlinLogging
 import java.util.LinkedList
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.math.min
+
+private val logger = KotlinLogging.logger {}
 
 class VSPhysicsPipelineBackgroundTask(private val vsPipeline: VSPipeline, private var idealPhysicsTps: Int = 60) :
     Runnable {
@@ -64,11 +67,10 @@ class VSPhysicsPipelineBackgroundTask(private val vsPipeline: VSPipeline, privat
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            println(e)
-            repeat(10) { println("!!!!!!! VS PHYSICS THREAD CRASHED !!!!!!!") }
+            logger.error(e) { "Error in physics pipeline background task" }
+            repeat(10) { logger.error("!!!!!!! VS PHYSICS THREAD CRASHED !!!!!!!") }
         }
-        println("Task ending")
+        logger.warn("Physics pipeline ending")
     }
 
     fun tellTaskToKillItself() {

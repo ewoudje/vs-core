@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.pipelines
 
+import mu.KotlinLogging
 import org.joml.Matrix3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -19,6 +20,8 @@ import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import java.util.concurrent.ConcurrentLinkedQueue
 
+private val logger = KotlinLogging.logger {}
+
 class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
     private val physicsFramesQueue: ConcurrentLinkedQueue<VSPhysicsFrame> = ConcurrentLinkedQueue()
 
@@ -28,7 +31,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
     fun pushPhysicsFrame(physicsFrame: VSPhysicsFrame) {
         if (physicsFramesQueue.size >= 100) {
             // throw IllegalStateException("Too many physics frames in the physics frame queue. Is the game stage broken?")
-            println("Too many physics frames in the physics frame queue. Is the game stage broken?")
+            logger.warn("Too many physics frames in the physics frame queue. Is the game stage broken?")
             Thread.sleep(1000L)
         }
         physicsFramesQueue.add(physicsFrame)
@@ -77,7 +80,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
             } else {
                 // Check ground rigid body objects
                 if (!shipWorld.dimensionToGroundBodyIdImmutable.containsValue(shipId))
-                    println(
+                    logger.warn(
                         "Received physics frame update for ship with ShipId: $shipId, " +
                             "but a ship with this ShipId does not exist!"
                     )

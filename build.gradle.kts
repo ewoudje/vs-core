@@ -47,6 +47,7 @@ dependencies {
     // Kotlin
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
+    implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
 
     val jacksonVersion = "2.12.1"
     val nettyVersion = "4.1.25.Final"
