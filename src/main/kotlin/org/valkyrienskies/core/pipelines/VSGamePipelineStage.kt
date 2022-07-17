@@ -7,6 +7,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.primitives.AABBi
+import org.valkyrienskies.core.api.Ticked
 import org.valkyrienskies.core.game.ships.PhysInertia
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipId
@@ -50,6 +51,11 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
         while (physicsFramesQueue.isNotEmpty()) {
             val physicsFrame = physicsFramesQueue.remove()
             applyPhysicsFrame(physicsFrame)
+        }
+
+        // Tick every attachment that wants to get ticked
+        shipWorld.shipObjects.forEach {
+            it.value.toBeTicked.forEach(Ticked::tick)
         }
     }
 
