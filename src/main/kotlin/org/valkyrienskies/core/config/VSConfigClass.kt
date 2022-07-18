@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.config
 
+import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import com.github.imifou.jsonschema.module.addon.AddonModule
@@ -16,6 +17,8 @@ import com.networknt.schema.ValidationMessage
 import org.valkyrienskies.core.config.VSConfigClass.VSConfigClassSide.CLIENT
 import org.valkyrienskies.core.config.VSConfigClass.VSConfigClassSide.COMMON
 import org.valkyrienskies.core.config.VSConfigClass.VSConfigClassSide.SERVER
+import org.valkyrienskies.core.hooks.PlayState.CLIENT_MULTIPLAYER
+import org.valkyrienskies.core.hooks.VSCoreHooks
 import org.valkyrienskies.core.networking.impl.PacketCommonConfigUpdate
 import org.valkyrienskies.core.networking.impl.PacketServerConfigUpdate
 import org.valkyrienskies.core.networking.simple.registerClientHandler
@@ -36,6 +39,12 @@ data class VSConfigClass(
 ) {
 
     val sides = listOfNotNull(client, common, server)
+
+    private fun getSide(side: VSConfigClassSide): SidedVSConfigClass? = when (side) {
+        CLIENT -> client
+        COMMON -> common
+        SERVER -> server
+    }
 
     private fun makeServerConfigUpdatePacket(): PacketServerConfigUpdate? {
         if (server == null) return null
@@ -72,8 +81,23 @@ data class VSConfigClass(
             )
         ).with(AddonModule()).with(JacksonModule()).build()
 
+        fun UpdatableConfig.writeToDisk() {
+            val mainConfig = getMainConfig()
+            if (VSCoreHooks.isPhysicalClient) {
+                mainConfig.client?.saveConfig(VSCoreHooks.configDir)
+            }
+
+            if (VSCoreHooks.playState != CLIENT_MULTIPLAYER) {
+                mainConfig.server?.saveConfig(VSCoreHooks.configDir)
+                mainConfig.client?.saveConfig(VSCoreHooks.configDir)
+            }
+        }
+
+        private fun UpdatableConfig.getMainConfig(): VSConfigClass =
+            getRegisteredConfig(if (getSide() == null) this::class.java else this::class.java.enclosingClass)
+
         private fun UpdatableConfig.getSide(): VSConfigClassSide? =
-            VSConfigClassSide.VALUES.find { it.name == this::class.java.name }
+            VSConfigClassSide.VALUES.find { it.subclassName == this::class.java.name }
 
         fun UpdatableConfig.syncConfigToClient() {
             when (getSide()) {
@@ -177,17 +201,14 @@ data class VSConfigClass(
             val generator = SchemaGenerator(schemaGeneratorConfig)
 
             val schemaJson = generator.generateSchema(clazz)
-            println("Schema for $clazz : $schemaJson")
             (schemaJson.get("properties") as? ObjectNode)?.putObject("\$schema")?.put("type", "string")
 
             val schema = JsonSchemaFactory.getInstance(JSON_SCHEMA_VALIDATOR_VERSION).getSchema(schemaJson)
 
-            val instJson: ObjectNode = mapper.valueToTree(inst)
-
             val onUpdate = if (inst is UpdatableConfig) inst::onUpdate else ({})
 
             return SidedVSConfigClass(
-                clazz, inst, instJson, side.subclassName, parentName, schemaJson, schema, onUpdate
+                clazz, inst, side.subclassName, parentName, schemaJson, schema, onUpdate
             )
         }
 
@@ -201,6 +222,7 @@ data class VSConfigClass(
             val server = createSidedVSConfigClass(name, SERVER, clazz)
 
             val configClass = VSConfigClass(clazz, name, client, common, server)
+            configClass.sides.forEach { it.createOrReadConfig(VSCoreHooks.configDir) }
 
             registeredConfigMap[clazz] = configClass
 
@@ -225,7 +247,6 @@ data class VSConfigClass(
 class SidedVSConfigClass(
     val clazz: Class<*>,
     val inst: Any,
-    val instJson: ObjectNode,
     val sideName: String,
     val parentName: String,
     val schemaJson: ObjectNode,
@@ -233,17 +254,32 @@ class SidedVSConfigClass(
     val onUpdate: () -> Unit
 ) {
 
+    fun generateInstJson(): ObjectNode = VSConfigClass.mapper.valueToTree(inst)
+    fun generateInstJsonWith(key: String, value: JsonNode) =
+        generateInstJson().also { it.replace(key, value) }
+
     fun attemptUpdate(newConfig: JsonNode): Set<ValidationMessage> {
         val errors = schema.validate(newConfig as ObjectNode)
         if (errors.isNotEmpty()) {
             return errors
         }
-
-        instJson.setAll<ObjectNode>(newConfig)
-        VSConfigClass.mapper.readerForUpdating(inst).readValue(newConfig, clazz)
+        VSConfigClass.mapper.readerForUpdating(inst).withoutAttribute("\$schema")
+            .readValue(newConfig, clazz)
         onUpdate()
 
         return emptySet()
+    }
+
+    fun saveConfig(configDir: Path) {
+        val mapper = VSConfigClass.mapper
+
+        val name = "${parentName}_$sideName".lowercase()
+        val schemaRelativePath = "schemas/$name.schema.json"
+        val configPath = configDir.resolve("$name.json")
+        val json = mapper.valueToTree<ObjectNode>(inst)
+
+        json.put("\$schema", schemaRelativePath)
+        mapper.writeValue(Files.newBufferedWriter(configPath), json)
     }
 
     /**
@@ -252,21 +288,27 @@ class SidedVSConfigClass(
     fun createOrReadConfig(configDir: Path): String? {
         val mapper = VSConfigClass.mapper
 
-        val name = "${parentName}_$sideName"
+        val name = "${parentName}_$sideName".lowercase()
         val schemaRelativePath = "schemas/$name.schema.json"
         val schemaPath = configDir.resolve(schemaRelativePath)
         val configPath = configDir.resolve("$name.json")
 
         Files.createDirectories(configDir.resolve("schemas"))
-        Files.deleteIfExists(schemaPath)
-        mapper.writeValue(Files.newBufferedWriter(schemaPath, StandardOpenOption.CREATE_NEW), schemaJson)
+        mapper.writeValue(Files.newBufferedWriter(schemaPath), schemaJson)
 
         if (Files.exists(configPath)) {
-            val json = mapper.readTree(Files.newBufferedReader(configPath))
-            val errors = attemptUpdate(json)
+            try {
+                val json = mapper.readTree(Files.newBufferedReader(configPath)) as ObjectNode
+                json.remove("\$schema")
+                val errors = attemptUpdate(json)
 
-            if (errors.isNotEmpty()) {
-                return errors.joinToString(separator = "\n")
+                if (errors.isNotEmpty()) {
+                    return errors.joinToString(separator = "\n")
+                }
+
+                return null
+            } catch (ex: JsonProcessingException) {
+                return ex.message
             }
         }
 

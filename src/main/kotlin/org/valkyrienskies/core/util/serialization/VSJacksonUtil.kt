@@ -2,6 +2,7 @@ package org.valkyrienskies.core.util.serialization
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.databind.AnnotationIntrospector
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
@@ -106,6 +107,9 @@ fun ObjectNode.shallowCopy(): ObjectNode {
         ret.replace(key, value)
     return ret
 }
+
+fun ObjectNode.shallowCopyWith(key: String, value: JsonNode) =
+    shallowCopy().also { it.replace(key, value) }
 
 inline fun <reified A, reified B : A> SimpleModule.addAbstractTypeMapping(): SimpleModule =
     addAbstractTypeMapping(A::class.java, B::class.java)

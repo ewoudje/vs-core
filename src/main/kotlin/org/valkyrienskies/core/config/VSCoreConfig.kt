@@ -25,6 +25,20 @@ object VSCoreConfig {
         enum class ShipMode {
             HELLO, GOODBYE, MAYBE
         }
+
+        val subcat = SubCategory()
+
+        var list = listOf("apple", "banana", "pear")
+
+        class SubCategory {
+            var hi: String = "hello!"
+
+            var subcat = SubCategory2()
+
+            class SubCategory2 {
+                var bye: String = "bye!"
+            }
+        }
     }
 
     class Common {
