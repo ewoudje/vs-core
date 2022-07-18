@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.SerializationFeature.INDENT_OUTPUT
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
@@ -51,8 +52,8 @@ object VSJacksonUtil {
     private object ShipDataServerMixin
 
     private fun configureConfigMapper(mapper: ObjectMapper) {
-        mapper.enable(INDENT_OUTPUT)
         configureMapper(mapper)
+        mapper.enable(INDENT_OUTPUT)
     }
 
     private fun configurePacketMapper(mapper: ObjectMapper) {
@@ -80,6 +81,7 @@ object VSJacksonUtil {
             .registerModule(JOMLSerializationModule())
             .registerModule(VSSerializationModule())
             .registerModule(GuaveSerializationModule())
+            .registerKotlinModule()
             .setVisibility(
                 mapper.visibilityChecker
                     .withFieldVisibility(JsonAutoDetect.Visibility.ANY)
@@ -87,8 +89,6 @@ object VSJacksonUtil {
                     .withIsGetterVisibility(JsonAutoDetect.Visibility.NONE)
                     .withSetterVisibility(JsonAutoDetect.Visibility.NONE)
             )
-        // Serialize Kotlin data types
-        mapper.registerKotlinModule()
     }
 }
 
@@ -98,6 +98,13 @@ inline fun <reified T> ObjectMapper.readValue(buf: ByteBuf): T {
 
 fun <T> ObjectMapper.readValue(buf: ByteBuf, clazz: Class<T>): T {
     return readValue(ByteBufInputStream(buf) as InputStream, clazz)
+}
+
+fun ObjectNode.shallowCopy(): ObjectNode {
+    val ret = objectNode()
+    for ((key, value) in fields())
+        ret.replace(key, value)
+    return ret
 }
 
 inline fun <reified A, reified B : A> SimpleModule.addAbstractTypeMapping(): SimpleModule =

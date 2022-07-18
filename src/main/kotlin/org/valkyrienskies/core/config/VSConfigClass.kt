@@ -12,6 +12,7 @@ import com.github.victools.jsonschema.module.jackson.JacksonModule
 import com.networknt.schema.JsonSchema
 import com.networknt.schema.JsonSchemaFactory
 import com.networknt.schema.SpecVersion
+import com.networknt.schema.ValidationMessage
 import org.valkyrienskies.core.config.VSConfigClass.VSConfigClassSide.CLIENT
 import org.valkyrienskies.core.config.VSConfigClass.VSConfigClassSide.COMMON
 import org.valkyrienskies.core.config.VSConfigClass.VSConfigClassSide.SERVER
@@ -25,7 +26,6 @@ import java.lang.reflect.Modifier
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
-import kotlin.reflect.full.memberProperties
 
 data class VSConfigClass(
     val clazz: Class<*>,
@@ -58,21 +58,19 @@ data class VSConfigClass(
         private val schemaGeneratorConfig = SchemaGeneratorConfigBuilder(
             mapper,
             JSON_SCHEMA_GENERATOR_VERSION,
-            OptionPreset.FULL_DOCUMENTATION
-        )
-            .with(AddonModule())
-            .with(JacksonModule())
-            .with(
+            OptionPreset(
+                Option.SCHEMA_VERSION_INDICATOR,
+                Option.ADDITIONAL_FIXED_TYPES,
+                Option.EXTRA_OPEN_API_FORMAT_VALUES,
+                Option.FLATTENED_ENUMS,
+                Option.FLATTENED_OPTIONALS,
+                Option.PUBLIC_NONSTATIC_FIELDS,
                 Option.NONPUBLIC_NONSTATIC_FIELDS_WITH_GETTERS,
-                Option.NONPUBLIC_NONSTATIC_FIELDS_WITHOUT_GETTERS,
-                Option.NONPUBLIC_STATIC_FIELDS,
-                Option.FORBIDDEN_ADDITIONAL_PROPERTIES_BY_DEFAULT
+                Option.MAP_VALUES_AS_ADDITIONAL_PROPERTIES,
+                Option.FORBIDDEN_ADDITIONAL_PROPERTIES_BY_DEFAULT,
+                Option.ALLOF_CLEANUP_AT_THE_END
             )
-            .build()
-
-        init {
-            registerNetworkHandlers()
-        }
+        ).with(AddonModule()).with(JacksonModule()).build()
 
         private fun UpdatableConfig.getSide(): VSConfigClassSide? =
             VSConfigClassSide.VALUES.find { it.name == this::class.java.name }
@@ -129,15 +127,17 @@ data class VSConfigClass(
             mainClass: Class<*>, newConfig: JsonNode, side: (VSConfigClass) -> SidedVSConfigClass?
         ) {
             try {
-                val config = side(registeredConfigMap[mainClass]!!) ?: return
-                mapper.readerForUpdating(config.inst).readValue(newConfig, config.clazz)
-                config.onUpdate
+                val config = side(getRegisteredConfig(mainClass)) ?: return
+                val errors = config.attemptUpdate(newConfig)
+                if (errors.isNotEmpty()) {
+                    println("Attempted to update config with invalid schema:\n$errors")
+                }
             } catch (ex: Exception) {
                 ex.printStackTrace()
             }
         }
 
-        private fun registerNetworkHandlers() {
+        fun registerNetworkHandlers() {
             PacketServerConfigUpdate::class.registerServerHandler { (mainClass, newConfig), player ->
                 if (player.isAdmin) {
                     attemptUpdate(mainClass, newConfig) { it.server }
@@ -157,32 +157,16 @@ data class VSConfigClass(
         }
 
         private fun getSidedConfigClassAndInstance(side: VSConfigClassSide, mainClass: Class<*>): Pair<Class<*>, Any>? {
-            return if (mainClass.kotlin.objectInstance != null) {
-                require(mainClass.kotlin.memberProperties.isEmpty()) {
-                    "Type A (Kotlin Object) main config class ($mainClass) may not have member properties"
-                }
-
-                val sidedConfig = mainClass.kotlin.nestedClasses.find { it.simpleName == side.subclassName }
+            val sidedConfigField =
+                mainClass.fields.find { Modifier.isStatic(it.modifiers) && it.name == side.fieldName }
                     ?: return null
-                val instance = sidedConfig.objectInstance
-                    ?: throw IllegalArgumentException(
-                        "Type A (Kotlin Object) main config class ($mainClass) " +
-                            "sided subclass ($sidedConfig) must be an object"
-                    )
 
-                Pair(sidedConfig.java, instance)
-            } else {
-                val sidedConfigField =
-                    mainClass.fields.find { Modifier.isStatic(it.modifiers) && it.name == side.fieldName }
-                        ?: return null
+            val instance = sidedConfigField.get(null)
+                ?: throw IllegalArgumentException(
+                    "Type B (Java Class) main config class ($mainClass) property $sidedConfigField is null!"
+                )
 
-                val instance = sidedConfigField.get(null)
-                    ?: throw IllegalArgumentException(
-                        "Type B (Java Class) main config class ($mainClass) property $sidedConfigField is null!"
-                    )
-
-                Pair(sidedConfigField.type, instance)
-            }
+            return Pair(sidedConfigField.type, instance)
         }
 
         private fun createSidedVSConfigClass(
@@ -193,13 +177,18 @@ data class VSConfigClass(
             val generator = SchemaGenerator(schemaGeneratorConfig)
 
             val schemaJson = generator.generateSchema(clazz)
+            println("Schema for $clazz : $schemaJson")
             (schemaJson.get("properties") as? ObjectNode)?.putObject("\$schema")?.put("type", "string")
 
             val schema = JsonSchemaFactory.getInstance(JSON_SCHEMA_VALIDATOR_VERSION).getSchema(schemaJson)
 
+            val instJson: ObjectNode = mapper.valueToTree(inst)
+
             val onUpdate = if (inst is UpdatableConfig) inst::onUpdate else ({})
 
-            return SidedVSConfigClass(clazz, inst, side.subclassName, parentName, schemaJson, schema, onUpdate)
+            return SidedVSConfigClass(
+                clazz, inst, instJson, side.subclassName, parentName, schemaJson, schema, onUpdate
+            )
         }
 
         fun getOrRegisterConfig(name: String, clazz: Class<*>): VSConfigClass {
@@ -221,61 +210,71 @@ data class VSConfigClass(
 
     private enum class VSConfigClassSide(
         val subclassName: String,
-        val getSidedClass: (VSConfigClass) -> SidedVSConfigClass?,
         val fieldName: String = subclassName.uppercase()
     ) {
-        CLIENT("Client", { it.client }),
-        COMMON("Common", { it.common }),
-        SERVER("Server", { it.server });
+        CLIENT("Client"),
+        COMMON("Common"),
+        SERVER("Server");
 
         companion object {
             val VALUES = values().toList()
         }
     }
-
-    class SidedVSConfigClass(
-        val clazz: Class<*>,
-        val inst: Any,
-        val sideName: String,
-        val parentName: String,
-        val schemaJson: JsonNode,
-        val schema: JsonSchema,
-        val onUpdate: () -> Unit
-    ) {
-
-        /**
-         * @return an error message if the schema validation failed
-         */
-        fun createOrReadConfig(configDir: Path): String? {
-            val mapper = VSConfigClass.mapper
-
-            val name = "${parentName}_$sideName"
-            val schemaRelativePath = "schemas/$name.schema.json"
-            val schemaPath = configDir.resolve(schemaRelativePath)
-            val configPath = configDir.resolve("$name.json")
-
-            Files.createDirectories(configDir.resolve("schemas"))
-            Files.deleteIfExists(schemaPath)
-            mapper.writeValue(Files.newBufferedWriter(schemaPath, StandardOpenOption.CREATE_NEW), schemaJson)
-
-            if (Files.exists(configPath)) {
-                val json = mapper.readTree(Files.newBufferedReader(configPath))
-                val errors = schema.validate(json)
-
-                if (errors.isNotEmpty()) {
-                    return errors.joinToString(separator = "\n")
-                }
-
-                mapper.readerForUpdating(inst).treeToValue(json, clazz)
-            }
-
-            val json = mapper.valueToTree<ObjectNode>(inst)
-            json.put("\$schema", schemaRelativePath)
-            mapper.writeValue(Files.newBufferedWriter(configPath, StandardOpenOption.CREATE_NEW), json)
-
-            return null
-        }
-    }
 }
 
+class SidedVSConfigClass(
+    val clazz: Class<*>,
+    val inst: Any,
+    val instJson: ObjectNode,
+    val sideName: String,
+    val parentName: String,
+    val schemaJson: ObjectNode,
+    val schema: JsonSchema,
+    val onUpdate: () -> Unit
+) {
+
+    fun attemptUpdate(newConfig: JsonNode): Set<ValidationMessage> {
+        val errors = schema.validate(newConfig as ObjectNode)
+        if (errors.isNotEmpty()) {
+            return errors
+        }
+
+        instJson.setAll<ObjectNode>(newConfig)
+        VSConfigClass.mapper.readerForUpdating(inst).readValue(newConfig, clazz)
+        onUpdate()
+
+        return emptySet()
+    }
+
+    /**
+     * @return an error message if the schema validation failed
+     */
+    fun createOrReadConfig(configDir: Path): String? {
+        val mapper = VSConfigClass.mapper
+
+        val name = "${parentName}_$sideName"
+        val schemaRelativePath = "schemas/$name.schema.json"
+        val schemaPath = configDir.resolve(schemaRelativePath)
+        val configPath = configDir.resolve("$name.json")
+
+        Files.createDirectories(configDir.resolve("schemas"))
+        Files.deleteIfExists(schemaPath)
+        mapper.writeValue(Files.newBufferedWriter(schemaPath, StandardOpenOption.CREATE_NEW), schemaJson)
+
+        if (Files.exists(configPath)) {
+            val json = mapper.readTree(Files.newBufferedReader(configPath))
+            val errors = attemptUpdate(json)
+
+            if (errors.isNotEmpty()) {
+                return errors.joinToString(separator = "\n")
+            }
+        }
+
+        val json = mapper.valueToTree<ObjectNode>(inst)
+        json.put("\$schema", schemaRelativePath)
+        mapper.writeValue(Files.newBufferedWriter(configPath, StandardOpenOption.CREATE_NEW), json)
+
+        return null
+    }
+}
 

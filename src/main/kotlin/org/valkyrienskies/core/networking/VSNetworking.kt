@@ -1,5 +1,7 @@
 package org.valkyrienskies.core.networking
 
+import org.valkyrienskies.core.config.VSConfigClass
+
 object VSNetworking {
     /**
      * Valkyrien Skies UDP channel
@@ -16,6 +18,7 @@ object VSNetworking {
     fun init() {
         registerUDP()
         Packets.init()
+        VSConfigClass.registerNetworkHandlers()
     }
 
     private fun registerUDP() {

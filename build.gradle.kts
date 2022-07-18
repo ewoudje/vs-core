@@ -71,7 +71,7 @@ dependencies {
     api("com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", jacksonVersion)
     api("com.fasterxml.jackson.datatype", "jackson-datatype-guava", jacksonVersion)
 
-    implementation("com.networknt", "json-schema-validator", "1.0.71")
+    api("com.networknt", "json-schema-validator", "1.0.71")
     api("com.github.imifou", "jsonschema-module-addon", "1.2.1")
     implementation("com.github.victools", "jsonschema-module-jackson", "4.25.0")
     implementation("com.github.victools", "jsonschema-generator", "4.25.0")
