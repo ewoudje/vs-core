@@ -2,6 +2,7 @@ package org.valkyrienskies.core.util
 
 import com.google.common.collect.ImmutableSet
 import io.netty.buffer.ByteBuf
+import org.apache.commons.lang3.StringUtils
 import org.joml.Quaterniond
 import org.joml.Quaterniondc
 import org.joml.Vector3d
@@ -13,6 +14,10 @@ import java.util.function.Consumer
 
 fun Int.squared(): Int = this * this
 fun Double.squared(): Double = this * this
+
+fun String.splitCamelCaseAndCapitalize(): String {
+    return StringUtils.capitalize(StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(this), " "))
+}
 
 /**
  * If this is a `Consumer<Animal>`, for example, then it should be assignable to
