@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
 import io.netty.buffer.Unpooled
-import mu.KotlinLogging
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
@@ -12,10 +11,9 @@ import org.valkyrienskies.core.networking.Packets
 import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
 import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.simple.sendToClient
+import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.toImmutableSet
-
-private val logger = KotlinLogging.logger {}
 
 class ShipObjectNetworkManagerServer(
     private val parent: ShipObjectServerWorld
@@ -101,5 +99,9 @@ class ShipObjectNetworkManagerServer(
 
             Packets.TCP_SHIP_DATA_DELTA.sendToClient(buf, player)
         }
+    }
+
+    companion object {
+        private val logger by logger()
     }
 }

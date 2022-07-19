@@ -47,7 +47,6 @@ dependencies {
     // Kotlin
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
-    implementation("io.github.microutils:kotlin-logging-jvm:2.1.23")
 
     val jacksonVersion = "2.12.1"
     val nettyVersion = "4.1.25.Final"
@@ -80,6 +79,9 @@ dependencies {
 
     // Junit 5 for Unit Testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+
+    // Log4j2 for Logging
+    implementation("org.apache.logging.log4j:log4j-api:${properties["mc_log4j2_version"]}")
 }
 
 tasks.withType<Checkstyle> {

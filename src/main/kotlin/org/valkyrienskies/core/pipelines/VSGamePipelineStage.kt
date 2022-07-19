@@ -1,6 +1,5 @@
 package org.valkyrienskies.core.pipelines
 
-import mu.KotlinLogging
 import org.joml.Matrix3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -16,12 +15,11 @@ import org.valkyrienskies.core.game.ships.ShipObjectServer
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
 import org.valkyrienskies.core.game.ships.ShipTransform
+import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import java.util.concurrent.ConcurrentLinkedQueue
-
-private val logger = KotlinLogging.logger {}
 
 class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
     private val physicsFramesQueue: ConcurrentLinkedQueue<VSPhysicsFrame> = ConcurrentLinkedQueue()
@@ -230,5 +228,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 transformFromPhysics.rotation
             )
         }
+
+        private val logger by logger()
     }
 }

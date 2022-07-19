@@ -1,7 +1,6 @@
 package org.valkyrienskies.core.pipelines
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
-import mu.KotlinLogging
 import org.joml.Matrix3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -12,6 +11,7 @@ import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.ships.PhysInertia
 import org.valkyrienskies.core.game.ships.PhysShip
 import org.valkyrienskies.core.game.ships.ShipId
+import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyTransform
@@ -20,8 +20,6 @@ import org.valkyrienskies.physics_api.voxel_updates.VoxelRigidBodyShapeUpdates
 import org.valkyrienskies.physics_api_krunch.KrunchBootstrap
 import org.valkyrienskies.physics_api_krunch.KrunchPhysicsWorldSettings
 import java.util.concurrent.ConcurrentLinkedQueue
-
-private val logger = KotlinLogging.logger {}
 
 class VSPhysicsPipelineStage {
     private val gameFramesQueue: ConcurrentLinkedQueue<VSGameFrame> = ConcurrentLinkedQueue()
@@ -234,5 +232,7 @@ class VSPhysicsPipelineStage {
 
             return RigidBodyInertiaData(invMass, invInertiaMatrix)
         }
+
+        private val logger by logger()
     }
 }

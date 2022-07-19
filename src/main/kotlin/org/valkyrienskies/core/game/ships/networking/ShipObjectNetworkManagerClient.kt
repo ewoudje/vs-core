@@ -1,7 +1,6 @@
 package org.valkyrienskies.core.game.ships.networking
 
 import kotlinx.coroutines.launch
-import mu.KotlinLogging
 import org.valkyrienskies.core.game.ships.ShipDataCommon
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipObjectClientWorld
@@ -13,11 +12,10 @@ import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
 import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.simple.registerClientHandler
 import org.valkyrienskies.core.networking.unregisterAll
+import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.core.util.readQuatd
 import org.valkyrienskies.core.util.readVec3d
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
-
-private val logger = KotlinLogging.logger {}
 
 class ShipObjectNetworkManagerClient(
     private val parent: ShipObjectClientWorld
@@ -120,4 +118,8 @@ class ShipObjectNetworkManagerClient(
         }
         buf.release()
     }.also { packet.data.retain() }
+
+    companion object {
+        private val logger by logger()
+    }
 }
