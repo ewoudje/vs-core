@@ -48,5 +48,5 @@ interface Ship : ShipProvider {
 }
 
 inline fun <reified T> Ship.getAttachment() = getAttachment(T::class.java)
-inline fun <reified T> Ship.setAttachment(value: T) = setAttachment(T::class.java, value)
-inline fun <reified T> Ship.saveAttachment(value: T) = saveAttachment(T::class.java, value)
+inline fun <reified T> Ship.setAttachment(value: T?) = setAttachment(T::class.java, value)
+inline fun <reified T> Ship.saveAttachment(value: T?) = saveAttachment(T::class.java, value)
