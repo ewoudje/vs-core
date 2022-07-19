@@ -13,5 +13,12 @@ value class ClassLogger(val logger: Logger) {
 
 object DelegateLogger {
     operator fun provideDelegate(thisRef: Any, property: KProperty<*>) =
-        ClassLogger(LogManager.getLogger(thisRef.javaClass))
+        ClassLogger(
+            LogManager.getLogger(
+                if (thisRef::class.isCompanion)
+                    thisRef::class.java.declaringClass
+                else
+                    thisRef::class.java
+            )
+        )
 }
