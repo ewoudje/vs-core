@@ -8,7 +8,7 @@ import org.joml.primitives.AABBdc
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.util.coroutines.TickableCoroutineDispatcher
-import org.valkyrienskies.core.util.intersectsAABBImmutable
+import org.valkyrienskies.core.util.intersectsAABB
 
 private val logger = KotlinLogging.logger {}
 
@@ -53,7 +53,7 @@ abstract class ShipObjectWorld<ShipObjectType : ShipObject>(
     }
 
     open fun getShipObjectsIntersecting(aabb: AABBdc): List<ShipObjectType> =
-        shipObjects.values.filter { it.shipData.shipAABB.intersectsAABBImmutable(aabb) }.toCollection(ArrayList())
+        shipObjects.values.filter { it.shipData.shipAABB.intersectsAABB(aabb) }.toCollection(ArrayList())
 
     abstract fun destroyWorld()
 }
