@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf
 import kotlinx.coroutines.launch
 import org.valkyrienskies.core.game.ships.ShipDataCommon
 import org.valkyrienskies.core.game.ships.ShipId
+import org.valkyrienskies.core.game.ships.ShipObjectClient
 import org.valkyrienskies.core.game.ships.ShipObjectClientWorld
 import org.valkyrienskies.core.game.ships.ShipTransform
 import org.valkyrienskies.core.networking.Packet
@@ -46,7 +47,6 @@ class ShipObjectNetworkManagerClient(
 
     fun onDestroy() {
         handlers.unregisterAll()
-        latestReceived.clear()
         secretKey = null
     }
 
@@ -60,7 +60,7 @@ class ShipObjectNetworkManagerClient(
                 parent.addShip(ship)
             } else {
                 // Update the next ship transform
-                parent.shipObjects[ship.id]?.updateNextShipTransform(ship.shipTransform)
+                parent.shipObjects[ship.id]?.nextShipTransform = ship.shipTransform
 
                 throw logger.throwing(
                     IllegalArgumentException("Received ship create packet for already loaded ship?!")
@@ -92,7 +92,7 @@ class ShipObjectNetworkManagerClient(
 
     private fun onShipTransform(packet: Packet) {
         val buf = packet.data
-        readShipTransform(buf)
+        readShipTransform(buf, parent.shipObjects)
     }
 
     private var serverNoUdp = false
@@ -110,48 +110,32 @@ class ShipObjectNetworkManagerClient(
                 tryConnectIn = 100
             }
         }
-
-        // Apply the latest data received
-        latestReceived.forEach {
-            val ship = parent.shipObjects[it.key]
-            if (ship != null) {
-                ship.updateNextShipTransform(it.value.lastTransform!!)
-            } else {
-                logger.warn("Received ship data delta for ship with unknown ID!")
-            }
-        }
-
-        // Clear the latest data received
-        latestReceived.clear()
     }
 
     companion object {
-        class TransformUpdate {
-            var lastTick = Int.MIN_VALUE
-            var lastTransform: ShipTransform? = null
-        }
-
         private val logger by logger()
-        internal val latestReceived = HashMap<ShipId, TransformUpdate>()
 
         // Reads all ship transforms in a buffer and places them in the latestReceived map.
-        internal fun readShipTransform(buf: ByteBuf) {
+        internal fun readShipTransform(buf: ByteBuf, shipObjects: Map<ShipId, ShipObjectClient>) {
             val tickNum = buf.readInt()
             while (buf.isReadable) {
                 val shipId = buf.readLong()
-                val latest = latestReceived.getOrPut(shipId) { TransformUpdate() }
-                if (latest.lastTick >= tickNum) {
+                val ship = shipObjects[shipId]
+                if (ship == null) {
+                    logger.warn("Received ship data delta for ship with unknown ID!")
+                    buf.skipBytes(VSNetworkPipelineStage.TRANSFORM_SIZE - 8)
+                } else if (ship.latestNetworkTTick >= tickNum) {
                     // Skip the transform if we already have it
                     buf.skipBytes(VSNetworkPipelineStage.TRANSFORM_SIZE - 8)
                 } else {
-                    latest.lastTick = tickNum
+                    ship.latestNetworkTTick = tickNum
 
                     val centerOfMass = buf.readVec3d()
                     val scaling = buf.readVec3fAsDouble()
                     val rotation = buf.read3FAsNormQuatd()
                     val position = buf.readVec3d()
 
-                    latest.lastTransform = ShipTransform.createFromCoordinatesAndRotationAndScaling(
+                    ship.latestNetworkTransform = ShipTransform.createFromCoordinatesAndRotationAndScaling(
                         position, centerOfMass, rotation, scaling
                     )
                 }
