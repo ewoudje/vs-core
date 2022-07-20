@@ -8,7 +8,7 @@ class ShipObjectClientWorld(
 
     private val shipObjectMap = HashMap<ShipId, ShipObjectClient>()
     override val shipObjects: Map<ShipId, ShipObjectClient> = shipObjectMap
-    private val networkManager = ShipObjectNetworkManagerClient(this)
+    val networkManager = ShipObjectNetworkManagerClient(this)
 
     init {
         networkManager.registerPacketListeners()

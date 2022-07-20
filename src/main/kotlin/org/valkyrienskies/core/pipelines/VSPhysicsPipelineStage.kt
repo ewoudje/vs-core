@@ -28,6 +28,7 @@ class VSPhysicsPipelineStage {
     // Map ships ids to rigid bodies, and map rigid bodies to ship ids
     private val shipIdToPhysShip: MutableMap<ShipId, PhysShip> = HashMap()
     private val dimensionIntIdToString = Int2ObjectOpenHashMap<String>()
+    private var physTick = 0
 
     init {
         // Apply physics engine settings
@@ -206,7 +207,7 @@ class VSPhysicsPipelineStage {
                     shipId, inertiaData, shipTransform, shipVoxelOffset, vel, omega, aabb
                 )
         }
-        return VSPhysicsFrame(shipDataMap, voxelUpdatesMap)
+        return VSPhysicsFrame(shipDataMap, voxelUpdatesMap, physTick++)
     }
 
     private fun getKrunchDimensionId(dimensionId: DimensionId): Int {

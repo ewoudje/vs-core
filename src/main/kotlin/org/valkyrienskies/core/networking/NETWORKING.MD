@@ -48,10 +48,19 @@ MyPacket::class.registerServerHandler { packet, player ->
 
 > Remember: the handler doesn't run on the game thread.
 
+## `UDP` Protocol
 
+If a player joins it will use the TCP by default, and on the clients request
+by sending `PacketRequestUdp` it will request a UDP 'connection'.
 
+The server will return a `PacketUdpState` it contains the port of the UDP
+and a unique Long that will be used to identify the UDP 'connection'.
 
+To Initialize the UDP connection the client sends a 8-byte packet with the
+unique Long, and then the Server shall recognize the connection.
 
+For a final confirmation the server will send the players UUID to them,
+so does the client know that everything went OK.
 
 
 

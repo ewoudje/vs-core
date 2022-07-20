@@ -13,9 +13,13 @@ import org.valkyrienskies.core.game.ChunkClaim
 import org.valkyrienskies.core.game.ships.MutableQueryableShipDataServer
 import org.valkyrienskies.core.game.ships.QueryableShipDataImpl
 import org.valkyrienskies.core.game.ships.ShipData
+import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipInertiaData
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
 import org.valkyrienskies.core.game.ships.ShipTransform
+import org.valkyrienskies.core.pipelines.ShipInPhysicsFrameData
+import org.valkyrienskies.physics_api.RigidBodyInertiaData
+import org.valkyrienskies.physics_api.RigidBodyTransform
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -183,7 +187,7 @@ internal object VSRandomUtils {
     @Suppress("WeakerAccess")
     fun randomShipData(random: Random = defaultRandom): ShipData {
         return ShipData(
-            id = random.nextLong(),
+            id = randomShipId(),
             name = randomString(random, random.nextInt(10)),
             chunkClaim = randomChunkClaim(random),
             chunkClaimDimension = randomString(random, random.nextInt(10)),
@@ -214,4 +218,25 @@ internal object VSRandomUtils {
         }
         return shipActiveChunkSet
     }
+
+    @Suppress("WeakerAccess")
+    fun randomShipId(): ShipId = Random.nextLong()
+
+    @Suppress("WeakerAccess")
+    fun randomShipInPhysicsFrame(id: ShipId = randomShipId()): ShipInPhysicsFrameData =
+        ShipInPhysicsFrameData(
+            id,
+            RigidBodyInertiaData(
+                Random.nextDouble(),
+                randomMatrix3d()
+            ),
+            RigidBodyTransform(
+                randomVector3d(),
+                randomQuaterniond()
+            ),
+            randomVector3d(),
+            randomVector3d(),
+            randomVector3d(),
+            randomAABBd()
+        )
 }
