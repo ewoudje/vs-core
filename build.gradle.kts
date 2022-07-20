@@ -40,11 +40,6 @@ repositories {
                 password = vsMavenPassword
             }
         }
-
-        content {
-            // this repository *only* contains artifacts with group "org.valkyrienskies"
-            includeGroup("org.valkyrienskies")
-        }
     }
 }
 
