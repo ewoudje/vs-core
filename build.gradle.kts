@@ -82,6 +82,12 @@ dependencies {
 
     // Log4j2 for Logging
     implementation("org.apache.logging.log4j:log4j-api:${properties["mc_log4j2_version"]}")
+
+    // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
+    implementation("org.bouncycastle:bcprov-jdk15on:1.70")
+
+    // https://mvnrepository.com/artifact/org.bouncycastle/bctls-jdk15on
+    implementation("org.bouncycastle:bctls-jdk15on:1.70")
 }
 
 tasks.withType<Checkstyle> {

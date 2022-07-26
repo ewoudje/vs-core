@@ -4,90 +4,137 @@ import com.google.common.collect.HashBiMap
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import it.unimi.dsi.fastutil.longs.Long2ObjectArrayMap
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.newFixedThreadPoolContext
+import kotlinx.coroutines.newSingleThreadContext
+import org.bouncycastle.tls.DTLSServerProtocol
+import org.bouncycastle.tls.DTLSTransport
+import org.bouncycastle.tls.DefaultTlsServer
+import org.bouncycastle.tls.UDPTransport
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.networking.impl.PacketRequestUdp
 import org.valkyrienskies.core.util.logger
-import java.net.DatagramPacket
 import java.net.DatagramSocket
-import java.net.SocketAddress
+import java.util.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicInteger
 import javax.crypto.SecretKey
 import javax.crypto.spec.SecretKeySpec
 import kotlin.random.Random
 
-class UdpServerImpl(val socket: DatagramSocket, val channel: NetworkChannel) {
-    private val thread = Thread(::run)
+class UdpServerImpl(val socket: DatagramSocket, val channel: NetworkChannel) : AutoCloseable {
+    @OptIn(DelicateCoroutinesApi::class)
+    private val networkPool = newFixedThreadPoolContext(3, "UdpServer")
 
-    private val recvBuffer = ByteArray(PACKET_SIZE)
-    private val recvPacket = DatagramPacket(recvBuffer, PACKET_SIZE)
-    private val sendPacket = DatagramPacket(ByteArray(PACKET_SIZE), PACKET_SIZE)
+    // Send data
+    @OptIn(DelicateCoroutinesApi::class)
+    private val sendContext = newSingleThreadContext("UdpServerSend")
+    private val buffer = ByteArray(PACKET_SIZE)
 
-    private val connections = HashBiMap.create<SocketAddress, IPlayer>()
-    private var failedConnectionsInRow = 0
+    // Encryption
+    private val mtu = 1500
+    private val protocol = DTLSServerProtocol()
+    private val udpTransport = UDPTransport(socket, 1500)
+    private val tls = object : DefaultTlsServer(Encryption.crypto) {}
 
-    // TODO remove them after a while
-    private val identification = Long2ObjectArrayMap<IPlayer>()
+    // Connection data
+    private val connections = HashBiMap.create<DTLSTransport, IPlayer>()
+    private val identification = Long2ObjectArrayMap<IPlayer>() // TODO remove them after a while
     private val playerSecrets = HashMap<IPlayer, SecretKey>()
 
-    private var packetCount = 0
+    // Debug data
+    private var packetCount = AtomicInteger(0)
     private var lastPacketPrint = System.currentTimeMillis()
+    private var failedConnectionsInRow = 0
+
+    private var shutdown = false
 
     init {
         channel.rawSendToClient = ::sendToClient
-        thread.start()
-        socket.sendBufferSize = 508 * 60
-        socket.receiveBufferSize = 508 * 60
+        socket.sendBufferSize = PACKET_SIZE * 60
+        socket.receiveBufferSize = PACKET_SIZE * 60
+        GlobalScope.launch(networkPool) { acceptConnections() }
     }
 
     private fun sendToClient(buf: ByteBuf, player: IPlayer) {
-        if (connections.inverse()[player] == null) {
+        val transport = connections.inverse()[player]
+        if (transport == null) {
             Packets.TCP_UDP_FALLBACK.sendToClient(buf, player)
-        } else {
-            packetCount++
+        } else GlobalScope.launch(sendContext) {
+            packetCount.incrementAndGet()
             if (lastPacketPrint + 1000 < System.currentTimeMillis()) {
                 logger.info("Sended $packetCount UDP packets")
-                packetCount = 0
+                packetCount.set(0)
                 lastPacketPrint = System.currentTimeMillis()
             }
 
-            sendPacket.socketAddress = connections.inverse()[player]
-            buf.readBytes(sendPacket.data, 0, buf.writerIndex())
-            sendPacket.length = buf.writerIndex()
-            socket.send(sendPacket)
-        }
-    }
-
-    private fun run() {
-        VSNetworking.serverUsesUDP = true
-        while (!socket.isClosed) {
-            try {
-                socket.receive(recvPacket)
-                // Skip if no player was found
-                val sender = connections[recvPacket.socketAddress]
-                val buffer = Unpooled.wrappedBuffer(recvBuffer, 0, recvPacket.length)
-                // TODO logger here
-                // println("Received UDP Packet from $sender, size: ${recvPacket.length}")
-
-                if (sender == null) {
-                    // If no player was found, try to identify the player
-                    if (buffer.capacity() != 8) continue
-                    // TODO make this spamfree, ppl can spam this packet to guess a player's id ??
-                    val newConnection = identification.remove(buffer.readLong()) ?: continue
-
-                    connections[recvPacket.socketAddress] = newConnection
-                    failedConnectionsInRow = 0
-
-                    sendToClient(
-                        Unpooled.buffer(16)
-                            .writeLong(newConnection.uuid.leastSignificantBits)
-                            .writeLong(newConnection.uuid.mostSignificantBits),
-                        newConnection
-                    )
-                } else channel.onReceiveServer(buffer, sender)
-            } catch (e: Exception) {
-                logger.error("Error in server network thread", e)
+            if (buf.hasArray()) {
+                transport.send(buf.array(), buf.arrayOffset(), buf.writerIndex())
+            } else {
+                buf.readBytes(buffer, 0, buf.writerIndex())
+                transport.send(buffer, 0, buf.writerIndex())
             }
         }
     }
+
+    // Is blocking ;-;
+    private fun acceptConnections() {
+        VSNetworking.serverUsesUDP = true
+
+        while (!shutdown) {
+            try {
+                val transport = protocol.accept(tls, udpTransport) ?: continue
+                GlobalScope.launch(networkPool) {
+                    newConnection(transport)
+                }
+            } catch (e: Exception) {
+                logger.error("Error in server network connection thread", e)
+            }
+        }
+    }
+
+    private suspend fun newConnection(transport: DTLSTransport) = coroutineScope {
+        try {
+            val bytes = ByteArray(PACKET_SIZE)
+            val buffer = Unpooled.wrappedBuffer(bytes)
+            try {
+                transport.receive(bytes, 0, 8, 1000)
+            } catch (e: TimeoutException) {
+                logger.warn("Player timeout while waiting for identification")
+                return@coroutineScope
+            }
+            val player = identification.remove(buffer.readLong()) ?: return@coroutineScope
+            connections[transport] = player
+            failedConnectionsInRow = 0
+
+            sendToClient(
+                Unpooled.buffer(16)
+                    .writeLong(player.uuid.leastSignificantBits)
+                    .writeLong(player.uuid.mostSignificantBits),
+                player
+            )
+
+            while (connections.contains(transport)) {
+                // We write this in a separate method for suspend reasons
+                try {
+                    waitForPacket(bytes, buffer, player, transport)
+                } catch (e: Exception) {
+                    logger.error("Error in server network thread", e)
+                }
+            }
+        } finally {
+            transport.close()
+        }
+    }
+
+    private suspend fun waitForPacket(bytes: ByteArray, buffer: ByteBuf, player: IPlayer, transport: DTLSTransport) =
+        coroutineScope {
+            buffer.clear()
+            transport.receive(bytes, 0, PACKET_SIZE, 1)
+            channel.onReceiveServer(buffer, player)
+        }
 
     fun prepareIdentifier(player: IPlayer, packet: PacketRequestUdp): Long? =
         Random.nextLong().apply {
@@ -112,8 +159,14 @@ class UdpServerImpl(val socket: DatagramSocket, val channel: NetworkChannel) {
         playerSecrets.remove(player)
     }
 
+    override fun close() {
+        connections.forEach { (c, p) -> c.close() }
+        networkPool.close()
+        shutdown = false
+    }
+
     companion object {
-        const val PACKET_SIZE = 508
+        const val PACKET_SIZE = 508 - Encryption.packetOverhead
         private val logger by logger()
     }
 }
