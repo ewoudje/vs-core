@@ -36,7 +36,7 @@ class UdpServerImpl(val socket: DatagramSocket, val channel: NetworkChannel) : A
     // Encryption
     private val mtu = 1500
     private val protocol = DTLSServerProtocol()
-    private val udpTransport = UDPTransport(socket, 1500)
+    private val udpTransport = UDPTransport(socket, mtu)
     private val tls = object : DefaultTlsServer(Encryption.crypto) {}
 
     // Connection data

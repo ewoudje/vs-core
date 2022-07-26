@@ -3,25 +3,38 @@ package org.valkyrienskies.core.networking
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import org.apache.logging.log4j.message.StringFormattedMessage
+import org.bouncycastle.tls.DTLSClientProtocol
+import org.bouncycastle.tls.DTLSTransport
+import org.bouncycastle.tls.DefaultTlsClient
+import org.bouncycastle.tls.TlsAuthentication
+import org.bouncycastle.tls.UDPTransport
 import org.valkyrienskies.core.networking.UdpServerImpl.Companion.PACKET_SIZE
 import org.valkyrienskies.core.util.logger
-import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.SocketAddress
 
-class UdpClientImpl(val socket: DatagramSocket, val channel: NetworkChannel, val server: SocketAddress, id: Long) {
-    private val thread = Thread(::run)
+class UdpClientImpl(
+    val socket: DatagramSocket,
+    val channel: NetworkChannel,
+    val server: SocketAddress,
+    id: Long
+) : AutoCloseable {
+    private val thread = Thread { run(id) }
+
+    private val mtu = 1500
+    private val protocol = DTLSClientProtocol()
+    private val udpTransport = UDPTransport(socket, mtu)
+    private lateinit var transport: DTLSTransport
+    private val tls = object : DefaultTlsClient(Encryption.crypto) {
+        override fun getAuthentication(): TlsAuthentication = Encryption.clientAuth
+    }
 
     private val recvBuffer = ByteArray(PACKET_SIZE)
-    private val recvPacket = DatagramPacket(recvBuffer, PACKET_SIZE)
-    private val sendPacket = DatagramPacket(ByteArray(PACKET_SIZE), PACKET_SIZE)
+    private val sendBuffer = ByteArray(PACKET_SIZE)
 
     init {
         channel.rawSendToServer = ::sendToServer
-        sendPacket.socketAddress = server
-
-        // Sending connection id
-        sendToServer(Unpooled.buffer(8).writeLong(id))
+        socket.connect(server)
 
         socket.sendBufferSize = 508 * 60
         socket.receiveBufferSize = 508 * 60
@@ -30,34 +43,38 @@ class UdpClientImpl(val socket: DatagramSocket, val channel: NetworkChannel, val
     }
 
     private fun sendToServer(buf: ByteBuf) {
-        sendPacket.data = buf.array()
-        sendPacket.length = buf.writerIndex()
-        socket.send(sendPacket)
+        buf.readBytes(sendBuffer, 0, buf.writerIndex())
+        transport.send(sendBuffer, 0, buf.writerIndex())
     }
 
-    private fun run() {
+    private fun run(id: Long) {
+        transport = protocol.connect(tls, udpTransport)
+        val buffer = Unpooled.wrappedBuffer(recvBuffer)
+
+        // Sending connection id
+        sendToServer(Unpooled.buffer(8).writeLong(id))
+
         // Initial confirmation packet
-        socket.soTimeout = 1000
-        socket.receive(recvPacket)
-        if (recvPacket.length != 16) {
+        val Rlength = transport.receive(sendBuffer, 0, PACKET_SIZE, 1000)
+        if (Rlength != 16) {
             throw IllegalStateException("Invalid confirmation packet")
         }
         // TODO check player uuid is the same
 
-        socket.soTimeout = 0
         VSNetworking.clientUsesUDP = true
         var packetCount = 0
         var lastPacketPrint = System.currentTimeMillis()
 
         while (!socket.isClosed) {
             try {
-                socket.receive(recvPacket)
+                buffer.clear()
+                val packetLength = transport.receive(recvBuffer, 0, PACKET_SIZE, 0)
                 packetCount++
-                if (!recvPacket.socketAddress.equals(server)) {
-                    logger.warn("Received packet from non server address: ${recvPacket.socketAddress}")
-                    logger.warn("This is VERY SUSPICIOUS!")
-                    continue
-                }
+                // if (!recvPacket.socketAddress.equals(server)) {
+                //    logger.warn("Received packet from non server address: ${recvPacket.socketAddress}")
+                //    logger.warn("This is VERY SUSPICIOUS!")
+                //    continue
+                //}
 
                 if (lastPacketPrint + 1000 < System.currentTimeMillis()) {
                     logger.info("Received $packetCount UDP packets")
@@ -65,9 +82,8 @@ class UdpClientImpl(val socket: DatagramSocket, val channel: NetworkChannel, val
                     lastPacketPrint = System.currentTimeMillis()
                 }
 
-                logger.trace { StringFormattedMessage("Client received packet of size ${recvPacket.length}") }
-                val buffer = Unpooled.wrappedBuffer(recvBuffer, 0, recvPacket.length)
-                channel.onReceiveClient(buffer)
+                logger.trace { StringFormattedMessage("Client received packet of size ${packetLength}") }
+                channel.onReceiveClient(Unpooled.wrappedBuffer(packetLength, buffer))
             } catch (e: Exception) {
                 logger.error("Error in client network thread", e)
             }
@@ -76,5 +92,9 @@ class UdpClientImpl(val socket: DatagramSocket, val channel: NetworkChannel, val
 
     companion object {
         private val logger by logger()
+    }
+
+    override fun close() {
+        transport.close()
     }
 }
