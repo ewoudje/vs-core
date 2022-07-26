@@ -8,7 +8,6 @@ import org.bouncycastle.tls.DTLSTransport
 import org.bouncycastle.tls.DefaultTlsClient
 import org.bouncycastle.tls.TlsAuthentication
 import org.bouncycastle.tls.UDPTransport
-import org.valkyrienskies.core.networking.UdpServerImpl.Companion.PACKET_SIZE
 import org.valkyrienskies.core.util.logger
 import java.net.DatagramSocket
 import java.net.SocketAddress
@@ -29,8 +28,8 @@ class UdpClientImpl(
         override fun getAuthentication(): TlsAuthentication = Encryption.clientAuth
     }
 
-    private val recvBuffer = ByteArray(PACKET_SIZE)
-    private val sendBuffer = ByteArray(PACKET_SIZE)
+    private val recvBuffer = ByteArray(VSNetworking.UDP_PACKET_SIZE)
+    private val sendBuffer = ByteArray(VSNetworking.UDP_PACKET_SIZE)
 
     init {
         channel.rawSendToServer = ::sendToServer
@@ -55,7 +54,7 @@ class UdpClientImpl(
         sendToServer(Unpooled.buffer(8).writeLong(id))
 
         // Initial confirmation packet
-        val Rlength = transport.receive(sendBuffer, 0, PACKET_SIZE, 1000)
+        val Rlength = transport.receive(sendBuffer, 0, VSNetworking.UDP_PACKET_SIZE, 1000)
         if (Rlength != 16) {
             throw IllegalStateException("Invalid confirmation packet")
         }
@@ -68,7 +67,7 @@ class UdpClientImpl(
         while (!socket.isClosed) {
             try {
                 buffer.clear()
-                val packetLength = transport.receive(recvBuffer, 0, PACKET_SIZE, 0)
+                val packetLength = transport.receive(recvBuffer, 0, VSNetworking.UDP_PACKET_SIZE, 0)
                 packetCount++
                 // if (!recvPacket.socketAddress.equals(server)) {
                 //    logger.warn("Received packet from non server address: ${recvPacket.socketAddress}")

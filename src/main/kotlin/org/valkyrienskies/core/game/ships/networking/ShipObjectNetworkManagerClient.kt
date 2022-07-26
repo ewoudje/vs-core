@@ -7,10 +7,10 @@ import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipObjectClient
 import org.valkyrienskies.core.game.ships.ShipObjectClientWorld
 import org.valkyrienskies.core.game.ships.ShipTransform
+import org.valkyrienskies.core.networking.Encryption
 import org.valkyrienskies.core.networking.Packet
 import org.valkyrienskies.core.networking.Packets
 import org.valkyrienskies.core.networking.RegisteredHandler
-import org.valkyrienskies.core.networking.VSCryptUtils
 import org.valkyrienskies.core.networking.VSNetworking
 import org.valkyrienskies.core.networking.VSNetworking.tryUdpClient
 import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
@@ -101,7 +101,7 @@ class ShipObjectNetworkManagerClient(
         if (!VSNetworking.clientUsesUDP && !serverNoUdp) {
             tryConnectIn--
             if (tryConnectIn <= 0) {
-                secretKey = VSCryptUtils.generateAES128Key()
+                secretKey = Encryption.generateAES128Key()
                 tryUdpClient(server, secretKey!!) { supports: Boolean ->
                     if (!supports) {
                         serverNoUdp = true

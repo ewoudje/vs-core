@@ -6,6 +6,8 @@ import org.bouncycastle.tls.TlsCredentials
 import org.bouncycastle.tls.TlsServerCertificate
 import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCryptoProvider
 import java.security.SecureRandom
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
 
 object Encryption {
     const val packetOverhead = 13
@@ -23,5 +25,11 @@ object Encryption {
         override fun getClientCredentials(certificateRequest: CertificateRequest): TlsCredentials? {
             return null
         }
+    }
+
+    fun generateAES128Key(): SecretKey {
+        val keyGenerator = KeyGenerator.getInstance("AES")
+        keyGenerator.init(128)
+        return keyGenerator.generateKey()
     }
 }

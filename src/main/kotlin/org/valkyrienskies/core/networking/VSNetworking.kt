@@ -48,10 +48,10 @@ object VSNetworking {
 
             val udpServer = UdpServerImpl(udpSocket, UDP)
             PacketRequestUdp::class.registerServerHandler { packet, player ->
-                udpServer.prepareIdentifier(player, packet)?.let {
-                    PacketUdpState(udpSocket.localPort, serverUsesUDP, it)
-                        .sendToClient(player)
-                }
+                //udpServer.prepareIdentifier(player, packet)?.let {
+                PacketUdpState(udpSocket.localPort, serverUsesUDP, 0)
+                    .sendToClient(player)
+                //}
             }
 
             return udpServer
@@ -135,4 +135,7 @@ object VSNetworking {
     }
 
     private val logger by logger()
+
+    const val UDP_PACKET_MAX = 508
+    const val UDP_PACKET_SIZE = UDP_PACKET_MAX - Encryption.packetOverhead
 }
