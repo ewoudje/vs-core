@@ -60,27 +60,29 @@ class SocketManager(val socket: DatagramSocket, val newConnection: (NetworkPlaye
     private fun run() {
         var recvBuffer = pooled.heapBuffer(VSNetworking.UDP_PACKET_MAX)
         val packet = DatagramPacket(recvBuffer.array(), VSNetworking.UDP_PACKET_MAX)
-        while (true) {
+        VSNetworking.serverUsesUDP = true
+        while (!socket.isClosed) {
             socket.receive(packet)
 
             val player = connections[packet.socketAddress]
 
             if (player == null) {
-                val newPlayer: NetworkPlayer = TODO() //NetworkPlayer(packet.socketAddress)
+                val newPlayer = NetworkPlayer(packet.socketAddress)
                 connections[packet.socketAddress] = newPlayer
                 newConnection(newPlayer)
             } else {
-                if (player.deferred != null) {
+                recvBuffer = if (player.deferred != null) {
                     player.deferred!!.complete(recvBuffer)
                     recvBuffer.retain()
-                    recvBuffer = pooled.heapBuffer(VSNetworking.UDP_PACKET_MAX)
+                    pooled.heapBuffer(VSNetworking.UDP_PACKET_MAX)
                 } else {
                     player.packets.add(recvBuffer)
                     recvBuffer.retain()
-                    recvBuffer = pooled.heapBuffer(VSNetworking.UDP_PACKET_MAX)
+                    pooled.heapBuffer(VSNetworking.UDP_PACKET_MAX)
                 }
             }
         }
+        VSNetworking.serverUsesUDP = false
     }
 
     fun getPlayer(player: IPlayer): NetworkPlayer? = playerMap[player.uuid]

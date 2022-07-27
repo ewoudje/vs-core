@@ -11,8 +11,13 @@ data class NetworkPlayer(
     val address: SocketAddress
 ) {
     var player: IPlayer? = null
+        private set
     var isConnected: Boolean = true
     val packets: Queue<ByteBuf> = LinkedList()
     var deferred: CompletableDeferred<ByteBuf>? = null
     var transport: PlayerTransport? = null
+
+    fun identify(player: IPlayer) {
+        this.player = player
+    }
 }

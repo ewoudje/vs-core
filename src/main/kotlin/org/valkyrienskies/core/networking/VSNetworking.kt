@@ -98,6 +98,7 @@ object VSNetworking {
     private fun setupUdpClient(socketAddress: SocketAddress, id: Long): Boolean {
         try {
             val udpSocket = DatagramSocket()
+            udpSocket.connect(socketAddress)
             UdpClientImpl(udpSocket, UDP, socketAddress, id)
             return true
         } catch (e: Exception) {

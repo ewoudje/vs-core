@@ -6,6 +6,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.bouncycastle.tls.DTLSServerProtocol
 import org.bouncycastle.tls.DefaultTlsServer
+import org.bouncycastle.tls.ProtocolVersion
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.networking.bc.NetworkPlayer
 import org.valkyrienskies.core.networking.bc.PlayerTransport
@@ -20,7 +21,9 @@ class UdpServerImpl(socket: DatagramSocket, val channel: NetworkChannel) : AutoC
     // Encryption
     private val mtu = 1500
     private val protocol = DTLSServerProtocol()
-    private val tls = object : DefaultTlsServer(Encryption.crypto) {}
+    private val tls = object : DefaultTlsServer(Encryption.crypto) {
+        override fun getSupportedVersions(): Array<ProtocolVersion> = arrayOf(ProtocolVersion.DTLSv12)
+    }
 
     // Debug data
     private var packetCount = AtomicInteger(0)
@@ -60,9 +63,13 @@ class UdpServerImpl(socket: DatagramSocket, val channel: NetworkChannel) : AutoC
 
         try {
             val array = ByteArray(VSNetworking.UDP_PACKET_SIZE)
+            val buf = Unpooled.wrappedBuffer(array)
             transport = PlayerTransport(socketManager, player) { udp -> protocol.accept(tls, udp) }
             failedConnectionsInRow = 0
             player.transport = transport
+
+            transport.receive(array)
+            logger.warn(buf.readLong())
 
             sendToClient(
                 Unpooled.buffer(16)
@@ -75,7 +82,6 @@ class UdpServerImpl(socket: DatagramSocket, val channel: NetworkChannel) : AutoC
                 // We write this in a separate method for suspend reasons
                 try {
                     transport.receive(array)
-                    val buf = Unpooled.wrappedBuffer(array)
                     channel.onReceiveServer(buf, player.player!!)
                 } catch (e: Exception) {
                     logger.error("Error in server network thread", e)

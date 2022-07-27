@@ -6,6 +6,7 @@ import org.apache.logging.log4j.message.StringFormattedMessage
 import org.bouncycastle.tls.DTLSClientProtocol
 import org.bouncycastle.tls.DTLSTransport
 import org.bouncycastle.tls.DefaultTlsClient
+import org.bouncycastle.tls.ProtocolVersion
 import org.bouncycastle.tls.TlsAuthentication
 import org.bouncycastle.tls.UDPTransport
 import org.valkyrienskies.core.util.logger
@@ -26,6 +27,8 @@ class UdpClientImpl(
     private lateinit var transport: DTLSTransport
     private val tls = object : DefaultTlsClient(Encryption.crypto) {
         override fun getAuthentication(): TlsAuthentication = Encryption.clientAuth
+
+        override fun getSupportedVersions(): Array<ProtocolVersion> = arrayOf(ProtocolVersion.DTLSv12)
     }
 
     private val recvBuffer = ByteArray(VSNetworking.UDP_PACKET_SIZE)
@@ -33,7 +36,6 @@ class UdpClientImpl(
 
     init {
         channel.rawSendToServer = ::sendToServer
-        socket.connect(server)
 
         socket.sendBufferSize = 508 * 60
         socket.receiveBufferSize = 508 * 60
