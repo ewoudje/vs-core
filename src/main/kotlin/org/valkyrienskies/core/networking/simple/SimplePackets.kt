@@ -59,8 +59,13 @@ fun SimplePacket.sendToClient(player: IPlayer) {
 }
 
 fun SimplePacket.sendToClients(vararg players: IPlayer) {
-    val data = this.serialize()
-    this::class.java.getPacketType().sendToClients(data, *players)
+    require(players.isNotEmpty())
+
+    this::class.java.getPacketType().sendToClients(this.serialize(), *players)
+}
+
+fun SimplePacket.sendToAllClients() {
+    this::class.java.getPacketType().sendToAllClients(this.serialize())
 }
 
 fun KClass<out SimplePacket>.register(name: String = "SimplePacket - ${this.java}") {

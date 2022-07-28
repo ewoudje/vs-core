@@ -17,12 +17,15 @@ import com.networknt.schema.ValidationMessage
 import org.valkyrienskies.core.config.VSConfigClass.VSConfigClassSide.CLIENT
 import org.valkyrienskies.core.config.VSConfigClass.VSConfigClassSide.COMMON
 import org.valkyrienskies.core.config.VSConfigClass.VSConfigClassSide.SERVER
+import org.valkyrienskies.core.game.IPlayer
+import org.valkyrienskies.core.hooks.CoreHooks
 import org.valkyrienskies.core.hooks.PlayState.CLIENT_MULTIPLAYER
-import org.valkyrienskies.core.hooks.VSCoreHooks
 import org.valkyrienskies.core.networking.impl.PacketCommonConfigUpdate
 import org.valkyrienskies.core.networking.impl.PacketServerConfigUpdate
 import org.valkyrienskies.core.networking.simple.registerClientHandler
 import org.valkyrienskies.core.networking.simple.registerServerHandler
+import org.valkyrienskies.core.networking.simple.sendToAllClients
+import org.valkyrienskies.core.networking.simple.sendToClient
 import org.valkyrienskies.core.networking.simple.sendToServer
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import java.lang.reflect.Modifier
@@ -56,6 +59,24 @@ data class VSConfigClass(
         return PacketServerConfigUpdate(common.clazz, mapper.valueToTree(common.inst))
     }
 
+    fun writeToDisk() {
+        if (CoreHooks.isPhysicalClient) {
+            client?.saveConfig(CoreHooks.configDir)
+        }
+
+        if (CoreHooks.playState != CLIENT_MULTIPLAYER) {
+            server?.saveConfig(CoreHooks.configDir)
+            client?.saveConfig(CoreHooks.configDir)
+        }
+    }
+
+    fun syncToServer() {
+        if (CoreHooks.playState == CLIENT_MULTIPLAYER) {
+            makeServerConfigUpdatePacket()?.sendToServer()
+            makeCommonConfigUpdatePacket()?.sendToServer()
+        }
+    }
+
     companion object {
         internal val mapper = VSJacksonUtil.configMapper
 
@@ -81,17 +102,17 @@ data class VSConfigClass(
             )
         ).with(AddonModule()).with(JacksonModule()).build()
 
-        fun UpdatableConfig.writeToDisk() {
-            val mainConfig = getMainConfig()
-            if (VSCoreHooks.isPhysicalClient) {
-                mainConfig.client?.saveConfig(VSCoreHooks.configDir)
-            }
+        fun afterClientJoinServer(player: IPlayer) {
+            registeredConfigMap.values.forEach { config ->
+                config.makeCommonConfigUpdatePacket()?.sendToClient(player)
 
-            if (VSCoreHooks.playState != CLIENT_MULTIPLAYER) {
-                mainConfig.server?.saveConfig(VSCoreHooks.configDir)
-                mainConfig.client?.saveConfig(VSCoreHooks.configDir)
+                if (player.canModifyServerConfig) {
+                    config.makeServerConfigUpdatePacket()?.sendToClient(player)
+                }
             }
         }
+
+        fun UpdatableConfig.writeToDisk() = getMainConfig().writeToDisk()
 
         private fun UpdatableConfig.getMainConfig(): VSConfigClass =
             getRegisteredConfig(if (getSide() == null) this::class.java else this::class.java.enclosingClass)
@@ -104,7 +125,7 @@ data class VSConfigClass(
                 null -> {
                     val registeredConfig = getRegisteredConfig(this::class.java)
 
-                    registeredConfig.makeCommonConfigUpdatePacket()?.sendToServer()
+                    registeredConfig.makeCommonConfigUpdatePacket()?.sendToAllClients()
                 }
                 CLIENT -> {
                     throw IllegalArgumentException("Cannot sync client config to client")
@@ -114,7 +135,7 @@ data class VSConfigClass(
                 }
                 COMMON -> {
                     val registeredConfig = getRegisteredConfig(this::class.java.enclosingClass)
-                    registeredConfig.makeCommonConfigUpdatePacket()!!.sendToServer()
+                    registeredConfig.makeCommonConfigUpdatePacket()!!.sendToAllClients()
                 }
             }
         }
@@ -122,10 +143,7 @@ data class VSConfigClass(
         fun UpdatableConfig.syncConfigToServer() {
             when (getSide()) {
                 null -> {
-                    val registeredConfig = getRegisteredConfig(this::class.java)
-
-                    registeredConfig.makeServerConfigUpdatePacket()?.sendToServer()
-                    registeredConfig.makeCommonConfigUpdatePacket()?.sendToServer()
+                    getRegisteredConfig(this::class.java).syncToServer()
                 }
                 CLIENT -> {
                     throw IllegalArgumentException("Cannot sync client config to server")
@@ -163,7 +181,7 @@ data class VSConfigClass(
 
         fun registerNetworkHandlers() {
             PacketServerConfigUpdate::class.registerServerHandler { (mainClass, newConfig), player ->
-                if (player.isAdmin) {
+                if (player.canModifyServerConfig) {
                     attemptUpdate(mainClass, newConfig) { it.server }
                 }
             }
@@ -171,7 +189,7 @@ data class VSConfigClass(
                 attemptUpdate(mainClass, newConfig) { it.server }
             }
             PacketCommonConfigUpdate::class.registerServerHandler { (mainClass, newConfig), player ->
-                if (player.isAdmin) {
+                if (player.canModifyServerConfig) {
                     attemptUpdate(mainClass, newConfig) { it.common }
                 }
             }
@@ -222,7 +240,7 @@ data class VSConfigClass(
             val server = createSidedVSConfigClass(name, SERVER, clazz)
 
             val configClass = VSConfigClass(clazz, name, client, common, server)
-            configClass.sides.forEach { it.createOrReadConfig(VSCoreHooks.configDir) }
+            configClass.sides.forEach { it.createOrReadConfig(CoreHooks.configDir) }
 
             registeredConfigMap[clazz] = configClass
 

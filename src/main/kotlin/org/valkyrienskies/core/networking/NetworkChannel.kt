@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.valkyrienskies.core.game.IPlayer
+import org.valkyrienskies.core.hooks.CoreHooks
 import java.util.function.IntFunction
 
 /**
@@ -97,6 +98,14 @@ class NetworkChannel {
 
     fun sendToClients(packet: Packet, vararg players: IPlayer) {
         players.forEach { player -> sendToClient(packet, player) }
+    }
+
+    fun sendToAllClients(packet: Packet) {
+        val shipWorld = requireNotNull(CoreHooks.currentShipServerWorld) {
+            "Tried to send a packet of type ${packet.type} to all clients, but there is no server currently running!"
+        }
+
+        shipWorld.players.forEach { player -> sendToClient(packet, player) }
     }
 
     /**

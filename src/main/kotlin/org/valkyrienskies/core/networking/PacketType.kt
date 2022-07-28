@@ -15,6 +15,9 @@ data class PacketType(val channel: NetworkChannel, val id: Int, val name: String
     fun sendToClients(data: ByteBuf, vararg players: IPlayer) =
         channel.sendToClients(createPacket(data), *players)
 
+    fun sendToAllClients(data: ByteBuf) =
+        channel.sendToAllClients(createPacket(data))
+
     fun registerServerHandler(handler: ServerHandler) =
         channel.registerServerHandler(this, handler)
 

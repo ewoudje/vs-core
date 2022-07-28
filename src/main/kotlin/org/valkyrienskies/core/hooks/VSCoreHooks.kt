@@ -1,21 +1,22 @@
 package org.valkyrienskies.core.hooks
 
-import org.valkyrienskies.core.hooks.PlayState.CLIENT_TITLESCREEN
-import org.valkyrienskies.core.hooks.PlayState.SERVERSIDE
+import org.valkyrienskies.core.config.VSConfigClass
+import org.valkyrienskies.core.game.IPlayer
+import org.valkyrienskies.core.game.ships.ShipObjectClientWorld
+import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import java.nio.file.Path
-import kotlin.properties.Delegates
 
-object VSCoreHooks {
+abstract class AbstractCoreHooks {
+    abstract val isPhysicalClient: Boolean
+    abstract val configDir: Path
+    abstract val playState: PlayState
 
-    @JvmStatic
-    var isPhysicalClient by Delegates.notNull<Boolean>()
+    abstract val currentShipServerWorld: ShipObjectServerWorld?
+    abstract val currentShipClientWorld: ShipObjectClientWorld
 
-    @JvmStatic
-    lateinit var configDir: Path
-
-    lateinit var playState: PlayState
-
-    fun init() {
-        playState = if (isPhysicalClient) CLIENT_TITLESCREEN else SERVERSIDE
+    fun afterClientJoinServer(player: IPlayer) {
+        VSConfigClass.afterClientJoinServer(player)
     }
 }
+
+lateinit var CoreHooks: AbstractCoreHooks
