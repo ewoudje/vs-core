@@ -68,6 +68,7 @@ class NetworkChannel {
      */
     fun onReceiveServer(data: ByteBuf, player: IPlayer) {
         val packet = bytesToPacket(data)
+        println("Server received packet of type: ${packet.type}")
         val handlers = serverHandlers.get(packet.type.id)
 
         globalServerHandlers.forEach { it.handlePacket(packet, player) }

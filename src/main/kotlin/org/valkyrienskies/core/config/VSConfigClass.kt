@@ -51,22 +51,22 @@ data class VSConfigClass(
 
     private fun makeServerConfigUpdatePacket(): PacketServerConfigUpdate? {
         if (server == null) return null
-        return PacketServerConfigUpdate(server.clazz, mapper.valueToTree(server.inst))
+        return PacketServerConfigUpdate(clazz, mapper.valueToTree(server.inst))
     }
 
-    private fun makeCommonConfigUpdatePacket(): PacketServerConfigUpdate? {
+    private fun makeCommonConfigUpdatePacket(): PacketCommonConfigUpdate? {
         if (common == null) return null
-        return PacketServerConfigUpdate(common.clazz, mapper.valueToTree(common.inst))
+        return PacketCommonConfigUpdate(clazz, mapper.valueToTree(common.inst))
     }
 
     fun writeToDisk() {
         if (CoreHooks.isPhysicalClient) {
-            client?.saveConfig(CoreHooks.configDir)
+            client?.saveConfig()
         }
 
         if (CoreHooks.playState != CLIENT_MULTIPLAYER) {
-            server?.saveConfig(CoreHooks.configDir)
-            client?.saveConfig(CoreHooks.configDir)
+            server?.saveConfig()
+            client?.saveConfig()
         }
     }
 
@@ -159,9 +159,9 @@ data class VSConfigClass(
             }
         }
 
-        private fun getRegisteredConfig(mainClass: Class<*>): VSConfigClass {
+        fun getRegisteredConfig(mainClass: Class<*>): VSConfigClass {
             return requireNotNull(registeredConfigMap[mainClass]) {
-                "This UpdatableConfig is not registered as a main config nor recognized as a subclass of a main class"
+                "This UpdatableConfig (${mainClass}) is not registered as a main config"
             }
         }
 
@@ -173,6 +173,7 @@ data class VSConfigClass(
                 val errors = config.attemptUpdate(newConfig)
                 if (errors.isNotEmpty()) {
                     println("Attempted to update config with invalid schema:\n$errors")
+                    return
                 }
             } catch (ex: Exception) {
                 ex.printStackTrace()
@@ -180,9 +181,12 @@ data class VSConfigClass(
         }
 
         fun registerNetworkHandlers() {
+            println("registering network handlers")
             PacketServerConfigUpdate::class.registerServerHandler { (mainClass, newConfig), player ->
+                println("attempt server update with $mainClass and $newConfig")
                 if (player.canModifyServerConfig) {
                     attemptUpdate(mainClass, newConfig) { it.server }
+                    getRegisteredConfig(mainClass).server?.saveConfig()
                 }
             }
             PacketServerConfigUpdate::class.registerClientHandler { (mainClass, newConfig) ->
@@ -191,6 +195,7 @@ data class VSConfigClass(
             PacketCommonConfigUpdate::class.registerServerHandler { (mainClass, newConfig), player ->
                 if (player.canModifyServerConfig) {
                     attemptUpdate(mainClass, newConfig) { it.common }
+                    getRegisteredConfig(mainClass).common?.saveConfig()
                 }
             }
             PacketCommonConfigUpdate::class.registerClientHandler { (mainClass, newConfig) ->
@@ -230,10 +235,10 @@ data class VSConfigClass(
             )
         }
 
-        fun getOrRegisterConfig(name: String, clazz: Class<*>): VSConfigClass {
+        fun registerConfig(name: String, clazz: Class<*>): VSConfigClass {
             val registered = registeredConfigMap[clazz]
             if (registered != null)
-                return registered
+                throw IllegalArgumentException("Already registered")
 
             val client = createSidedVSConfigClass(name, CLIENT, clazz)
             val common = createSidedVSConfigClass(name, COMMON, clazz)
@@ -288,7 +293,7 @@ class SidedVSConfigClass(
         return emptySet()
     }
 
-    fun saveConfig(configDir: Path) {
+    fun saveConfig(configDir: Path = CoreHooks.configDir) {
         val mapper = VSConfigClass.mapper
 
         val name = "${parentName}_$sideName".lowercase()

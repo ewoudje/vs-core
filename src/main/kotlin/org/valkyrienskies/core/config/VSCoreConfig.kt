@@ -47,6 +47,6 @@ object VSCoreConfig {
 }
 
 fun main() {
-    val config = VSConfigClass.getOrRegisterConfig("vs_core", VSCoreConfig::class.java)
+    val config = VSConfigClass.registerConfig("vs_core", VSCoreConfig::class.java)
     println(config.client!!.schemaJson.toPrettyString())
 }
