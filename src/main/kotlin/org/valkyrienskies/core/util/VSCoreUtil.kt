@@ -2,6 +2,7 @@ package org.valkyrienskies.core.util
 
 import com.google.common.collect.ImmutableSet
 import io.netty.buffer.ByteBuf
+import org.apache.commons.lang3.StringUtils
 import org.joml.Quaterniond
 import org.joml.Quaterniondc
 import org.joml.Vector3d
@@ -9,11 +10,28 @@ import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.Vector3ic
 import java.nio.ByteBuffer
+import java.util.function.Consumer
 import kotlin.math.abs
 import kotlin.math.sqrt
 
 fun Int.squared(): Int = this * this
 fun Double.squared(): Double = this * this
+
+fun String.splitCamelCaseAndCapitalize(): String {
+    return StringUtils.capitalize(StringUtils.join(StringUtils.splitByCharacterTypeCamelCase(this), " "))
+}
+
+/**
+ * If this is a `Consumer<Animal>`, for example, then it should be assignable to
+ * a `Consumer<Dog>`, but that's not how this works in Java because variance is
+ * specified at usage, not at declaration (?!). That means people will naively write
+ * `Consumer<Dog>` when they meant to use `Consumer<? super Dog>`. This method
+ * allows you to easily circumvent that.
+ */
+fun <A, B : A> Consumer<A>.variance(): Consumer<B> {
+    @Suppress("UNCHECKED_CAST")
+    return this as Consumer<B>
+}
 
 fun <T> Sequence<T>.toImmutableSet(): ImmutableSet<T> =
     ImmutableSet.builder<T>().also { builder -> this.forEach { builder.add(it) } }.build()

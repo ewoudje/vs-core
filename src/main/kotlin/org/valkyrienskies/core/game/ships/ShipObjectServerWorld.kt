@@ -26,9 +26,18 @@ class ShipObjectServerWorld(
     override val queryableShipData: MutableQueryableShipDataServer,
     val chunkAllocator: ChunkAllocator,
 ) : ShipObjectWorld<ShipObjectServer>(queryableShipData) {
+    companion object {
+        private const val DEFAULT_CHUNK_WATCH_DISTANCE = 128.0
+        private const val DEFAULT_CHUNK_UNWATCH_DISTANCE = 192.0
+        internal lateinit var INSTANCE: ShipObjectServerWorld
+    }
 
     var lastTickPlayers: Set<IPlayer> = setOf()
         private set
+    init {
+        // todo: this is messy
+        INSTANCE = this
+    }
 
     var players: Set<IPlayer> = setOf()
         set(value) {
@@ -72,12 +81,6 @@ class ShipObjectServerWorld(
         ShipObjectServerWorldChunkTracker(this, DEFAULT_CHUNK_WATCH_DISTANCE, DEFAULT_CHUNK_UNWATCH_DISTANCE)
 
     internal val networkManager = ShipObjectNetworkManagerServer(this)
-
-    companion object {
-        private const val DEFAULT_CHUNK_WATCH_DISTANCE = 128.0
-        private const val DEFAULT_CHUNK_UNWATCH_DISTANCE = 192.0
-    }
-
     /**
      * Add the update to [shipToVoxelUpdates].
      */

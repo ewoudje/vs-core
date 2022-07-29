@@ -4,6 +4,7 @@ import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.valkyrienskies.core.game.IPlayer
+import org.valkyrienskies.core.hooks.CoreHooks
 import java.util.function.IntFunction
 
 /**
@@ -52,8 +53,14 @@ class NetworkChannel {
      */
     fun onReceiveClient(data: ByteBuf) {
         val packet = bytesToPacket(data)
+        val handlers = clientHandlers.get(packet.type.id)
+
         globalClientHandlers.forEach { it.handlePacket(packet) }
-        clientHandlers.get(packet.type.id)?.forEach { it.handlePacket(packet) }
+        handlers?.forEach { it.handlePacket(packet) }
+
+        if (globalClientHandlers.isEmpty() && (handlers == null || handlers.isEmpty())) {
+            println("WARN: received a packet ${packet.type.name} on the client, but no handlers were registered")
+        }
     }
 
     /**
@@ -61,8 +68,15 @@ class NetworkChannel {
      */
     fun onReceiveServer(data: ByteBuf, player: IPlayer) {
         val packet = bytesToPacket(data)
+        println("Server received packet of type: ${packet.type}")
+        val handlers = serverHandlers.get(packet.type.id)
+
         globalServerHandlers.forEach { it.handlePacket(packet, player) }
-        serverHandlers.get(packet.type.id)?.forEach { it.handlePacket(packet, player) }
+        handlers?.forEach { it.handlePacket(packet, player) }
+
+        if (globalServerHandlers.isEmpty() && (handlers == null || handlers.isEmpty())) {
+            println("WARN: received a packet ${packet.type.name} on the server, but no handlers were registered")
+        }
     }
 
     private fun bytesToPacket(data: ByteBuf): Packet {
@@ -82,6 +96,18 @@ class NetworkChannel {
 
     fun sendToClient(packet: Packet, player: IPlayer) =
         rawSendToClient(packetToBytes(packet), player)
+
+    fun sendToClients(packet: Packet, vararg players: IPlayer) {
+        players.forEach { player -> sendToClient(packet, player) }
+    }
+
+    fun sendToAllClients(packet: Packet) {
+        val shipWorld = requireNotNull(CoreHooks.currentShipServerWorld) {
+            "Tried to send a packet of type ${packet.type} to all clients, but there is no server currently running!"
+        }
+
+        shipWorld.players.forEach { player -> sendToClient(packet, player) }
+    }
 
     /**
      * To be implemented by Forge or Fabric networking. Should not be called.

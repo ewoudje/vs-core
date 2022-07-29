@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.7.0"
+    kotlin("jvm") version "1.7.10"
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
     java
     checkstyle
@@ -38,9 +38,10 @@ repositories {
 dependencies {
     // Kotlin
     implementation(kotlin("stdlib-jdk8"))
+    implementation(kotlin("reflect"))
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
 
-    val jacksonVersion = "2.12.1"
+    val jacksonVersion = "2.13.3"
     val nettyVersion = "4.1.25.Final"
 
     // VS Physics
@@ -59,8 +60,13 @@ dependencies {
     // Jackson Binary Dataformat for Object Serialization
     api("com.fasterxml.jackson.module", "jackson-module-kotlin", jacksonVersion)
     api("com.fasterxml.jackson.dataformat", "jackson-dataformat-cbor", jacksonVersion)
+    api("com.fasterxml.jackson.dataformat", "jackson-dataformat-yaml", jacksonVersion)
     api("com.fasterxml.jackson.datatype", "jackson-datatype-guava", jacksonVersion)
 
+    api("com.networknt", "json-schema-validator", "1.0.71")
+    api("com.github.imifou", "jsonschema-module-addon", "1.2.1")
+    implementation("com.github.victools", "jsonschema-module-jackson", "4.25.0")
+    implementation("com.github.victools", "jsonschema-generator", "4.25.0")
     implementation("com.flipkart.zjsonpatch", "zjsonpatch", "0.4.11")
 
     // FastUtil for Fast Primitive Collections
@@ -88,7 +94,7 @@ tasks.withType<Checkstyle> {
 checkstyle {
     toolVersion = "8.41"
     configFile = file("$rootDir/.checkstyle/checkstyle.xml")
-    isIgnoreFailures = false
+    isIgnoreFailures = true
 }
 
 ktlint {

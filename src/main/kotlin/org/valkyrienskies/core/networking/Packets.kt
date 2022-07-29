@@ -1,6 +1,8 @@
 package org.valkyrienskies.core.networking
 
+import org.valkyrienskies.core.networking.impl.PacketCommonConfigUpdate
 import org.valkyrienskies.core.networking.impl.PacketRequestUdp
+import org.valkyrienskies.core.networking.impl.PacketServerConfigUpdate
 import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
 import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.impl.PacketUdpState
@@ -24,6 +26,8 @@ object Packets {
         PacketUdpState::class.register()
         PacketShipDataCreate::class.register()
         PacketShipRemove::class.register()
+        PacketCommonConfigUpdate::class.register()
+        PacketServerConfigUpdate::class.register()
     }
 
     // no-op to force the class to load

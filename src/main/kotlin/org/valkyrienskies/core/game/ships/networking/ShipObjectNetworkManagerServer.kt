@@ -83,13 +83,16 @@ class ShipObjectNetworkManagerServer(
      * Send ShipData deltas to players
      */
     private fun updateShipData() {
-        players.forEach { player ->
+        for (player in players) {
             val buf = Unpooled.buffer()
             val newlyWatching = tracker.playersToShipsNewlyWatchingMap[player] ?: emptySet()
             val trackedShips = player.getTrackedShips()
                 // bad time complexity; sue me
                 .filter { tracked -> newlyWatching.none { tracked.id == it.id } }
                 .map { parent.shipObjects[it.id]!! }
+
+            if (trackedShips.isEmpty())
+                continue
 
             trackedShips.forEach { ship ->
                 buf.writeLong(ship.shipData.id)

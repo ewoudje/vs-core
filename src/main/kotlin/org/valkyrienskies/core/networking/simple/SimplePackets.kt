@@ -1,3 +1,5 @@
+@file:JvmName("SimplePackets")
+
 package org.valkyrienskies.core.networking.simple
 
 import io.netty.buffer.ByteBuf
@@ -34,7 +36,6 @@ fun <T : SimplePacket> KClass<T>.deserialize(buf: ByteBuf): T {
     return VSJacksonUtil.packetMapper.readValue(buf.duplicate(), this.java)
 }
 
-// todo: stop deserializing the packet multiple times for each handler...
 fun <T : SimplePacket> KClass<T>.registerServerHandler(handler: (T, IPlayer) -> Unit): RegisteredHandler {
     @Suppress("UNCHECKED_CAST")
     this.java.getSimplePacketInfo().serverHandlers.add(handler as (SimplePacket, IPlayer) -> Unit)
@@ -55,6 +56,16 @@ fun SimplePacket.sendToServer() {
 
 fun SimplePacket.sendToClient(player: IPlayer) {
     this::class.java.getPacketType().sendToClient(this.serialize(), player)
+}
+
+fun SimplePacket.sendToClients(vararg players: IPlayer) {
+    require(players.isNotEmpty())
+
+    this::class.java.getPacketType().sendToClients(this.serialize(), *players)
+}
+
+fun SimplePacket.sendToAllClients() {
+    this::class.java.getPacketType().sendToAllClients(this.serialize())
 }
 
 fun KClass<out SimplePacket>.register(name: String = "SimplePacket - ${this.java}") {
