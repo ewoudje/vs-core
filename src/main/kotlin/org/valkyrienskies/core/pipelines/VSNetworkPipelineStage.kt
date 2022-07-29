@@ -1,41 +1,69 @@
 package org.valkyrienskies.core.pipelines
 
+import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
+import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.networking.Packets
-import org.valkyrienskies.core.util.writeQuatd
+import org.valkyrienskies.core.networking.VSNetworking
+import org.valkyrienskies.core.util.logger
+import org.valkyrienskies.core.util.writeNormQuatdAs3F
+import org.valkyrienskies.core.util.writeVec3AsFloat
 import org.valkyrienskies.core.util.writeVec3d
 
 class VSNetworkPipelineStage(private val shipWorld: ShipObjectServerWorld) {
 
+    var noSkip = true
+
     /**
      * Push a physics frame to the game stage
+     *
+     * were only sending this every other tick, cus client only uses it every mc tick
      */
     fun pushPhysicsFrame(physicsFrame: VSPhysicsFrame) {
-        val ships = physicsFrame.shipDataMap
+        noSkip = !noSkip
+        if (noSkip) return
 
         shipWorld.networkManager.playersToTrackedShips.forEach { (player, trackedShips) ->
-
-            // Write ship transforms into a ByteBuf
             val buf = Unpooled.buffer()
 
-            buf.writeInt(shipWorld.tickNumber)
+            fun send(shipDatas: List<ShipData>) {
+                // Write ship transforms into a ByteBuf
+                buf.clear()
+                writePacket(buf, shipDatas, physicsFrame)
 
-            trackedShips.forEach { shipData ->
-                val physicsFrameData = ships.getValue(shipData.id)
-                val transform = VSGamePipelineStage.generateTransformFromPhysicsFrameData(physicsFrameData, shipData)
-
-                buf.writeLong(shipData.id)
-                buf.writeVec3d(transform.shipPositionInShipCoordinates)
-                buf.writeVec3d(transform.shipCoordinatesToWorldCoordinatesScaling)
-                buf.writeQuatd(transform.shipCoordinatesToWorldCoordinatesRotation)
-                buf.writeVec3d(transform.shipPositionInWorldCoordinates)
-                buf.writeVec3d(physicsFrameData.vel)
-                buf.writeVec3d(physicsFrameData.omega)
+                // Send it to the player
+                Packets.UDP_SHIP_TRANSFORM.sendToClient(buf, player)
             }
 
-            // Send it to the player
-            Packets.UDP_SHIP_TRANSFORM.sendToClient(buf, player)
+            // Each transform is 80 bytes big so 6 transforms per packet
+            // If not using udp we just send 1 big packet with all transforms
+            if (VSNetworking.serverUsesUDP)
+                trackedShips.chunked(504 / TRANSFORM_SIZE).forEach(::send)
+            else
+                send(trackedShips.asList())
         }
+    }
+
+    companion object {
+        fun writePacket(buf: ByteBuf, shipDatas: List<ShipData>, frame: VSPhysicsFrame) {
+            val ships = frame.shipDataMap
+            buf.writeInt(frame.physTickNumber)
+            shipDatas.forEach { shipData ->
+                val physicsFrameData = ships.getValue(shipData.id)
+                val transform =
+                    VSGamePipelineStage.generateTransformFromPhysicsFrameData(physicsFrameData, shipData)
+
+                buf.writeLong(shipData.id) // 8
+                buf.writeVec3d(transform.shipPositionInShipCoordinates) // 8 * 3 = 24
+                buf.writeVec3AsFloat(transform.shipCoordinatesToWorldCoordinatesScaling) // 4 * 3 = 12
+                buf.writeNormQuatdAs3F(transform.shipCoordinatesToWorldCoordinatesRotation) // 4 * 3 = 12
+                buf.writeVec3d(transform.shipPositionInWorldCoordinates) // 8 * 3 = 24
+                // 8 + 24 + 12 + 12 + 24 = 80
+            }
+        }
+
+        const val TRANSFORM_SIZE = 80
+        private val logger by logger()
     }
 }

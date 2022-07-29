@@ -5,7 +5,7 @@ import kotlin.reflect.KProperty
 // These will throw an error if ship is null
 open class ShipValueDelegate<T>(private val clazz: Class<T>, private val persistent: Boolean) {
     open operator fun getValue(thisRef: ShipProvider, property: KProperty<*>): T? =
-        thisRef.ship!!.getAttachment(clazz)
+        thisRef.ship?.getAttachment(clazz)
 
     open operator fun setValue(thisRef: ShipProvider, property: KProperty<*>, value: T?) =
         if (persistent) thisRef.ship!!.saveAttachment(clazz, value) else thisRef.ship!!.setAttachment(clazz, value)

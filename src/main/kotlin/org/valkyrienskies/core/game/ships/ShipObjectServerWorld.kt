@@ -12,6 +12,7 @@ import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.game.ships.networking.ShipObjectNetworkManagerServer
+import org.valkyrienskies.core.networking.VSNetworking
 import org.valkyrienskies.core.util.names.NounListNameGenerator
 import org.valkyrienskies.physics_api.voxel_updates.DenseVoxelShapeUpdate
 import org.valkyrienskies.physics_api.voxel_updates.EmptyVoxelShapeUpdate
@@ -31,12 +32,18 @@ class ShipObjectServerWorld(
         internal lateinit var INSTANCE: ShipObjectServerWorld
     }
 
+    var lastTickPlayers: Set<IPlayer> = setOf()
+        private set
     init {
         // todo: this is messy
         INSTANCE = this
     }
 
     var players: Set<IPlayer> = setOf()
+        set(value) {
+            lastTickPlayers = field
+            field = value
+        }
 
     private val shipObjectMap = HashMap<ShipId, ShipObjectServer>()
 
@@ -60,6 +67,7 @@ class ShipObjectServerWorld(
     private val _deletedShipObjects: MutableList<ShipData> = ArrayList()
 
     val deletedShipObjects: Collection<ShipData> = _deletedShipObjects
+    val udpServer = VSNetworking.tryUdpServer()
 
     /**
      * A map of voxel updates pending to be applied to ships.
@@ -177,7 +185,7 @@ class ShipObjectServerWorld(
         }
         // endregion
 
-        chunkTracker.updateTracking(players)
+        chunkTracker.updateTracking(players, lastTickPlayers)
         networkManager.tick()
 
         // for now don't do anything with this
@@ -296,5 +304,9 @@ class ShipObjectServerWorld(
     fun removeDimension(dimensionId: DimensionId) {
         assert(dimensionToGroundBodyId.contains(dimensionId))
         dimensionsRemovedThisTick.add(dimensionId)
+    }
+
+    fun onDisconnect(player: IPlayer) {
+        udpServer?.disconnect(player)
     }
 }

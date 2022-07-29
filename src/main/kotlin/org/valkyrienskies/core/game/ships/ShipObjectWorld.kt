@@ -7,7 +7,8 @@ import org.joml.primitives.AABBdc
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.util.coroutines.TickableCoroutineDispatcher
-import org.valkyrienskies.core.util.intersectsAABBImmutable
+import org.valkyrienskies.core.util.intersectsAABB
+import org.valkyrienskies.core.util.logger
 
 /**
  * Manages all the [ShipObject]s in a world.
@@ -29,7 +30,7 @@ abstract class ShipObjectWorld<ShipObjectType : ShipObject>(
         try {
             _dispatcher.tick()
         } catch (ex: Exception) {
-            ex.printStackTrace()
+            logger.error("Error while ticking ships", ex)
         }
         tickNumber++
     }
@@ -50,7 +51,11 @@ abstract class ShipObjectWorld<ShipObjectType : ShipObject>(
     }
 
     open fun getShipObjectsIntersecting(aabb: AABBdc): List<ShipObjectType> =
-        shipObjects.values.filter { it.shipData.shipAABB.intersectsAABBImmutable(aabb) }.toCollection(ArrayList())
+        shipObjects.values.filter { it.shipData.shipAABB.intersectsAABB(aabb) }.toCollection(ArrayList())
 
     abstract fun destroyWorld()
+
+    companion object {
+        private val logger by logger()
+    }
 }

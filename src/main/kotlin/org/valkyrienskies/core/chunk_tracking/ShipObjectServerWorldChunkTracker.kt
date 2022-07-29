@@ -64,8 +64,10 @@ class ShipObjectServerWorldChunkTracker(
         }
     }
 
-    fun updateTracking(players: Iterable<IPlayer>) {
+    fun updateTracking(players: Set<IPlayer>, lastTickPlayers: Set<IPlayer>) {
         cleanDeletedShips()
+        // Remove players that left the world
+        removePlayers(lastTickPlayers - players)
 
         val newChunkWatchTasks = TreeSet<ChunkWatchTask>()
         val newChunkUnwatchTasks = TreeSet<ChunkUnwatchTask>()
@@ -231,6 +233,22 @@ class ShipObjectServerWorldChunkTracker(
                     count - 1
                 }
             }
+        }
+    }
+
+    /**
+     * Remove players that are no longer in the [ShipObjectServerWorld]
+     */
+    private fun removePlayers(removedPlayers: Set<IPlayer>) {
+        if (removedPlayers.isEmpty()) return
+        removedPlayers.forEach { player ->
+            playersToShipsWatchingMap.remove(player)
+        }
+        shipsToPlayersWatchingMap.forEach { (_, playersWatching) ->
+            playersWatching.removeAll(removedPlayers)
+        }
+        chunkToPlayersWatchingMap.forEach { (_, playersWatching) ->
+            playersWatching.removeAll(removedPlayers)
         }
     }
 }

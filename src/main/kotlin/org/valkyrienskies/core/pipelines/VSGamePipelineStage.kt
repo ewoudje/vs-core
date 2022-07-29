@@ -6,6 +6,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.primitives.AABBi
+import org.valkyrienskies.core.api.Ticked
 import org.valkyrienskies.core.game.ships.PhysInertia
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipId
@@ -14,6 +15,7 @@ import org.valkyrienskies.core.game.ships.ShipObjectServer
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
 import org.valkyrienskies.core.game.ships.ShipTransform
+import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyTransform
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
@@ -28,7 +30,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
     fun pushPhysicsFrame(physicsFrame: VSPhysicsFrame) {
         if (physicsFramesQueue.size >= 100) {
             // throw IllegalStateException("Too many physics frames in the physics frame queue. Is the game stage broken?")
-            println("Too many physics frames in the physics frame queue. Is the game stage broken?")
+            logger.warn("Too many physics frames in the physics frame queue. Is the game stage broken?")
             Thread.sleep(1000L)
         }
         physicsFramesQueue.add(physicsFrame)
@@ -47,6 +49,11 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
         while (physicsFramesQueue.isNotEmpty()) {
             val physicsFrame = physicsFramesQueue.remove()
             applyPhysicsFrame(physicsFrame)
+        }
+
+        // Tick every attachment that wants to get ticked
+        shipWorld.shipObjects.forEach {
+            it.value.toBeTicked.forEach(Ticked::tick)
         }
     }
 
@@ -77,7 +84,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
             } else {
                 // Check ground rigid body objects
                 if (!shipWorld.dimensionToGroundBodyIdImmutable.containsValue(shipId))
-                    println(
+                    logger.warn(
                         "Received physics frame update for ship with ShipId: $shipId, " +
                             "but a ship with this ShipId does not exist!"
                     )
@@ -221,5 +228,7 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 transformFromPhysics.rotation
             )
         }
+
+        private val logger by logger()
     }
 }

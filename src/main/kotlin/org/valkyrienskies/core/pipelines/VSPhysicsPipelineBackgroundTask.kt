@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.pipelines
 
+import org.valkyrienskies.core.util.logger
 import java.util.LinkedList
 import java.util.Queue
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -64,11 +65,10 @@ class VSPhysicsPipelineBackgroundTask(private val vsPipeline: VSPipeline, privat
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
-            println(e)
-            repeat(10) { println("!!!!!!! VS PHYSICS THREAD CRASHED !!!!!!!") }
+            logger.error("Error in physics pipeline background task", e)
+            repeat(10) { logger.error("!!!!!!! VS PHYSICS THREAD CRASHED !!!!!!!") }
         }
-        println("Task ending")
+        logger.warn("Physics pipeline ending")
     }
 
     fun tellTaskToKillItself() {
@@ -86,5 +86,6 @@ class VSPhysicsPipelineBackgroundTask(private val vsPipeline: VSPipeline, privat
     companion object {
         private const val MAX_LOST_TIME: Long = 1e9.toLong()
         private const val PHYS_TICK_AVERAGE_WINDOW_MS = 5000
+        private val logger by logger()
     }
 }

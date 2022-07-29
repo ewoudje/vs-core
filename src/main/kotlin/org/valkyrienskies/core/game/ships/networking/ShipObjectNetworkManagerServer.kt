@@ -11,6 +11,7 @@ import org.valkyrienskies.core.networking.Packets
 import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
 import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.simple.sendToClient
+import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.toImmutableSet
 
@@ -67,14 +68,14 @@ class ShipObjectNetworkManagerServer(
     private fun endTracking(player: IPlayer, shipsToNotTrack: Iterable<ShipData>) {
         val shipIds = shipsToNotTrack.map { it.id }
         if (shipIds.isEmpty()) return
-        println("${player.uuid} unwatched ships $shipIds")
+        logger.debug("${player.uuid} unwatched ships $shipIds")
         PacketShipRemove(shipIds).sendToClient(player)
     }
 
     private fun startTracking(player: IPlayer, shipsToTrack: Iterable<ShipData>) {
         val ships = shipsToTrack.toList()
         if (ships.isEmpty()) return
-        println("${player.uuid} watched ships: ${ships.map { it.id }}")
+        logger.debug("${player.uuid} watched ships: ${ships.map { it.id }}")
         PacketShipDataCreate(ships).sendToClient(player)
     }
 
@@ -101,5 +102,9 @@ class ShipObjectNetworkManagerServer(
 
             Packets.TCP_SHIP_DATA_DELTA.sendToClient(buf, player)
         }
+    }
+
+    companion object {
+        private val logger by logger()
     }
 }

@@ -8,21 +8,13 @@ plugins {
 
 group = "org.valkyrienskies.core"
 // Determine the version
-if (project.hasProperty("CustomReleaseVersion")) {
-    version = project.property("CustomReleaseVersion") as String
+version = if (project.hasProperty("CustomReleaseVersion")) {
+    project.property("CustomReleaseVersion") as String
 } else {
     // Yes, I know there is a gradle plugin to detect git version.
     // But its made by Palantir 0_0.
-    val gitRevisionProcess = Runtime.getRuntime().exec("git rev-parse HEAD", emptyArray(), projectDir)
-    val processInputStream = gitRevisionProcess.inputStream
-
-    var gitRevision = ""
-    while (true) {
-        val lastReadByte = processInputStream.read()
-        if (lastReadByte == -1) break
-        gitRevision += lastReadByte.toChar()
-    }
-    version = "1.0.0+" + gitRevision.substring(0, 10)
+    val gitRevision = "git rev-parse HEAD".execute()
+    "1.0.0+" + gitRevision.substring(0, 10)
 }
 
 repositories {
@@ -85,6 +77,9 @@ dependencies {
 
     // Junit 5 for Unit Testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+
+    // Log4j2 for Logging
+    implementation("org.apache.logging.log4j:log4j-api:${properties["mc_log4j2_version"]}")
 }
 
 tasks.withType<Checkstyle> {
@@ -182,3 +177,12 @@ publishing {
         }
     }
 }
+
+// region Util functions
+
+fun String.execute(envp: Array<String>? = null, dir: File = projectDir): String {
+    val process = Runtime.getRuntime().exec(this, envp, projectDir)
+    return process.inputStream.reader().readText()
+}
+
+// endregion

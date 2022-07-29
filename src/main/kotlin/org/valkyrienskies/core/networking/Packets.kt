@@ -2,8 +2,10 @@ package org.valkyrienskies.core.networking
 
 import org.valkyrienskies.core.networking.impl.PacketCommonConfigUpdate
 import org.valkyrienskies.core.networking.impl.PacketServerConfigUpdate
+import org.valkyrienskies.core.networking.impl.PacketRequestUdp
 import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
 import org.valkyrienskies.core.networking.impl.PacketShipRemove
+import org.valkyrienskies.core.networking.impl.PacketUdpState
 import org.valkyrienskies.core.networking.simple.register
 
 /**
@@ -20,6 +22,8 @@ object Packets {
     val UDP_SHIP_TRANSFORM = VSNetworking.UDP.registerPacket("Ship transform update")
 
     init {
+        PacketRequestUdp::class.register()
+        PacketUdpState::class.register()
         PacketShipDataCreate::class.register()
         PacketShipRemove::class.register()
         PacketCommonConfigUpdate::class.register()

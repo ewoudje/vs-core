@@ -13,7 +13,8 @@ import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
  */
 data class VSPhysicsFrame(
     val shipDataMap: Map<ShipId, ShipInPhysicsFrameData>,
-    val voxelUpdatesMap: Map<ShipId, List<IVoxelShapeUpdate>>
+    val voxelUpdatesMap: Map<ShipId, List<IVoxelShapeUpdate>>,
+    val physTickNumber: Int
 )
 
 data class ShipInPhysicsFrameData(

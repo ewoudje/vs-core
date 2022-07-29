@@ -11,6 +11,8 @@ import org.joml.Vector3i
 import org.joml.Vector3ic
 import java.nio.ByteBuffer
 import java.util.function.Consumer
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 fun Int.squared(): Int = this * this
 fun Double.squared(): Double = this * this
@@ -55,6 +57,47 @@ fun ByteBuf.writeQuatfAsFloat(q: Quaterniondc) {
     writeFloat(q.y().toFloat())
     writeFloat(q.z().toFloat())
     writeFloat(q.w().toFloat())
+}
+
+// Write [q] such that the W component is always positive
+fun ByteBuf.writeNormQuatdAs3F(q: Quaterniondc) {
+    val lengthSq = q.lengthSquared()
+    if (abs(lengthSq - 1.0) > 1e-12) {
+        throw IllegalArgumentException("The input quaternion $q is not normalized!")
+    }
+    if (q.w() > 0) {
+        writeFloat(q.x().toFloat())
+        writeFloat(q.y().toFloat())
+        writeFloat(q.z().toFloat())
+    } else {
+        // If the W component of [q] is negative, then mitigate this by making the other components negative
+        writeFloat(-q.x().toFloat())
+        writeFloat(-q.y().toFloat())
+        writeFloat(-q.z().toFloat())
+    }
+}
+
+// We assume that W component of the quaternion is always positive
+fun ByteBuf.read3FAsNormQuatd(): Quaterniond {
+    val x = readFloat().toDouble()
+    val y = readFloat().toDouble()
+    val z = readFloat().toDouble()
+    var wSquared = 1.0 - ((x * x) + (y * y) + (z * z))
+    if (wSquared < 0.0) {
+        if (wSquared > -1e-7) {
+            // If [wSquared] is sufficiently small then just set it to 0, to mitigate very small amount of floating
+            // point error.
+            wSquared = 0.0
+        } else {
+            // If [wSquared] is too negative, then assume that this quaternion is malformed
+            throw IllegalStateException(
+                "The computed value for wSquared is $wSquared; which is negative! " +
+                    "Did we send a non-normalized quaternion? Or was packet corrupted?"
+            )
+        }
+    }
+    val w = sqrt(wSquared)
+    return Quaterniond(x, y, z, w).normalize()
 }
 
 fun ByteBuf.writeQuatd(q: Quaterniondc) {

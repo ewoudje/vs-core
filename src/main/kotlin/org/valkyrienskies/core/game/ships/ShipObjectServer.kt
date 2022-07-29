@@ -5,6 +5,7 @@ import org.joml.Matrix4dc
 import org.valkyrienskies.core.api.Ship
 import org.valkyrienskies.core.api.ShipForcesInducer
 import org.valkyrienskies.core.api.ShipUser
+import org.valkyrienskies.core.api.Ticked
 import org.valkyrienskies.core.networking.delta.DeltaEncodedChannelServerTCP
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 
@@ -25,6 +26,7 @@ class ShipObjectServer(
     // runtime attached data only server-side, cus syncing to clients would be pain
     internal val attachedData = MutableClassToInstanceMap.create<Any>()
     internal val forceInducers = mutableListOf<ShipForcesInducer>()
+    internal val toBeTicked = mutableListOf<Ticked>()
 
     init {
         for (data in shipData.persistentAttachedData) {
@@ -33,9 +35,11 @@ class ShipObjectServer(
     }
 
     override fun <T> setAttachment(clazz: Class<T>, value: T?) {
-        if (value == null)
-            attachedData.remove(clazz)
-        else {
+        if (value == null) {
+            val r = attachedData.remove(clazz)
+            forceInducers.remove(r)
+            toBeTicked.remove(r)
+        } else {
             applyAttachmentInterfaces(clazz, value)
             attachedData[clazz] = value
         }
@@ -57,6 +61,10 @@ class ShipObjectServer(
 
         if (ShipUser::class.java.isAssignableFrom(clazz)) {
             (value as ShipUser).ship = this
+        }
+
+        if (Ticked::class.java.isAssignableFrom(clazz)) {
+            toBeTicked.add(value as Ticked)
         }
     }
 

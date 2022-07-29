@@ -12,7 +12,7 @@ class ShipObjectClient(
     shipDataJson: JsonNode = VSJacksonUtil.defaultMapper.valueToTree(shipData)
 ) : ShipObject(shipData) {
     // The last ship transform sent by the sever
-    private var nextShipTransform: ShipTransform
+    internal var nextShipTransform: ShipTransform
 
     // The transform used when rendering the ship
     var renderTransform: ShipTransform
@@ -20,6 +20,9 @@ class ShipObjectClient(
 
     var renderAABB: AABBdc
         private set
+
+    internal var latestNetworkTransform: ShipTransform = shipData.shipTransform
+    internal var latestNetworkTTick = Int.MIN_VALUE
 
     val shipDataChannel = DeltaEncodedChannelClientTCP(jsonDiffDeltaAlgorithm, shipDataJson)
 
@@ -29,11 +32,8 @@ class ShipObjectClient(
         renderAABB = shipData.shipTransform.createEmptyAABB()
     }
 
-    fun updateNextShipTransform(nextShipTransform: ShipTransform) {
-        this.nextShipTransform = nextShipTransform
-    }
-
     fun tickUpdateShipTransform() {
+        this.nextShipTransform = latestNetworkTransform
         shipData.updatePrevTickShipTransform()
         shipData.shipTransform = ShipTransform.createFromSlerp(shipData.shipTransform, nextShipTransform, EMA_ALPHA)
     }

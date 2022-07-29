@@ -8,6 +8,11 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+fun AABBd.set(minX: Double, minY: Double, minZ: Double, maxX: Double, maxY: Double, maxZ: Double): AABBd = also {
+    setMin(minX, minY, minZ)
+    setMax(maxX, maxY, maxZ)
+}
+
 fun AABBd.expand(expansion: Double): AABBd {
     minX -= expansion
     minY -= expansion
@@ -63,6 +68,4 @@ fun AABBic.toAABBd(dest: AABBd): AABBd {
     return dest
 }
 
-fun AABBdc.intersectsAABBImmutable(other: AABBdc): Boolean {
-    return other.intersectsAABB(other as AABBd)
-}
+fun AABBdc.intersectsAABB(other: AABBdc) = intersectsAABB(other as AABBd)

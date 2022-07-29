@@ -11,6 +11,7 @@ import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.ships.PhysInertia
 import org.valkyrienskies.core.game.ships.PhysShip
 import org.valkyrienskies.core.game.ships.ShipId
+import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.RigidBodyTransform
@@ -27,6 +28,7 @@ class VSPhysicsPipelineStage {
     // Map ships ids to rigid bodies, and map rigid bodies to ship ids
     private val shipIdToPhysShip: MutableMap<ShipId, PhysShip> = HashMap()
     private val dimensionIntIdToString = Int2ObjectOpenHashMap<String>()
+    private var physTick = 0
 
     init {
         // Apply physics engine settings
@@ -45,7 +47,7 @@ class VSPhysicsPipelineStage {
     fun pushGameFrame(gameFrame: VSGameFrame) {
         if (gameFramesQueue.size >= 10) {
             // throw IllegalStateException("Too many game frames in the game frame queue. Is the physics stage broken?")
-            println("Too many game frames in the game frame queue. Is the physics stage broken?")
+            logger.warn("Too many game frames in the game frame queue. Is the physics stage broken?")
             Thread.sleep(1000L)
         }
         gameFramesQueue.add(gameFrame)
@@ -205,7 +207,7 @@ class VSPhysicsPipelineStage {
                     shipId, inertiaData, shipTransform, shipVoxelOffset, vel, omega, aabb
                 )
         }
-        return VSPhysicsFrame(shipDataMap, voxelUpdatesMap)
+        return VSPhysicsFrame(shipDataMap, voxelUpdatesMap, physTick++)
     }
 
     private fun getKrunchDimensionId(dimensionId: DimensionId): Int {
@@ -231,5 +233,7 @@ class VSPhysicsPipelineStage {
 
             return RigidBodyInertiaData(invMass, invInertiaMatrix)
         }
+
+        private val logger by logger()
     }
 }

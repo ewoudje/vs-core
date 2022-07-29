@@ -22,7 +22,7 @@ class VSPipeline(private val shipWorld: ShipObjectServerWorld) {
     private val physicsPipelineBackgroundTask: VSPhysicsPipelineBackgroundTask = VSPhysicsPipelineBackgroundTask(this)
 
     // The thread the physics engine runs on
-    private val physicsThread: Thread = thread(start = true, priority = 8) {
+    private val physicsThread: Thread = thread(start = true, priority = 8, name = "Physics thread") {
         physicsPipelineBackgroundTask.run()
     }
 
