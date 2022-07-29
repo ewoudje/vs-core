@@ -102,7 +102,6 @@ ktlint {
     reporters {
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
     }
-    
 }
 
 tasks {
