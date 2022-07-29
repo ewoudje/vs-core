@@ -26,4 +26,9 @@ value class APIForcesApplier(val rigidBody: RigidBodyReference) : ForcesApplier 
     override fun applyInvariantTorque(torque: Vector3dc) {
         rigidBody.addInvariantTorqueToNextPhysTick(torque)
     }
+
+    // Makes the rigidbody static
+    override fun setStatic(b: Boolean) {
+        rigidBody.isStatic = b
+    }
 }

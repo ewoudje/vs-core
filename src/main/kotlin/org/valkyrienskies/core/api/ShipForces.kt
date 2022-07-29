@@ -34,4 +34,12 @@ interface ForcesApplier {
     fun applyRotDependentTorque(torque: Vector3dc)
 
     fun applyInvariantTorque(torque: Vector3dc)
+
+    /**
+     * Sets the underlying object as a static physics object.
+     *
+     * @param b if true then static
+     */
+    fun setStatic(b: Boolean) // FIXME: ForcesAppliers are a indirect layer between rigidbodies and external use
+    // setStatic is supposed to be here but it doesn't fit the name of the interface
 }
