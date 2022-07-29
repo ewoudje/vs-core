@@ -34,10 +34,7 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
 data class VSConfigClass(
-    val clazz: Class<*>,
-    val name: String,
-    val client: SidedVSConfigClass?,
-    val common: SidedVSConfigClass?,
+    val clazz: Class<*>, val name: String, val client: SidedVSConfigClass?, val common: SidedVSConfigClass?,
     val server: SidedVSConfigClass?
 ) {
 
@@ -161,7 +158,7 @@ data class VSConfigClass(
 
         fun getRegisteredConfig(mainClass: Class<*>): VSConfigClass {
             return requireNotNull(registeredConfigMap[mainClass]) {
-                "This UpdatableConfig (${mainClass}) is not registered as a main config"
+                "This UpdatableConfig ($mainClass) is not registered as a main config"
             }
         }
 
@@ -205,13 +202,11 @@ data class VSConfigClass(
 
         private fun getSidedConfigClassAndInstance(side: VSConfigClassSide, mainClass: Class<*>): Pair<Class<*>, Any>? {
             val sidedConfigField =
-                mainClass.fields.find { Modifier.isStatic(it.modifiers) && it.name == side.fieldName }
-                    ?: return null
+                mainClass.fields.find { Modifier.isStatic(it.modifiers) && it.name == side.fieldName } ?: return null
 
-            val instance = sidedConfigField.get(null)
-                ?: throw IllegalArgumentException(
-                    "Type B (Java Class) main config class ($mainClass) property $sidedConfigField is null!"
-                )
+            val instance = sidedConfigField.get(null) ?: throw IllegalArgumentException(
+                "Type B (Java Class) main config class ($mainClass) property $sidedConfigField is null!"
+            )
 
             return Pair(sidedConfigField.type, instance)
         }
@@ -237,8 +232,7 @@ data class VSConfigClass(
 
         fun registerConfig(name: String, clazz: Class<*>): VSConfigClass {
             val registered = registeredConfigMap[clazz]
-            if (registered != null)
-                throw IllegalArgumentException("Already registered")
+            if (registered != null) throw IllegalArgumentException("Already registered")
 
             val client = createSidedVSConfigClass(name, CLIENT, clazz)
             val common = createSidedVSConfigClass(name, COMMON, clazz)
@@ -254,12 +248,9 @@ data class VSConfigClass(
     }
 
     private enum class VSConfigClassSide(
-        val subclassName: String,
-        val fieldName: String = subclassName.uppercase()
+        val subclassName: String, val fieldName: String = subclassName.uppercase()
     ) {
-        CLIENT("Client"),
-        COMMON("Common"),
-        SERVER("Server");
+        CLIENT("Client"), COMMON("Common"), SERVER("Server");
 
         companion object {
             val VALUES = values().toList()
@@ -268,26 +259,19 @@ data class VSConfigClass(
 }
 
 class SidedVSConfigClass(
-    val clazz: Class<*>,
-    val inst: Any,
-    val sideName: String,
-    val parentName: String,
-    val schemaJson: ObjectNode,
-    val schema: JsonSchema,
-    val onUpdate: () -> Unit
+    val clazz: Class<*>, val inst: Any, val sideName: String, val parentName: String, val schemaJson: ObjectNode,
+    val schema: JsonSchema, val onUpdate: () -> Unit
 ) {
 
     fun generateInstJson(): ObjectNode = VSConfigClass.mapper.valueToTree(inst)
-    fun generateInstJsonWith(key: String, value: JsonNode) =
-        generateInstJson().also { it.replace(key, value) }
+    fun generateInstJsonWith(key: String, value: JsonNode) = generateInstJson().also { it.replace(key, value) }
 
     fun attemptUpdate(newConfig: JsonNode): Set<ValidationMessage> {
         val errors = schema.validate(newConfig as ObjectNode)
         if (errors.isNotEmpty()) {
             return errors
         }
-        VSConfigClass.mapper.readerForUpdating(inst).withoutAttribute("\$schema")
-            .readValue(newConfig, clazz)
+        VSConfigClass.mapper.readerForUpdating(inst).withoutAttribute("\$schema").readValue(newConfig, clazz)
         onUpdate()
 
         return emptySet()

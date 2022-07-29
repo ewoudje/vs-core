@@ -93,7 +93,7 @@ class ShipObjectNetworkManagerServer(
 
             if (trackedShips.isEmpty())
                 continue
-            
+
             trackedShips.forEach { ship ->
                 buf.writeLong(ship.shipData.id)
                 val json = VSJacksonUtil.deltaMapper.valueToTree<JsonNode>(ship.shipData)

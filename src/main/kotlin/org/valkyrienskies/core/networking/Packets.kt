@@ -1,8 +1,8 @@
 package org.valkyrienskies.core.networking
 
 import org.valkyrienskies.core.networking.impl.PacketCommonConfigUpdate
-import org.valkyrienskies.core.networking.impl.PacketServerConfigUpdate
 import org.valkyrienskies.core.networking.impl.PacketRequestUdp
+import org.valkyrienskies.core.networking.impl.PacketServerConfigUpdate
 import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
 import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.impl.PacketUdpState
