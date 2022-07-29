@@ -1,9 +1,8 @@
 package org.valkyrienskies.core.networking
 
-import org.valkyrienskies.core.config.VSConfigClass
-
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer
-import org.valkyrienskies.core.game.VSOptions
+import org.valkyrienskies.core.config.VSConfigClass
+import org.valkyrienskies.core.config.VSCoreConfig
 import org.valkyrienskies.core.networking.impl.PacketRequestUdp
 import org.valkyrienskies.core.networking.impl.PacketUdpState
 import org.valkyrienskies.core.networking.simple.registerClientHandler
@@ -47,7 +46,7 @@ object VSNetworking {
     fun tryUdpServer(): UdpServerImpl? {
 
         try {
-            val udpSocket = DatagramSocket(VSOptions.udpPort)
+            val udpSocket = DatagramSocket(VSCoreConfig.SERVER.udpPort)
 
             val udpServer = UdpServerImpl(udpSocket, UDP)
             PacketRequestUdp::class.registerServerHandler { packet, player ->
@@ -59,9 +58,9 @@ object VSNetworking {
 
             return udpServer
         } catch (e: SocketException) {
-            logger.error("Tried to bind to ${VSOptions.udpPort} but failed!", e)
+            logger.error("Tried to bind to ${VSCoreConfig.SERVER.udpPort} but failed!", e)
         } catch (e: Exception) {
-            logger.error("Tried to setup udp with port: ${VSOptions.udpPort} but failed!", e)
+            logger.error("Tried to setup udp with port: ${VSCoreConfig.SERVER.udpPort} but failed!", e)
         }
 
         tcp4udpFallback()
