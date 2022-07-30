@@ -124,12 +124,15 @@ data class VSConfigClass(
 
                     registeredConfig.makeCommonConfigUpdatePacket()?.sendToAllClients()
                 }
+
                 CLIENT -> {
                     throw IllegalArgumentException("Cannot sync client config to client")
                 }
+
                 SERVER -> {
                     throw IllegalArgumentException("Currently syncing server config to client is unsupported...")
                 }
+
                 COMMON -> {
                     val registeredConfig = getRegisteredConfig(this::class.java.enclosingClass)
                     registeredConfig.makeCommonConfigUpdatePacket()!!.sendToAllClients()
@@ -142,13 +145,16 @@ data class VSConfigClass(
                 null -> {
                     getRegisteredConfig(this::class.java).syncToServer()
                 }
+
                 CLIENT -> {
                     throw IllegalArgumentException("Cannot sync client config to server")
                 }
+
                 SERVER -> {
                     val registeredConfig = getRegisteredConfig(this::class.java.enclosingClass)
                     registeredConfig.makeServerConfigUpdatePacket()!!.sendToServer()
                 }
+
                 COMMON -> {
                     val registeredConfig = getRegisteredConfig(this::class.java.enclosingClass)
                     registeredConfig.makeCommonConfigUpdatePacket()!!.sendToServer()
@@ -326,4 +332,3 @@ class SidedVSConfigClass(
         return null
     }
 }
-
