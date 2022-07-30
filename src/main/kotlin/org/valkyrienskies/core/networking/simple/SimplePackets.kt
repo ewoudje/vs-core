@@ -12,6 +12,7 @@ import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.serialization.readValue
 import kotlin.reflect.KClass
+import kotlin.reflect.full.declaredMemberFunctions
 
 private val classToPacket = HashMap<Class<out SimplePacket>, SimplePacketInfo>()
 
@@ -90,8 +91,10 @@ fun KClass<out SimplePacket>.register(name: String = "SimplePacket - ${this.java
             logger.warn("No server handlers registered for the received SimplePacket ($packetType)")
     }
 
-    registerClientHandler(SimplePacket::receivedByClient)
-    registerServerHandler(SimplePacket::receivedByServer)
+    if (this.declaredMemberFunctions.any { it.name == "receivedByClient" })
+        registerClientHandler(SimplePacket::receivedByClient)
+    if (this.declaredMemberFunctions.any { it.name == "receivedByServer" })
+        registerServerHandler(SimplePacket::receivedByServer)
 }
 
 private val logger by logger("Simple Packet")
