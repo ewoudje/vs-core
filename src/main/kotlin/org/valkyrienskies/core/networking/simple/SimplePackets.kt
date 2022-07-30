@@ -8,6 +8,7 @@ import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.networking.PacketType
 import org.valkyrienskies.core.networking.RegisteredHandler
 import org.valkyrienskies.core.networking.VSNetworking
+import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.serialization.readValue
 import kotlin.reflect.KClass
@@ -78,13 +79,20 @@ fun KClass<out SimplePacket>.register(name: String = "SimplePacket - ${this.java
     packetType.registerClientHandler { packet ->
         val data = this.deserialize(packet.data)
         packetInfo.clientHandlers.forEach { it(data) }
+        if (packetInfo.clientHandlers.isEmpty())
+            logger.warn("No client handlers registered for the received SimplePacket ($packetType)")
     }
 
     packetType.registerServerHandler { packet, player ->
         val data = this.deserialize(packet.data)
         packetInfo.serverHandlers.forEach { it(data, player) }
+        if (packetInfo.clientHandlers.isEmpty())
+            logger.warn("No server handlers registered for the received SimplePacket ($packetType)")
+
     }
 
     registerClientHandler(SimplePacket::receivedByClient)
     registerServerHandler(SimplePacket::receivedByServer)
 }
+
+private val logger by logger("Simple Packet")

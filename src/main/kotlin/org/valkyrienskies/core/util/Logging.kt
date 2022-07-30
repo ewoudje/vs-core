@@ -5,6 +5,7 @@ import org.apache.logging.log4j.Logger
 import kotlin.reflect.KProperty
 
 fun logger(): DelegateLogger = DelegateLogger
+fun logger(name: String): ClassLogger = ClassLogger(LogManager.getLogger(name))
 
 @JvmInline
 value class ClassLogger(val logger: Logger) {

@@ -5,6 +5,7 @@ import io.netty.buffer.Unpooled
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.hooks.CoreHooks
+import org.valkyrienskies.core.util.logger
 import java.util.function.IntFunction
 
 /**
@@ -75,7 +76,7 @@ class NetworkChannel {
         handlers?.forEach { it.handlePacket(packet, player) }
 
         if (globalServerHandlers.isEmpty() && (handlers == null || handlers.isEmpty())) {
-            println("WARN: received a packet ${packet.type.name} on the server, but no handlers were registered")
+            logger.warn("received a packet ${packet.type.name} on the server, but no handlers were registered")
         }
     }
 
@@ -118,4 +119,8 @@ class NetworkChannel {
      * To be implemented by Forge or Fabric networking. Should not be called.
      */
     lateinit var rawSendToClient: (data: ByteBuf, player: IPlayer) -> Unit
+
+    companion object {
+        val logger by logger()
+    }
 }
