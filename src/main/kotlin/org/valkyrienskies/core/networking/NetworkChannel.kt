@@ -55,12 +55,13 @@ class NetworkChannel {
     fun onReceiveClient(data: ByteBuf) {
         val packet = bytesToPacket(data)
         val handlers = clientHandlers.get(packet.type.id)
+        logger.debug("Client received packet of type: ${packet.type}")
 
         globalClientHandlers.forEach { it.handlePacket(packet) }
         handlers?.forEach { it.handlePacket(packet) }
 
         if (globalClientHandlers.isEmpty() && (handlers == null || handlers.isEmpty())) {
-            println("WARN: received a packet ${packet.type.name} on the client, but no handlers were registered")
+            logger.warn("Received a packet ${packet.type.name} on the client, but no handlers were registered")
         }
     }
 
@@ -69,14 +70,14 @@ class NetworkChannel {
      */
     fun onReceiveServer(data: ByteBuf, player: IPlayer) {
         val packet = bytesToPacket(data)
-        println("Server received packet of type: ${packet.type}")
+        logger.debug("Server received packet of type: ${packet.type}")
         val handlers = serverHandlers.get(packet.type.id)
 
         globalServerHandlers.forEach { it.handlePacket(packet, player) }
         handlers?.forEach { it.handlePacket(packet, player) }
 
         if (globalServerHandlers.isEmpty() && (handlers == null || handlers.isEmpty())) {
-            logger.warn("received a packet ${packet.type.name} on the server, but no handlers were registered")
+            logger.warn("Received a packet ${packet.type.name} on the server, but no handlers were registered")
         }
     }
 

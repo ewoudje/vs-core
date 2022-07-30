@@ -86,9 +86,8 @@ fun KClass<out SimplePacket>.register(name: String = "SimplePacket - ${this.java
     packetType.registerServerHandler { packet, player ->
         val data = this.deserialize(packet.data)
         packetInfo.serverHandlers.forEach { it(data, player) }
-        if (packetInfo.clientHandlers.isEmpty())
+        if (packetInfo.serverHandlers.isEmpty())
             logger.warn("No server handlers registered for the received SimplePacket ($packetType)")
-
     }
 
     registerClientHandler(SimplePacket::receivedByClient)
