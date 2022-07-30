@@ -144,6 +144,11 @@ class NetworkChannel {
         clientQueue.forEach { clientReceive(it); it.data.release() }
         clientQueue.clear()
     }
+    
+    fun disable() {
+        serverReady = false
+        clientReady = false
+    }
 
     companion object {
         val logger by logger()

@@ -48,6 +48,8 @@ class ShipObjectNetworkManagerClient(
     fun onDestroy() {
         handlers.unregisterAll()
         secretKey = null
+        VSNetworking.TCP.disable()
+        VSNetworking.UDP.disable()
     }
 
     private fun onShipDataRemove(packet: PacketShipRemove) = worldScope.launch {
