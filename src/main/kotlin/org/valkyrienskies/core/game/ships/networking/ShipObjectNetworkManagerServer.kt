@@ -8,6 +8,7 @@ import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.networking.Packets
+import org.valkyrienskies.core.networking.VSNetworking
 import org.valkyrienskies.core.networking.impl.PacketShipDataCreate
 import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.simple.sendToClient
@@ -102,6 +103,11 @@ class ShipObjectNetworkManagerServer(
 
             Packets.TCP_SHIP_DATA_DELTA.sendToClient(buf, player)
         }
+    }
+
+    init {
+        VSNetworking.TCP.serverIsReady()
+        VSNetworking.UDP.serverIsReady()
     }
 
     companion object {

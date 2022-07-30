@@ -112,6 +112,11 @@ class ShipObjectNetworkManagerClient(
         }
     }
 
+    init {
+        VSNetworking.TCP.clientIsReady()
+        VSNetworking.UDP.clientIsReady()
+    }
+
     companion object {
         private val logger by logger()
 

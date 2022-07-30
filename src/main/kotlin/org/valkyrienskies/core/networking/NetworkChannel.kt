@@ -20,6 +20,11 @@ class NetworkChannel {
     private val globalServerHandlers = HashSet<ServerHandler>()
     private val globalClientHandlers = HashSet<ClientHandler>()
 
+    // These variables are for the initial packer receiving when not everything is ready yet.
+    private var clientReady = false
+    private var serverReady = false
+    private val clientQueue = ArrayList<Packet>()
+
     /**
      * Allocate a new packet type. This should be always be called in the same order, on startup, on both server and
      * client. Otherwise packet IDs will not be correct.
@@ -54,6 +59,10 @@ class NetworkChannel {
      */
     fun onReceiveClient(data: ByteBuf) {
         val packet = bytesToPacket(data)
+        if (clientReady) clientReceive(packet) else clientQueue.add(packet.apply { packet.data.retain() })
+    }
+
+    private fun clientReceive(packet: Packet) {
         val handlers = clientHandlers.get(packet.type.id)
         logger.debug("Client received packet of type: ${packet.type}")
 
@@ -70,8 +79,13 @@ class NetworkChannel {
      */
     fun onReceiveServer(data: ByteBuf, player: IPlayer) {
         val packet = bytesToPacket(data)
-        logger.debug("Server received packet of type: ${packet.type}")
+        // If the server isn't ready we just drop the packets
+        if (serverReady) serverReceive(packet, player)
+    }
+
+    private fun serverReceive(packet: Packet, player: IPlayer) {
         val handlers = serverHandlers.get(packet.type.id)
+        logger.debug("Server received packet of type: ${packet.type}")
 
         globalServerHandlers.forEach { it.handlePacket(packet, player) }
         handlers?.forEach { it.handlePacket(packet, player) }
@@ -120,6 +134,16 @@ class NetworkChannel {
      * To be implemented by Forge or Fabric networking. Should not be called.
      */
     lateinit var rawSendToClient: (data: ByteBuf, player: IPlayer) -> Unit
+
+    fun serverIsReady() {
+        serverReady = true
+    }
+
+    fun clientIsReady() {
+        clientReady = true
+        clientQueue.forEach { clientReceive(it); it.data.release() }
+        clientQueue.clear()
+    }
 
     companion object {
         val logger by logger()
