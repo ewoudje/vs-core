@@ -2,6 +2,7 @@ package org.valkyrienskies.core.game.ships
 
 import com.google.common.collect.MutableClassToInstanceMap
 import org.joml.Matrix4dc
+import org.joml.Vector3d
 import org.valkyrienskies.core.api.Ship
 import org.valkyrienskies.core.api.ShipForcesInducer
 import org.valkyrienskies.core.api.ShipUser
@@ -67,6 +68,11 @@ class ShipObjectServer(
             toBeTicked.add(value as Ticked)
         }
     }
+
+    /**
+     * This will be implemented in the future for portals, but for now we just return 0 for all positions
+     */
+    fun getSegmentId(localPos: Vector3d): Int = 0
 
     companion object {
         private const val DEFAULT_CHUNK_WATCH_DISTANCE = 128.0

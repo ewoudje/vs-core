@@ -78,9 +78,4 @@ object SegmentUtils {
         dest.add(segmentDisplacement.getPoseVelForInternalUseOnly().vel)
         return dest
     }
-
-    /**
-     * This will be implemented in the future for portals, but for now we just return 0 for all positions
-     */
-    fun getSegmentId(localPos: Vector3d): Int = 0
 }
