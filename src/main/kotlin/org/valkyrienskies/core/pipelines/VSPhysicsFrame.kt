@@ -3,8 +3,9 @@ package org.valkyrienskies.core.pipelines
 import org.joml.Vector3dc
 import org.joml.primitives.AABBdc
 import org.valkyrienskies.core.game.ships.ShipId
+import org.valkyrienskies.physics_api.PoseVel
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
-import org.valkyrienskies.physics_api.RigidBodyTransform
+import org.valkyrienskies.physics_api.SegmentTracker
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 
 /**
@@ -20,9 +21,8 @@ data class VSPhysicsFrame(
 data class ShipInPhysicsFrameData(
     val uuid: ShipId,
     val inertiaData: RigidBodyInertiaData,
-    val shipTransform: RigidBodyTransform,
+    val poseVel: PoseVel,
+    val segments: SegmentTracker,
     val shipVoxelOffset: Vector3dc, // The voxel offset of the ship at this physics frame
-    val vel: Vector3dc,
-    val omega: Vector3dc,
     val aabb: AABBdc
 )

@@ -1,9 +1,9 @@
 package org.valkyrienskies.core.game.ships
 
-import org.joml.Quaterniondc
-import org.joml.Vector3dc
 import org.valkyrienskies.core.api.ShipForcesInducer
+import org.valkyrienskies.physics_api.PoseVel
 import org.valkyrienskies.physics_api.RigidBodyReference
+import org.valkyrienskies.physics_api.SegmentTracker
 
 data class PhysShip internal constructor(
     val shipId: ShipId,
@@ -13,11 +13,8 @@ data class PhysShip internal constructor(
     internal var _inertia: PhysInertia,
 
     // TODO transformation matrix
-    val position: Vector3dc,
-    val rotation: Quaterniondc,
-
-    val velocity: Vector3dc,
-    val omega: Vector3dc
+    var poseVel: PoseVel,
+    var segments: SegmentTracker
 ) {
     val inertia: PhysInertia
         get() = _inertia

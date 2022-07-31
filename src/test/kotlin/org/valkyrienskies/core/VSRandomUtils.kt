@@ -18,8 +18,11 @@ import org.valkyrienskies.core.game.ships.ShipInertiaData
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
 import org.valkyrienskies.core.game.ships.ShipTransform
 import org.valkyrienskies.core.pipelines.ShipInPhysicsFrameData
+import org.valkyrienskies.physics_api.PoseVel
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
-import org.valkyrienskies.physics_api.RigidBodyTransform
+import org.valkyrienskies.physics_api.Segment
+import org.valkyrienskies.physics_api.SegmentDisplacement
+import org.valkyrienskies.physics_api.SingleSegmentTracker
 import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.sqrt
 import kotlin.random.Random
@@ -230,12 +233,13 @@ internal object VSRandomUtils {
                 Random.nextDouble(),
                 randomMatrix3d()
             ),
-            RigidBodyTransform(
+            PoseVel(
                 randomVector3d(),
-                randomQuaterniond()
+                randomQuaterniond(),
+                randomVector3d(),
+                randomVector3d()
             ),
-            randomVector3d(),
-            randomVector3d(),
+            SingleSegmentTracker(Segment(0, SegmentDisplacement(PoseVel.NULL_POSE_VEL, 1.0, 0))),
             randomVector3d(),
             randomAABBd()
         )

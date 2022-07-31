@@ -1,20 +1,18 @@
 package org.valkyrienskies.core.pipelines
 
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.joml.Matrix3d
-import org.joml.Quaterniond
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBd
 import org.valkyrienskies.core.api.impl.APIForcesApplier
-import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.ships.PhysInertia
 import org.valkyrienskies.core.game.ships.PhysShip
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.physics_api.PhysicsWorldReference
+import org.valkyrienskies.physics_api.PoseVel
 import org.valkyrienskies.physics_api.RigidBodyInertiaData
-import org.valkyrienskies.physics_api.RigidBodyTransform
+import org.valkyrienskies.physics_api.SegmentTracker
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import org.valkyrienskies.physics_api.voxel_updates.VoxelRigidBodyShapeUpdates
 import org.valkyrienskies.physics_api_krunch.KrunchBootstrap
@@ -27,7 +25,6 @@ class VSPhysicsPipelineStage {
 
     // Map ships ids to rigid bodies, and map rigid bodies to ship ids
     private val shipIdToPhysShip: MutableMap<ShipId, PhysShip> = HashMap()
-    private val dimensionIntIdToString = Int2ObjectOpenHashMap<String>()
     private var physTick = 0
 
     init {
@@ -63,12 +60,11 @@ class VSPhysicsPipelineStage {
             applyGameFrame(gameFrame)
         }
 
-        // Update the [velocity] and [omega] stored in [PhysShip]
+        // Update the [poseVel] stored in [PhysShip]
         shipIdToPhysShip.values.forEach {
-            it.rigidBodyReference.rigidBodyTransform.position.get(it.position as Vector3d)
-            it.rigidBodyReference.rigidBodyTransform.rotation.get(it.rotation as Quaterniond)
-            it.rigidBodyReference.velocity.get(it.velocity as Vector3d)
-            it.rigidBodyReference.omega.get(it.omega as Vector3d)
+            it.poseVel = it.rigidBodyReference.poseVel
+            // TODO: In the future update the segment tracker too, probably do this after we've added portals to Krunch
+            // it.segments = it.rigidBodyReference.segments
         }
 
         // Compute and apply forces/torques for ships
@@ -112,24 +108,27 @@ class VSPhysicsPipelineStage {
                         " but a rigid body already exists for this ship!"
                 )
             }
-            val dimension = newShipInGameFrameData.dimensionId
+            val dimension = newShipInGameFrameData.dimension
             val minDefined = newShipInGameFrameData.minDefined
             val maxDefined = newShipInGameFrameData.maxDefined
             val totalVoxelRegion = newShipInGameFrameData.totalVoxelRegion
             val inertiaData = newShipInGameFrameData.inertiaData
-            val shipTransform = newShipInGameFrameData.shipTransform
+            val poseVel = newShipInGameFrameData.poseVel
+            val segments = newShipInGameFrameData.segments
             val isStatic = newShipInGameFrameData.isStatic
             val shipVoxelsFullyLoaded = newShipInGameFrameData.shipVoxelsFullyLoaded
 
             val newRigidBodyReference =
                 physicsEngine.createVoxelRigidBody(
-                    getKrunchDimensionId(dimension), minDefined, maxDefined, totalVoxelRegion
+                    dimension, minDefined, maxDefined, totalVoxelRegion
                 )
             newRigidBodyReference.inertiaData = physInertiaToRigidBodyInertiaData(inertiaData)
-            newRigidBodyReference.rigidBodyTransform = shipTransform
+            newRigidBodyReference.poseVel = poseVel
             newRigidBodyReference.collisionShapeOffset = newShipInGameFrameData.voxelOffset
             newRigidBodyReference.isStatic = isStatic
             newRigidBodyReference.isVoxelTerrainFullyLoaded = shipVoxelsFullyLoaded
+            // TODO: This will need to be changed when we have multiple segments
+            newRigidBodyReference.setSegmentDisplacement(0, segments.segments.values.first().segmentDisplacement)
 
             shipIdToPhysShip[shipId] =
                 PhysShip(
@@ -137,10 +136,8 @@ class VSPhysicsPipelineStage {
                     newRigidBodyReference,
                     newShipInGameFrameData.forcesInducers,
                     inertiaData,
-                    newRigidBodyReference.rigidBodyTransform.position,
-                    newRigidBodyReference.rigidBodyTransform.rotation,
-                    newRigidBodyReference.velocity,
-                    newRigidBodyReference.omega,
+                    poseVel,
+                    segments
                 )
         }
 
@@ -152,22 +149,22 @@ class VSPhysicsPipelineStage {
                 )
 
             val shipRigidBody = physShip.rigidBodyReference
-            val oldShipTransform = shipRigidBody.rigidBodyTransform
+            val oldPoseVel = shipRigidBody.poseVel
 
             val oldVoxelOffset = shipRigidBody.collisionShapeOffset
             val newVoxelOffset = shipUpdate.newVoxelOffset
-            val deltaVoxelOffset = oldShipTransform.rotation.transform(newVoxelOffset.sub(oldVoxelOffset, Vector3d()))
+            val deltaVoxelOffset = oldPoseVel.rot.transform(newVoxelOffset.sub(oldVoxelOffset, Vector3d()))
             val isStatic = shipUpdate.isStatic
             val shipVoxelsFullyLoaded = shipUpdate.shipVoxelsFullyLoaded
 
-            val newShipTransform = RigidBodyTransform(
-                oldShipTransform.position.sub(deltaVoxelOffset, Vector3d()), oldShipTransform.rotation
+            val newShipPoseVel = PoseVel(
+                oldPoseVel.pos.sub(deltaVoxelOffset, Vector3d()), oldPoseVel.rot, oldPoseVel.vel, oldPoseVel.omega
             )
 
             physShip._inertia = shipUpdate.inertiaData
 
             shipRigidBody.collisionShapeOffset = newVoxelOffset
-            shipRigidBody.rigidBodyTransform = newShipTransform
+            shipRigidBody.poseVel = newShipPoseVel
             shipRigidBody.inertiaData = physInertiaToRigidBodyInertiaData(shipUpdate.inertiaData)
             shipRigidBody.isStatic = isStatic
             shipRigidBody.isVoxelTerrainFullyLoaded = shipVoxelsFullyLoaded
@@ -195,30 +192,18 @@ class VSPhysicsPipelineStage {
         shipIdToPhysShip.forEach { (shipId, shipIdAndRigidBodyReference) ->
             val rigidBodyReference = shipIdAndRigidBodyReference.rigidBodyReference
             val inertiaData: RigidBodyInertiaData = rigidBodyReference.inertiaData
-            val shipTransform: RigidBodyTransform = rigidBodyReference.rigidBodyTransform
+            val poseVel: PoseVel = rigidBodyReference.poseVel
+            val segments: SegmentTracker = rigidBodyReference.segmentTracker
             val shipVoxelOffset: Vector3dc = rigidBodyReference.collisionShapeOffset
-            val vel: Vector3dc = rigidBodyReference.velocity
-            val omega: Vector3dc = rigidBodyReference.omega
             val aabb = AABBd()
             rigidBodyReference.getAABB(aabb)
 
             shipDataMap[shipId] =
                 ShipInPhysicsFrameData(
-                    shipId, inertiaData, shipTransform, shipVoxelOffset, vel, omega, aabb
+                    shipId, inertiaData, poseVel, segments, shipVoxelOffset, aabb
                 )
         }
         return VSPhysicsFrame(shipDataMap, voxelUpdatesMap, physTick++)
-    }
-
-    private fun getKrunchDimensionId(dimensionId: DimensionId): Int {
-        // TODO maybe don't use hashcode
-        val id = dimensionId.hashCode()
-        dimensionIntIdToString.put(id, dimensionId)
-        return id
-    }
-
-    private fun getMinecraftDimensionId(id: Int): String {
-        return dimensionIntIdToString.get(id)
     }
 
     companion object {

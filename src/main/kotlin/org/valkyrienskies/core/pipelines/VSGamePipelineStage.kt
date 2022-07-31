@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.pipelines
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap
 import org.joml.Matrix3d
 import org.joml.Quaterniond
 import org.joml.Vector3d
@@ -7,6 +8,7 @@ import org.joml.Vector3dc
 import org.joml.Vector3i
 import org.joml.primitives.AABBi
 import org.valkyrienskies.core.api.Ticked
+import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.ships.PhysInertia
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipId
@@ -17,12 +19,13 @@ import org.valkyrienskies.core.game.ships.ShipPhysicsData
 import org.valkyrienskies.core.game.ships.ShipTransform
 import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.physics_api.PhysicsWorldReference
-import org.valkyrienskies.physics_api.RigidBodyTransform
+import org.valkyrienskies.physics_api.PoseVel
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import java.util.concurrent.ConcurrentLinkedQueue
 
 class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
     private val physicsFramesQueue: ConcurrentLinkedQueue<VSPhysicsFrame> = ConcurrentLinkedQueue()
+    private val dimensionIntIdToString = Int2ObjectOpenHashMap<String>()
 
     /**
      * Push a physics frame to the game stage
@@ -76,8 +79,8 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                 if (applyTransform) {
                     val newShipTransform = generateTransformFromPhysicsFrameData(shipInPhysicsFrameData, shipData)
 
-                    shipData.physicsData.linearVelocity = shipInPhysicsFrameData.vel
-                    shipData.physicsData.angularVelocity = shipInPhysicsFrameData.omega
+                    shipData.physicsData.linearVelocity = shipInPhysicsFrameData.poseVel.vel
+                    shipData.physicsData.angularVelocity = shipInPhysicsFrameData.poseVel.omega
                     shipData.shipTransform = newShipTransform
                     shipObject.debugShipPhysicsAABB = shipInPhysicsFrameData.aabb
                 }
@@ -119,21 +122,24 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
                     0.0, 0.0, 10.0
                 )
             )
+            val krunchDimensionId = getKrunchDimensionId(dimensionId)
             // Set the transform to be the origin with no rotation
-            val shipTransform = RigidBodyTransform(Vector3d(), Quaterniond())
+            val poseVel = PoseVel.createPoseVel(Vector3d(), Quaterniond())
+            val segments = SegmentUtils.createSegmentTrackerFromScaling(krunchDimensionId, 1.0)
             // No voxel offset
             val voxelOffset = Vector3d(.5, .5, .5)
             val isStatic = true
             val isVoxelsFullyLoaded = false
             val newShipInGameFrameData = NewShipInGameFrameData(
                 shipId,
-                dimensionId,
+                krunchDimensionId,
                 minDefined,
                 maxDefined,
                 totalVoxelRegion,
                 inertiaData,
                 ShipPhysicsData(Vector3d(), Vector3d()),
-                shipTransform,
+                poseVel,
+                segments,
                 voxelOffset,
                 isStatic,
                 isVoxelsFullyLoaded,
@@ -150,23 +156,29 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
 
             val totalVoxelRegion = it.shipData.chunkClaim.getTotalVoxelRegion(AABBi())
 
-            val shipTransform = RigidBodyTransform(
-                it.shipData.shipTransform.shipPositionInWorldCoordinates,
+            val krunchDimensionId = getKrunchDimensionId(it.shipData.chunkClaimDimension)
+            val scaling = it.shipData.shipTransform.shipCoordinatesToWorldCoordinatesScaling.x()
+
+            // TODO: Support more advanced segments than just basic scaling from origin
+            val poseVel = PoseVel.createPoseVel(
+                it.shipData.shipTransform.shipPositionInWorldCoordinates.div(scaling, Vector3d()),
                 it.shipData.shipTransform.shipCoordinatesToWorldCoordinatesRotation
             )
+            val segments = SegmentUtils.createSegmentTrackerFromScaling(krunchDimensionId, scaling)
             val voxelOffset = getShipVoxelOffset(it.shipData.inertiaData)
             val isStatic = it.shipData.isStatic
             val isVoxelsFullyLoaded = it.shipData.areVoxelsFullyLoaded()
             // Deep copy objects from ShipData, since we don't want VSGameFrame to be modified
             val newShipInGameFrameData = NewShipInGameFrameData(
                 uuid,
-                it.shipData.chunkClaimDimension,
+                krunchDimensionId,
                 minDefined,
                 maxDefined,
                 totalVoxelRegion,
                 it.shipData.inertiaData.copyToPhyInertia(),
                 it.shipData.physicsData,
-                shipTransform,
+                poseVel,
+                segments,
                 voxelOffset,
                 isStatic,
                 isVoxelsFullyLoaded,
@@ -211,24 +223,35 @@ class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
         fun generateTransformFromPhysicsFrameData(
             physicsFrameData: ShipInPhysicsFrameData, shipData: ShipData
         ): ShipTransform {
-            val transformFromPhysics = physicsFrameData.shipTransform
+            val poseVelFromPhysics = physicsFrameData.poseVel
             val voxelOffsetFromPhysics = physicsFrameData.shipVoxelOffset
             val voxelOffsetFromGame = getShipVoxelOffset(shipData.inertiaData)
 
-            val deltaVoxelOffset = transformFromPhysics.rotation.transform(
+            val deltaVoxelOffset = poseVelFromPhysics.rot.transform(
                 voxelOffsetFromGame.sub(voxelOffsetFromPhysics, Vector3d())
             )
 
             val shipPosAccountingForVoxelOffsetDifference =
-                transformFromPhysics.position.sub(deltaVoxelOffset, Vector3d())
+                poseVelFromPhysics.pos.sub(deltaVoxelOffset, Vector3d())
 
-            return ShipTransform.createFromCoordinatesAndRotation(
-                shipPosAccountingForVoxelOffsetDifference,
+            val scaling = physicsFrameData.segments.segments.values.first().segmentDisplacement.scaling
+            val shipPosAccountingForSegment = shipPosAccountingForVoxelOffsetDifference.mul(scaling, Vector3d())
+
+            return ShipTransform.createFromCoordinatesAndRotationAndScaling(
+                shipPosAccountingForSegment,
                 shipData.inertiaData.getCenterOfMassInShipSpace().add(.5, .5, .5, Vector3d()),
-                transformFromPhysics.rotation
+                poseVelFromPhysics.rot,
+                Vector3d(scaling)
             )
         }
 
         private val logger by logger()
+    }
+
+    private fun getKrunchDimensionId(dimensionId: DimensionId): Int {
+        // TODO maybe don't use hashcode
+        val id = dimensionId.hashCode()
+        dimensionIntIdToString.put(id, dimensionId)
+        return id
     }
 }

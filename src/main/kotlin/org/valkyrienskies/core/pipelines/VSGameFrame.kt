@@ -4,11 +4,11 @@ import org.joml.Vector3dc
 import org.joml.Vector3ic
 import org.joml.primitives.AABBic
 import org.valkyrienskies.core.api.ShipForcesInducer
-import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.ships.PhysInertia
 import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipPhysicsData
-import org.valkyrienskies.physics_api.RigidBodyTransform
+import org.valkyrienskies.physics_api.PoseVel
+import org.valkyrienskies.physics_api.SegmentTracker
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 
 /**
@@ -26,13 +26,14 @@ data class VSGameFrame(
  */
 data class NewShipInGameFrameData(
     val uuid: ShipId,
-    val dimensionId: DimensionId,
+    val dimension: Int,
     val minDefined: Vector3ic,
     val maxDefined: Vector3ic,
     val totalVoxelRegion: AABBic,
     val inertiaData: PhysInertia,
     val physicsData: ShipPhysicsData,
-    val shipTransform: RigidBodyTransform,
+    val poseVel: PoseVel,
+    val segments: SegmentTracker,
     val voxelOffset: Vector3dc,
     val isStatic: Boolean,
     val shipVoxelsFullyLoaded: Boolean,
