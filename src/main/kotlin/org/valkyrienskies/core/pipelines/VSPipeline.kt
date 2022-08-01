@@ -21,6 +21,9 @@ class VSPipeline(private val shipWorld: ShipObjectServerWorld) {
 
     private val physicsPipelineBackgroundTask: VSPhysicsPipelineBackgroundTask = VSPhysicsPipelineBackgroundTask(this)
 
+    @Volatile
+    var arePhysicsRunning = false
+
     // The thread the physics engine runs on
     private val physicsThread: Thread = thread(start = true, priority = 8, name = "Physics thread") {
         physicsPipelineBackgroundTask.run()
@@ -50,10 +53,6 @@ class VSPipeline(private val shipWorld: ShipObjectServerWorld) {
 
     fun getPhysicsGravity(): Vector3dc {
         return Vector3d(0.0, -10.0, 0.0)
-    }
-
-    fun arePhysicsRunning(): Boolean {
-        return true
     }
 
     fun computePhysTps(): Double {
