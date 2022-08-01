@@ -34,6 +34,7 @@ class ShipObjectServerWorld(
 
     var lastTickPlayers: Set<IPlayer> = setOf()
         private set
+
     init {
         // todo: this is messy
         INSTANCE = this
@@ -81,6 +82,7 @@ class ShipObjectServerWorld(
         ShipObjectServerWorldChunkTracker(this, DEFAULT_CHUNK_WATCH_DISTANCE, DEFAULT_CHUNK_UNWATCH_DISTANCE)
 
     internal val networkManager = ShipObjectNetworkManagerServer(this)
+
     /**
      * Add the update to [shipToVoxelUpdates].
      */
@@ -110,8 +112,9 @@ class ShipObjectServerWorld(
             val voxelType: Byte = when (newBlockType) {
                 VSBlockType.AIR -> KrunchVoxelStates.AIR_STATE
                 VSBlockType.SOLID -> KrunchVoxelStates.SOLID_STATE
-                VSBlockType.WATER -> KrunchVoxelStates.WATER_STATE
-                VSBlockType.LAVA -> KrunchVoxelStates.LAVA_STATE
+                // TODO: send correct states to Krunch
+                VSBlockType.WATER -> KrunchVoxelStates.AIR_STATE
+                VSBlockType.LAVA -> KrunchVoxelStates.AIR_STATE
                 else -> throw IllegalArgumentException("Unknown blockType $newBlockType")
             }
 
