@@ -98,6 +98,7 @@ checkstyle {
 }
 
 ktlint {
+    ignoreFailures.set(true)
     disabledRules.set(setOf("parameter-list-wrapping"))
     reporters {
         reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
