@@ -14,6 +14,16 @@ abstract class AbstractCoreHooks {
     abstract val currentShipServerWorld: ShipObjectServerWorld?
     abstract val currentShipClientWorld: ShipObjectClientWorld
 
+    /**
+     * Called when client disconnects from a world
+     */
+    fun afterDisconnect() {
+        VSConfigClass.afterDisconnect()
+    }
+
+    /**
+     * Called when a client joins a server
+     */
     fun afterClientJoinServer(player: IPlayer) {
         VSConfigClass.afterClientJoinServer(player)
     }

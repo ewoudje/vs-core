@@ -56,6 +56,10 @@ data class VSConfigClass(
         return PacketCommonConfigUpdate(clazz, mapper.valueToTree(common.inst))
     }
 
+    fun readOrCreateConfig() {
+        sides.forEach { it.readOrCreateConfig(CoreHooks.configDir) }
+    }
+
     fun writeToDisk() {
         if (CoreHooks.isPhysicalClient) {
             client?.saveConfig()
@@ -99,7 +103,16 @@ data class VSConfigClass(
             )
         ).with(AddonModule()).with(JacksonModule()).build()
 
+        fun afterDisconnect() {
+            // Update all config values to singleplayer values when the player disconnects
+            registeredConfigMap.values.forEach { config ->
+                config.readOrCreateConfig()
+            }
+        }
+
         fun afterClientJoinServer(player: IPlayer) {
+            if (CoreHooks.isPhysicalClient) return
+
             registeredConfigMap.values.forEach { config ->
                 config.makeCommonConfigUpdatePacket()?.sendToClient(player)
 
@@ -245,7 +258,7 @@ data class VSConfigClass(
             val server = createSidedVSConfigClass(name, SERVER, clazz)
 
             val configClass = VSConfigClass(clazz, name, client, common, server)
-            configClass.sides.forEach { it.createOrReadConfig(CoreHooks.configDir) }
+            configClass.readOrCreateConfig()
 
             registeredConfigMap[clazz] = configClass
 
@@ -298,7 +311,7 @@ class SidedVSConfigClass(
     /**
      * @return an error message if the schema validation failed
      */
-    fun createOrReadConfig(configDir: Path): String? {
+    fun readOrCreateConfig(configDir: Path): String? {
         val mapper = VSConfigClass.mapper
 
         val name = "${parentName}_$sideName".lowercase()
