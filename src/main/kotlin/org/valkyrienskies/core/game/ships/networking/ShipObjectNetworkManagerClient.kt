@@ -43,6 +43,9 @@ class ShipObjectNetworkManagerClient(
             PacketShipDataCreate::class.registerClientHandler(this::onShipDataCreate),
             PacketShipRemove::class.registerClientHandler(this::onShipDataRemove)
         )
+
+        VSNetworking.TCP.clientIsReady()
+        VSNetworking.UDP.clientIsReady()
     }
 
     fun onDestroy() {
@@ -112,11 +115,6 @@ class ShipObjectNetworkManagerClient(
                 tryConnectIn = 100
             }
         }
-    }
-
-    init {
-        VSNetworking.TCP.clientIsReady()
-        VSNetworking.UDP.clientIsReady()
     }
 
     companion object {
