@@ -16,8 +16,7 @@ interface IPlayer {
 
     val uuid: UUID
 
-    // todo: everyone is an admin! woohoo!
-    val isAdmin: Boolean get() = true
+    val isAdmin: Boolean
 
-    val canModifyServerConfig: Boolean get() = isAdmin
+    val canModifyServerConfig: Boolean
 }
