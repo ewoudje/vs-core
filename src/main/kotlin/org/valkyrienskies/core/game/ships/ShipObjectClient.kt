@@ -16,17 +16,16 @@ class ShipObjectClient(
     // The last ship transform sent by the sever
     internal var nextShipTransform: ShipTransform
 
-    // The transform used when rendering the ship
-    var renderTransform: ShipTransform
+    override lateinit var renderTransform: ShipTransform
         private set
 
-    var renderAABB: AABBdc
+    override lateinit var renderAABB: AABBdc
         private set
 
     internal var latestNetworkTransform: ShipTransform = shipData.shipTransform
     internal var latestNetworkTTick = Int.MIN_VALUE
 
-    val shipDataChannel = DeltaEncodedChannelClientTCP(jsonDiffDeltaAlgorithm, shipDataJson)
+    internal val shipDataChannel = DeltaEncodedChannelClientTCP(jsonDiffDeltaAlgorithm, shipDataJson)
 
     init {
         nextShipTransform = shipData.shipTransform
