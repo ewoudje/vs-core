@@ -14,6 +14,8 @@ class EventEmitterImpl<T> : EventEmitter<T> {
     override fun on(cb: EventConsumer<T>): RegisteredHandler {
         val listener = EventListener(cb)
         listener.handler = RegisteredHandler { listeners.remove(listener) }
+        listeners.add(listener)
+        
         return listener.handler
     }
 
