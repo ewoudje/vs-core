@@ -15,7 +15,7 @@ interface QueryableShipData<out ShipDataType : ShipDataCommon> : Iterable<ShipDa
     override fun iterator(): Iterator<ShipDataType>
     fun getById(shipId: ShipId): ShipDataType?
     fun getShipDataFromChunkPos(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): ShipDataType?
-    fun getShipDataIntersecting(aabb: AABBdc): Iterator<ShipDataType>
+    fun getShipDataIntersecting(aabb: AABBdc): Iterable<ShipDataType>
 }
 
 interface MutableQueryableShipData<ShipDataType : ShipDataCommon> : QueryableShipData<ShipDataType> {
@@ -80,11 +80,10 @@ open class QueryableShipDataImpl<ShipDataType : ShipDataCommon>(
         chunkClaimToShipData.remove(shipData.chunkClaim)
     }
 
-    override fun getShipDataIntersecting(aabb: AABBdc): Iterator<ShipDataType> {
+    override fun getShipDataIntersecting(aabb: AABBdc): Iterable<ShipDataType> {
         // TODO("Use https://github.com/tzaeschke/phtree")
         return _idToShipData.values
             .filter { it.shipAABB.intersectsAABB(aabb as AABBd) }
-            .iterator()
     }
 
     override fun equals(other: Any?): Boolean {

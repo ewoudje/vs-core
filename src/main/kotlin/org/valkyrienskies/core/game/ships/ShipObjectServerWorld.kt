@@ -13,6 +13,8 @@ import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.game.ships.networking.ShipObjectNetworkManagerServer
 import org.valkyrienskies.core.networking.VSNetworking
+import org.valkyrienskies.core.util.events.EventEmitter
+import org.valkyrienskies.core.util.events.EventEmitterImpl
 import org.valkyrienskies.core.util.names.NounListNameGenerator
 import org.valkyrienskies.physics_api.voxel_updates.DenseVoxelShapeUpdate
 import org.valkyrienskies.physics_api.voxel_updates.EmptyVoxelShapeUpdate
@@ -21,6 +23,7 @@ import org.valkyrienskies.physics_api.voxel_updates.KrunchVoxelStates
 import org.valkyrienskies.physics_api.voxel_updates.SparseVoxelShapeUpdate
 import java.util.Collections
 import java.util.Spliterator
+import java.util.concurrent.CompletableFuture
 
 class ShipObjectServerWorld(
     override val queryableShipData: MutableQueryableShipDataServer,
@@ -83,6 +86,12 @@ class ShipObjectServerWorld(
 
     internal val networkManager = ShipObjectNetworkManagerServer(this)
 
+    data class ShipLoadEvent(val ship: ShipObject)
+
+    private val _shipLoadEvent = EventEmitterImpl<ShipLoadEvent>()
+
+    val shipLoadEvent: EventEmitter<ShipLoadEvent> = _shipLoadEvent
+
     /**
      * Add the update to [shipToVoxelUpdates].
      */
@@ -144,6 +153,7 @@ class ShipObjectServerWorld(
     public override fun tickShips() {
         super.tickShips()
 
+        val loadedShips = mutableListOf<ShipObjectServer>()
         val it = shipObjects.iterator()
         while (it.hasNext()) {
             val shipObjectServer = it.next().value
@@ -191,6 +201,8 @@ class ShipObjectServerWorld(
         chunkTracker.updateTracking(players, lastTickPlayers)
         networkManager.tick()
 
+        loadedShips.forEach { _shipLoadEvent.emit(ShipLoadEvent(it)) }
+
         // for now don't do anything with this
         chunkTracker.shipsToUnload.clear()
         chunkTracker.shipsToLoad.clear()
@@ -217,6 +229,25 @@ class ShipObjectServerWorld(
      */
     fun getChunkWatchUnwatchTasks(): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
         return Pair(chunkTracker.chunkWatchTasks.spliterator(), chunkTracker.chunkUnwatchTasks.spliterator())
+    }
+
+    /**
+     * Queues a new ship to be created and returns a future that executes on the
+     * game thread when the ship is loaded.
+     */
+    fun createNewShipObjectAtBlock(
+        blockPosInWorldCoordinates: Vector3ic, createShipObjectImmediately: Boolean, scaling: Double = 1.0,
+        dimensionId: DimensionId
+    ): CompletableFuture<ShipObject> {
+        val future = CompletableFuture<ShipObject>()
+        val shipData =
+            createNewShipAtBlock(blockPosInWorldCoordinates, createShipObjectImmediately, scaling, dimensionId)
+
+        shipLoadEvent.once({ it.ship.shipData.id == shipData.id }) {
+            future.complete(it.ship)
+        }
+
+        return future
     }
 
     /**

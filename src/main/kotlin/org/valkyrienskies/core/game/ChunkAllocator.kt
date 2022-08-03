@@ -63,6 +63,11 @@ data class ChunkAllocator(
             return isChunkInShipyard(posX shr 4, posZ shr 4)
         }
 
+        @JvmStatic
+        fun isBlockInShipyard(posX: Double, posY: Double, posZ: Double): Boolean {
+            return isChunkInShipyard(posX.toInt() shr 4, posZ.toInt() shr 4)
+        }
+
         /**
          * Determines whether or not a block is in the shipyard
          * @param blockPos The position of the block
