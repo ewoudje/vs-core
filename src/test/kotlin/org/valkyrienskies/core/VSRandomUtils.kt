@@ -23,7 +23,6 @@ import org.valkyrienskies.physics_api.RigidBodyInertiaData
 import org.valkyrienskies.physics_api.Segment
 import org.valkyrienskies.physics_api.SegmentDisplacement
 import org.valkyrienskies.physics_api.SingleSegmentTracker
-import java.util.concurrent.ThreadLocalRandom
 import kotlin.math.sqrt
 import kotlin.random.Random
 import kotlin.random.asJavaRandom
@@ -76,10 +75,9 @@ internal object VSRandomUtils {
     fun randomQuaterniond(random: Random = defaultRandom): Quaterniond {
         // First generate a random unit vector
         // We use the gaussian distribution to make the random unit vector distribution uniform
-        val gaussianRandomGenerator = ThreadLocalRandom.current()
-        var randX = gaussianRandomGenerator.nextGaussian()
-        var randY = gaussianRandomGenerator.nextGaussian()
-        var randZ = gaussianRandomGenerator.nextGaussian()
+        var randX = random.nextGaussian()
+        var randY = random.nextGaussian()
+        var randZ = random.nextGaussian()
         val normalizationConstant = sqrt(randX * randX + randY * randY + randZ * randZ)
 
         // Edge case
@@ -243,4 +241,18 @@ internal object VSRandomUtils {
             randomVector3d(),
             randomAABBd()
         )
+
+    fun Random.nextGaussian(): Double {
+        // See Knuth, TAOCP, Vol. 2, 3rd edition, Section 3.4.1 Algorithm C.
+        var v1: Double
+        var v2: Double
+        var s: Double
+        do {
+            v1 = 2 * nextDouble() - 1 // between -1 and 1
+            v2 = 2 * nextDouble() - 1 // between -1 and 1
+            s = v1 * v1 + v2 * v2
+        } while (s >= 1 || s == 0.0)
+        val multiplier = StrictMath.sqrt(-2 * StrictMath.log(s) / s)
+        return v1 * multiplier
+    }
 }

@@ -34,17 +34,14 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 
 data class VSConfigClass(
-    val clazz: Class<*>, val name: String, val client: SidedVSConfigClass?, val common: SidedVSConfigClass?,
+    val clazz: Class<*>,
+    val name: String,
+    val client: SidedVSConfigClass?,
+    val common: SidedVSConfigClass?,
     val server: SidedVSConfigClass?
 ) {
 
     val sides = listOfNotNull(client, common, server)
-
-    private fun getSide(side: VSConfigClassSide): SidedVSConfigClass? = when (side) {
-        CLIENT -> client
-        COMMON -> common
-        SERVER -> server
-    }
 
     private fun makeServerConfigUpdatePacket(): PacketServerConfigUpdate? {
         if (server == null) return null

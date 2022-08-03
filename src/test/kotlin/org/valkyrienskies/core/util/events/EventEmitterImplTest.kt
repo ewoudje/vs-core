@@ -1,9 +1,10 @@
 package org.valkyrienskies.core.util.events
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.ints.shouldBeExactly
+import io.kotest.matchers.shouldBe
 
-class EventEmitterImplTest {
+class EventEmitterImplTest : AnnotationSpec() {
 
     @Test
     fun testEventListen() {
@@ -11,12 +12,12 @@ class EventEmitterImplTest {
         var called = 0
         emitter.on { value, _ ->
             called++
-            assertEquals("hi", value)
+            value shouldBe "hi"
         }
 
         emitter.emit("hi")
 
-        assertEquals(1, called)
+        called shouldBeExactly 1
     }
 
     @Test
@@ -27,7 +28,7 @@ class EventEmitterImplTest {
 
         emitter.once({ it == "hi" }) { value ->
             called++
-            assertEquals("hi", value)
+            value shouldBe "hi"
         }
 
         emitter.emit("bye")
@@ -35,7 +36,7 @@ class EventEmitterImplTest {
         emitter.emit("bye")
         emitter.emit("hi")
 
-        assertEquals(1, called)
+        called shouldBeExactly 1
     }
 
     @Test
@@ -58,6 +59,6 @@ class EventEmitterImplTest {
         emitter.emit("4")
         emitter.emit("5")
 
-        assertEquals(4, called)
+        called shouldBeExactly 4
     }
 }
