@@ -10,6 +10,7 @@ import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
+import org.valkyrienskies.core.util.squared
 import java.util.SortedSet
 import java.util.TreeSet
 import java.util.function.LongFunction
@@ -109,14 +110,14 @@ class ShipObjectServerWorldChunkTracker(
                         continue
                     }
 
-                    if (displacementDistanceSq < chunkWatchDistance * chunkWatchDistance) {
+                    if (displacementDistanceSq < chunkWatchDistance.squared()) {
                         if (!isPlayerWatchingThisChunk) {
                             // Watch this chunk
                             newPlayersWatching.add(player)
                             // Update [minWatchingDistanceSq]
                             minWatchingDistanceSq = min(minWatchingDistanceSq, displacementDistanceSq)
                         }
-                    } else if (displacementDistanceSq > chunkUnwatchDistance * chunkUnwatchDistance) {
+                    } else if (displacementDistanceSq > chunkUnwatchDistance.squared()) {
                         if (isPlayerWatchingThisChunk) {
                             // Unwatch this chunk
                             newPlayersUnwatching.add(player)

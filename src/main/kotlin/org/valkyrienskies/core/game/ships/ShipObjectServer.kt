@@ -73,9 +73,4 @@ class ShipObjectServer(
      * This will be implemented in the future for portals, but for now we just return 0 for all positions
      */
     fun getSegmentId(localPos: Vector3d): Int = 0
-
-    companion object {
-        private const val DEFAULT_CHUNK_WATCH_DISTANCE = 128.0
-        private const val DEFAULT_CHUNK_UNWATCH_DISTANCE = 192.0
-    }
 }

@@ -7,6 +7,7 @@ import org.joml.Vector3ic
 import org.valkyrienskies.core.chunk_tracking.ChunkUnwatchTask
 import org.valkyrienskies.core.chunk_tracking.ChunkWatchTask
 import org.valkyrienskies.core.chunk_tracking.ShipObjectServerWorldChunkTracker
+import org.valkyrienskies.core.config.VSCoreConfig
 import org.valkyrienskies.core.game.ChunkAllocator
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.IPlayer
@@ -30,8 +31,6 @@ class ShipObjectServerWorld(
     val chunkAllocator: ChunkAllocator,
 ) : ShipObjectWorld<ShipObjectServer>(queryableShipData) {
     companion object {
-        private const val DEFAULT_CHUNK_WATCH_DISTANCE = 128.0
-        private const val DEFAULT_CHUNK_UNWATCH_DISTANCE = 192.0
         internal lateinit var INSTANCE: ShipObjectServerWorld
     }
 
@@ -81,8 +80,9 @@ class ShipObjectServerWorld(
      */
     private val shipToVoxelUpdates: MutableMap<ShipId, MutableMap<Vector3ic, IVoxelShapeUpdate>> = HashMap()
 
-    val chunkTracker =
-        ShipObjectServerWorldChunkTracker(this, DEFAULT_CHUNK_WATCH_DISTANCE, DEFAULT_CHUNK_UNWATCH_DISTANCE)
+    val chunkTracker = ShipObjectServerWorldChunkTracker(
+        this, VSCoreConfig.SERVER.shipLoadDistance, VSCoreConfig.SERVER.shipUnloadDistance
+    )
 
     internal val networkManager = ShipObjectNetworkManagerServer(this)
 
