@@ -86,7 +86,7 @@ class ShipObjectServerWorld(
 
     internal val networkManager = ShipObjectNetworkManagerServer(this)
 
-    data class ShipLoadEvent(val ship: ShipObject)
+    data class ShipLoadEvent(val ship: ShipObjectServer)
 
     private val _shipLoadEvent = EventEmitterImpl<ShipLoadEvent>()
 
@@ -238,8 +238,8 @@ class ShipObjectServerWorld(
     fun createNewShipObjectAtBlock(
         blockPosInWorldCoordinates: Vector3ic, createShipObjectImmediately: Boolean, scaling: Double = 1.0,
         dimensionId: DimensionId
-    ): CompletableFuture<ShipObject> {
-        val future = CompletableFuture<ShipObject>()
+    ): CompletableFuture<ShipObjectServer> {
+        val future = CompletableFuture<ShipObjectServer>()
         val shipData =
             createNewShipAtBlock(blockPosInWorldCoordinates, createShipObjectImmediately, scaling, dimensionId)
 
