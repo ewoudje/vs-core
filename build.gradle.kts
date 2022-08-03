@@ -43,6 +43,7 @@ dependencies {
 
     val jacksonVersion = "2.13.3"
     val nettyVersion = "4.1.25.Final"
+    val kotestVersion = "5.4.1"
 
     // VS Physics
     api("org.valkyrienskies:physics_api_krunch:1.0.0+8806df29d6")
@@ -76,7 +77,10 @@ dependencies {
     implementation("io.netty", "netty-buffer", nettyVersion)
 
     // Junit 5 for Unit Testing
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")
+    testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+    testImplementation("io.kotest:kotest-property:$kotestVersion")
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
 
     // Log4j2 for Logging
     implementation("org.apache.logging.log4j:log4j-api:${properties["mc_log4j2_version"]}")
