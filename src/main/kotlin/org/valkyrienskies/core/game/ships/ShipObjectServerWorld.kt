@@ -13,9 +13,9 @@ import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.VSBlockType
 import org.valkyrienskies.core.game.ships.networking.ShipObjectNetworkManagerServer
+import org.valkyrienskies.core.hooks.VSEvents
+import org.valkyrienskies.core.hooks.VSEvents.ShipLoadEvent
 import org.valkyrienskies.core.networking.VSNetworking
-import org.valkyrienskies.core.util.events.EventEmitter
-import org.valkyrienskies.core.util.events.EventEmitterImpl
 import org.valkyrienskies.core.util.names.NounListNameGenerator
 import org.valkyrienskies.physics_api.voxel_updates.DenseVoxelShapeUpdate
 import org.valkyrienskies.physics_api.voxel_updates.EmptyVoxelShapeUpdate
@@ -86,11 +86,11 @@ class ShipObjectServerWorld(
 
     internal val networkManager = ShipObjectNetworkManagerServer(this)
 
-    data class ShipLoadEvent(val ship: ShipObjectServer)
-
-    private val _shipLoadEvent = EventEmitterImpl<ShipLoadEvent>()
-
-    val shipLoadEvent: EventEmitter<ShipLoadEvent> = _shipLoadEvent
+    @Deprecated(
+        message = "All events moved to VSEvents",
+        replaceWith = ReplaceWith("ShipLoadEvent", "org.valkyrienskies.core.hooks.VSEvents.ShipLoadEvent")
+    )
+    val shipLoadEvent by VSEvents::shipLoadEvent
 
     /**
      * Add the update to [shipToVoxelUpdates].
@@ -132,10 +132,12 @@ class ShipObjectServerWorld(
                     // Add the update to the sparse voxel update
                     voxelShapeUpdate.addUpdate(posX and 15, posY and 15, posZ and 15, voxelType)
                 }
+
                 is DenseVoxelShapeUpdate -> {
                     // Add the update to the dense voxel update
                     voxelShapeUpdate.setVoxel(posX and 15, posY and 15, posZ and 15, voxelType)
                 }
+
                 is EmptyVoxelShapeUpdate -> {
                     // Replace the empty voxel update with a sparse update
                     val newVoxelShapeUpdate = SparseVoxelShapeUpdate.createSparseVoxelShapeUpdate(chunkPos)
@@ -202,7 +204,7 @@ class ShipObjectServerWorld(
         chunkTracker.updateTracking(players, lastTickPlayers)
         networkManager.tick()
 
-        loadedShips.forEach { _shipLoadEvent.emit(ShipLoadEvent(it)) }
+        loadedShips.forEach { VSEvents.shipLoadEvent.emit(ShipLoadEvent(it)) }
 
         // for now don't do anything with this
         chunkTracker.shipsToUnload.clear()
@@ -244,7 +246,7 @@ class ShipObjectServerWorld(
         val shipData =
             createNewShipAtBlock(blockPosInWorldCoordinates, createShipObjectImmediately, scaling, dimensionId)
 
-        shipLoadEvent.once({ it.ship.shipData.id == shipData.id }) {
+        ShipLoadEvent.once({ it.ship.shipData.id == shipData.id }) {
             future.complete(it.ship)
         }
 
