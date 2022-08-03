@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "1.7.10"
+    kotlin("kapt") version "1.7.10"
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
     java
     checkstyle
@@ -73,8 +74,14 @@ dependencies {
     // FastUtil for Fast Primitive Collections
     implementation("it.unimi.dsi", "fastutil", "8.2.1")
 
-    // Netty for networking
+    // Netty for networking (ByteBuf)
     implementation("io.netty", "netty-buffer", nettyVersion)
+
+    // Dagger for compile-time Dependency Injection
+    val daggerVersion = "2.43.2"
+    implementation("com.google.dagger", "dagger", daggerVersion)
+    annotationProcessor("com.google.dagger", "dagger-compiler", daggerVersion)
+    kapt("com.google.dagger", "dagger-compiler", daggerVersion)
 
     // Junit 5 for Unit Testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.0")

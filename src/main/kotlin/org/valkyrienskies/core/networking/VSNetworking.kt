@@ -1,5 +1,7 @@
 package org.valkyrienskies.core.networking
 
+import dagger.Module
+import dagger.Provides
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer
 import org.valkyrienskies.core.config.VSConfigClass
 import org.valkyrienskies.core.config.VSCoreConfig
@@ -17,6 +19,13 @@ import java.net.SocketException
 import javax.crypto.SecretKey
 
 object VSNetworking {
+
+    @Module
+    class DaggerModule {
+        @Provides
+        fun vsNetworking(): VSNetworking = VSNetworking
+    }
+
     /**
      * Valkyrien Skies UDP channel
      */
