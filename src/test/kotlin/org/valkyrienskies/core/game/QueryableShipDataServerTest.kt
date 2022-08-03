@@ -132,7 +132,7 @@ internal class QueryableShipDataServerTest {
         val queryableShipData = QueryableShipDataImpl<ShipData>()
         val shipData = VSRandomUtils.randomShipData()
         queryableShipData.addShipData(shipData)
-        val shipsIntersectingBB = queryableShipData.getShipDataIntersecting(shipData.shipAABB)
+        val shipsIntersectingBB = queryableShipData.getShipDataIntersecting(shipData.shipAABB).iterator()
         assertTrue(shipsIntersectingBB.hasNext())
         assertEquals(shipsIntersectingBB.next(), shipData)
         assertFalse(shipsIntersectingBB.hasNext())
