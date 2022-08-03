@@ -178,6 +178,7 @@ class ShipObjectServerWorld(
                 val newShipObject = ShipObjectServer(shipData)
                 newShipObjects.add(newShipObject)
                 shipObjectMap[shipID] = newShipObject
+                loadedShips.add(newShipObject)
             }
         }
 
