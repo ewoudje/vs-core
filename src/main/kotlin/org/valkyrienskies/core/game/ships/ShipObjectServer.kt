@@ -1,9 +1,9 @@
 package org.valkyrienskies.core.game.ships
 
 import com.google.common.collect.MutableClassToInstanceMap
-import org.joml.Matrix4dc
 import org.joml.Vector3d
-import org.valkyrienskies.core.api.Ship
+import org.valkyrienskies.core.api.LoadedServerShip
+import org.valkyrienskies.core.api.ServerShip
 import org.valkyrienskies.core.api.ShipForcesInducer
 import org.valkyrienskies.core.api.ShipUser
 import org.valkyrienskies.core.api.Ticked
@@ -12,12 +12,7 @@ import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 
 class ShipObjectServer(
     override val shipData: ShipData
-) : ShipObject(shipData), Ship {
-
-    override val shipToWorld: Matrix4dc
-        get() = shipData.shipToWorld
-    override val worldToShip: Matrix4dc
-        get() = shipData.worldToShip
+) : ShipObject(shipData), LoadedServerShip, ServerShip by shipData {
 
     internal val shipDataChannel = DeltaEncodedChannelServerTCP(
         jsonDiffDeltaAlgorithm,
@@ -47,7 +42,7 @@ class ShipObjectServer(
     }
 
     override fun <T> getAttachment(clazz: Class<T>): T? =
-        attachedData[clazz] as T? ?: shipData.getAttachment(clazz) as T?
+        attachedData.getInstance(clazz) ?: shipData.getAttachment(clazz)
 
     override fun <T> saveAttachment(clazz: Class<T>, value: T?) {
         applyAttachmentInterfaces(clazz, value)

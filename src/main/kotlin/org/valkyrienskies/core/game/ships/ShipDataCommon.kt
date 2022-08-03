@@ -28,7 +28,7 @@ open class ShipDataCommon(
     val shipActiveChunksSet: IShipActiveChunksSet
 ) : Ship {
     @DeltaIgnore
-    var shipTransform: ShipTransform = shipTransform
+    override var shipTransform: ShipTransform = shipTransform
         set(shipTransform) {
             field = shipTransform
             // Update the [shipAABB]
@@ -84,11 +84,11 @@ open class ShipDataCommon(
         get() = shipTransform.worldToShipMatrix
 
     // Client side doesn't have any attachments, this is replaced in the server's [ShipData]
-    override fun <T> getAttachment(clazz: Class<T>): T? = null
+    override fun <T> getAttachment(clazz: Class<T>): T? = TODO()
 
-    override fun <T> setAttachment(clazz: Class<T>, value: T?) {}
-
-    override fun <T> saveAttachment(clazz: Class<T>, value: T?) {}
+    override fun <T> setAttachment(clazz: Class<T>, value: T?) {
+        TODO()
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

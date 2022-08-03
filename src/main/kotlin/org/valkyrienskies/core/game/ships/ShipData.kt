@@ -8,7 +8,7 @@ import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.joml.primitives.AABBdc
 import org.joml.primitives.AABBic
-import org.valkyrienskies.core.api.Ship
+import org.valkyrienskies.core.api.ServerShip
 import org.valkyrienskies.core.api.ShipUser
 import org.valkyrienskies.core.chunk_tracking.IShipActiveChunksSet
 import org.valkyrienskies.core.chunk_tracking.ShipActiveChunksSet
@@ -40,8 +40,7 @@ class ShipData(
 ) : ShipDataCommon(
     id, name, chunkClaim, chunkClaimDimension, physicsData, shipTransform, prevTickShipTransform,
     shipAABB, shipVoxelAABB, shipActiveChunksSet
-),
-    Ship {
+), ServerShip {
     /**
      * The set of chunks that must be loaded before this ship is fully loaded.
      *
@@ -145,11 +144,11 @@ class ShipData(
             persistentAttachedData[clazz] = value
     }
 
-    override fun <T> getAttachment(clazz: Class<T>): T? = persistentAttachedData[clazz] as T?
+    override fun <T> getAttachment(clazz: Class<T>): T? = persistentAttachedData.getInstance(clazz)
 
     // Does nothing is for tmp storage
     override fun <T> setAttachment(clazz: Class<T>, value: T?) {
-        // Nothin
+        TODO()
     }
 
     companion object {

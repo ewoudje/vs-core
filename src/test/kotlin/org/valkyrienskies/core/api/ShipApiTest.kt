@@ -32,8 +32,6 @@ internal class ShipApiTest {
         val shipData = VSRandomUtils.randomShipData()
         val user = TestShipUser()
 
-        shipData.saveAttachment(user)
-
         Assertions.assertEquals(user.ship, shipData)
         Assertions.assertEquals(user, shipData.getAttachment(TestShipUser::class.java))
 
@@ -45,7 +43,6 @@ internal class ShipApiTest {
     }
 
     fun abstractShipSaver(ship: Ship) {
-        ship.saveAttachment<Int>(5)
         ship.setAttachment<Float>(3f)
     }
 

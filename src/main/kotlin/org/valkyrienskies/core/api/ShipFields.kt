@@ -8,7 +8,9 @@ open class ShipValueDelegate<T>(private val clazz: Class<T>, private val persist
         thisRef.ship?.getAttachment(clazz)
 
     open operator fun setValue(thisRef: ShipProvider, property: KProperty<*>, value: T?) =
-        if (persistent) thisRef.ship!!.saveAttachment(clazz, value) else thisRef.ship!!.setAttachment(clazz, value)
+        if (persistent) (thisRef.ship!! as ServerShip).saveAttachment(clazz, value) else thisRef.ship!!.setAttachment(
+            clazz, value
+        )
 }
 
 class DefaultedShipValueDelegate<T>(clazz: Class<T>, persistent: Boolean, private val default: T) :
