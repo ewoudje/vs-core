@@ -40,7 +40,8 @@ class ShipData(
 ) : ShipDataCommon(
     id, name, chunkClaim, chunkClaimDimension, physicsData, shipTransform, prevTickShipTransform,
     shipAABB, shipVoxelAABB, shipActiveChunksSet
-), ServerShip {
+),
+    ServerShip {
     /**
      * The set of chunks that must be loaded before this ship is fully loaded.
      *
