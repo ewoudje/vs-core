@@ -25,22 +25,17 @@ import org.valkyrienskies.physics_api.voxel_updates.SparseVoxelShapeUpdate
 import java.util.Collections
 import java.util.Spliterator
 import java.util.concurrent.CompletableFuture
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class ShipObjectServerWorld(
+@Singleton
+class ShipObjectServerWorld @Inject constructor(
     override val queryableShipData: MutableQueryableShipDataServer,
-    val chunkAllocator: ChunkAllocator,
+    private val chunkAllocator: ChunkAllocator,
 ) : ShipObjectWorld<ShipObjectServer>(queryableShipData) {
-    companion object {
-        internal lateinit var INSTANCE: ShipObjectServerWorld
-    }
 
     var lastTickPlayers: Set<IPlayer> = setOf()
         private set
-
-    init {
-        // todo: this is messy
-        INSTANCE = this
-    }
 
     var players: Set<IPlayer> = setOf()
         set(value) {
@@ -202,7 +197,7 @@ class ShipObjectServerWorld(
         // endregion
 
         chunkTracker.updateTracking(players, lastTickPlayers)
-        networkManager.tick()
+        networkManager.tick(players)
 
         loadedShips.forEach { VSEvents.shipLoadEvent.emit(ShipLoadEvent(it)) }
 

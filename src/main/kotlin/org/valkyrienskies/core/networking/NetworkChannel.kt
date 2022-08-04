@@ -27,7 +27,7 @@ class NetworkChannel {
 
     /**
      * Allocate a new packet type. This should be always be called in the same order, on startup, on both server and
-     * client. Otherwise packet IDs will not be correct.
+     * client. Otherwise, packet IDs will not be correct.
      */
     fun registerPacket(name: String): PacketType {
         return PacketType(channel = this, id = packetTypes.size, name)

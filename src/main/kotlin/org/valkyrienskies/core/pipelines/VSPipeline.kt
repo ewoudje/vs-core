@@ -1,8 +1,11 @@
 package org.valkyrienskies.core.pipelines
 
+import dagger.Component
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
+import org.valkyrienskies.core.game.ships.SerializedShipDataModule
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.concurrent.thread
 
 /**
@@ -14,10 +17,17 @@ import kotlin.concurrent.thread
  *
  * Game <--> Physics --> Network
  */
-class VSPipeline(private val shipWorld: ShipObjectServerWorld) {
-    private val gameStage = VSGamePipelineStage(shipWorld)
-    private val physicsStage = VSPhysicsPipelineStage()
-    private val networkStage = VSNetworkPipelineStage(shipWorld)
+@Singleton
+class VSPipeline @Inject constructor(
+    private val gameStage: VSGamePipelineStage,
+    private val physicsStage: VSPhysicsPipelineStage,
+    private val networkStage: VSNetworkPipelineStage
+) {
+    @Singleton
+    @Component(modules = [SerializedShipDataModule::class])
+    interface Factory {
+        fun create(): VSPipeline
+    }
 
     private val physicsPipelineBackgroundTask: VSPhysicsPipelineBackgroundTask = VSPhysicsPipelineBackgroundTask(this)
 

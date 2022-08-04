@@ -15,8 +15,9 @@ import org.valkyrienskies.core.networking.simple.sendToClient
 import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.toImmutableSet
+import javax.inject.Inject
 
-class ShipObjectNetworkManagerServer(
+class ShipObjectNetworkManagerServer @Inject constructor(
     private val parent: ShipObjectServerWorld
 ) {
 
@@ -24,8 +25,8 @@ class ShipObjectNetworkManagerServer(
 
     private lateinit var players: Iterable<IPlayer>
 
-    fun tick() {
-        this.players = parent.players
+    fun tick(players: Iterable<IPlayer>) {
+        this.players = players
         updateShipData()
         updateTracking()
 

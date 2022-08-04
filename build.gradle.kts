@@ -40,7 +40,7 @@ dependencies {
     // Kotlin
     implementation(kotlin("stdlib-jdk8"))
     implementation(kotlin("reflect"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
 
     val jacksonVersion = "2.13.3"
     val nettyVersion = "4.1.25.Final"
@@ -50,7 +50,7 @@ dependencies {
     api("org.valkyrienskies:physics_api_krunch:1.0.0+8806df29d6")
 
     // JOML for Math
-    api("org.joml:joml:1.10.0")
+    api("org.joml:joml:1.10.4")
     api("org.joml:joml-primitives:1.10.0")
 
     // Apache Commons Math for Linear Programming

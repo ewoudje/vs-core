@@ -10,8 +10,9 @@ import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.core.util.writeNormQuatdAs3F
 import org.valkyrienskies.core.util.writeVec3AsFloat
 import org.valkyrienskies.core.util.writeVec3d
+import javax.inject.Inject
 
-class VSNetworkPipelineStage(private val shipWorld: ShipObjectServerWorld) {
+class VSNetworkPipelineStage @Inject constructor(private val shipWorld: ShipObjectServerWorld) {
 
     var noSkip = true
 

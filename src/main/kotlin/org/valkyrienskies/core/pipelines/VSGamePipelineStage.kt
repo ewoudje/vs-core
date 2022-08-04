@@ -22,8 +22,10 @@ import org.valkyrienskies.physics_api.PhysicsWorldReference
 import org.valkyrienskies.physics_api.PoseVel
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import java.util.concurrent.ConcurrentLinkedQueue
+import javax.inject.Inject
 
-class VSGamePipelineStage(val shipWorld: ShipObjectServerWorld) {
+class VSGamePipelineStage @Inject constructor(val shipWorld: ShipObjectServerWorld) {
+
     private val physicsFramesQueue: ConcurrentLinkedQueue<VSPhysicsFrame> = ConcurrentLinkedQueue()
     private val dimensionIntIdToString = Int2ObjectOpenHashMap<String>()
 

@@ -1,6 +1,11 @@
 package org.valkyrienskies.core.api
 
 import org.joml.Matrix4dc
+import org.joml.Vector3dc
+import org.joml.primitives.AABBdc
+import org.valkyrienskies.core.game.ChunkClaim
+import org.valkyrienskies.core.game.DimensionId
+import org.valkyrienskies.core.game.ships.ShipId
 import org.valkyrienskies.core.game.ships.ShipObjectClient
 import org.valkyrienskies.core.game.ships.ShipTransform
 
@@ -12,7 +17,13 @@ import org.valkyrienskies.core.game.ships.ShipTransform
  */
 interface Ship : ShipProvider {
 
+    val id: ShipId
     val shipTransform: ShipTransform
+    val chunkClaim: ChunkClaim
+    val chunkClaimDimension: DimensionId
+    val shipAABB: AABBdc
+    val velocity: Vector3dc
+    val omega: Vector3dc
 
     val shipToWorld: Matrix4dc get() = shipTransform.shipToWorldMatrix
     val worldToShip: Matrix4dc get() = shipTransform.worldToShipMatrix
