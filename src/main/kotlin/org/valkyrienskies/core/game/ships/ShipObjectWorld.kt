@@ -13,9 +13,9 @@ import org.valkyrienskies.core.util.logger
 /**
  * Manages all the [ShipObject]s in a world.
  */
-abstract class ShipObjectWorld<ShipObjectType : ShipObject>(
-    open val queryableShipData: QueryableShipDataCommon,
-) {
+abstract class ShipObjectWorld<ShipObjectType : ShipObject> {
+
+    abstract val queryableShipData: QueryableShipDataCommon
 
     abstract val shipObjects: Map<ShipId, ShipObjectType>
 

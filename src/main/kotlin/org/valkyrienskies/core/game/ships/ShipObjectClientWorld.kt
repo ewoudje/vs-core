@@ -4,7 +4,7 @@ import org.valkyrienskies.core.game.ships.networking.ShipObjectNetworkManagerCli
 
 class ShipObjectClientWorld(
     override val queryableShipData: MutableQueryableShipDataCommon
-) : ShipObjectWorld<ShipObjectClient>(queryableShipData) {
+) : ShipObjectWorld<ShipObjectClient>() {
 
     private val shipObjectMap = HashMap<ShipId, ShipObjectClient>()
     override val shipObjects: Map<ShipId, ShipObjectClient> = shipObjectMap

@@ -30,9 +30,9 @@ import javax.inject.Singleton
 
 @Singleton
 class ShipObjectServerWorld @Inject constructor(
-    override val queryableShipData: MutableQueryableShipDataServer,
+    @SavedShipData override val queryableShipData: MutableQueryableShipDataServer,
     private val chunkAllocator: ChunkAllocator,
-) : ShipObjectWorld<ShipObjectServer>(queryableShipData) {
+) : ShipObjectWorld<ShipObjectServer>() {
 
     var lastTickPlayers: Set<IPlayer> = setOf()
         private set
