@@ -103,11 +103,13 @@ class VSGamePipelineStage @Inject constructor(private val shipWorld: ShipObjectS
         val updatedShips = HashMap<ShipId, UpdateShipInGameFrameData>() // Map of ship updates
         val gameFrameVoxelUpdatesMap = HashMap<ShipId, List<IVoxelShapeUpdate>>() // Voxel updates applied by this frame
 
-        val newGroundRigidBodyObjects = shipWorld.getNewGroundRigidBodyObjects()
-        val newShipObjects = shipWorld.getNewShipObjects()
-        val updatedShipObjects = shipWorld.getUpdatedShipObjects()
-        val deletedShipObjects = shipWorld.getDeletedShipObjectsIncludingGround()
-        val shipVoxelUpdates = shipWorld.getShipToVoxelUpdates()
+        val lastTickChanges = shipWorld.getLastTickChanges()
+
+        val newGroundRigidBodyObjects = lastTickChanges.getNewGroundRigidBodyObjects()
+        val newShipObjects = lastTickChanges.newShipObjects
+        val updatedShipObjects = lastTickChanges.updatedShipObjects
+        val deletedShipObjects = lastTickChanges.getDeletedShipObjectsIncludingGround()
+        val shipVoxelUpdates = lastTickChanges.shipToVoxelUpdates
 
         newGroundRigidBodyObjects.forEach { newGroundObjectData ->
             val dimensionId = newGroundObjectData.first
@@ -178,7 +180,7 @@ class VSGamePipelineStage @Inject constructor(private val shipWorld: ShipObjectS
                 maxDefined,
                 totalVoxelRegion,
                 it.shipData.inertiaData.copyToPhyInertia(),
-                it.shipData.physicsData,
+                it.shipData.physicsData.copy(),
                 poseVel,
                 segments,
                 voxelOffset,
@@ -199,7 +201,7 @@ class VSGamePipelineStage @Inject constructor(private val shipWorld: ShipObjectS
                 uuid,
                 newVoxelOffset,
                 it.shipData.inertiaData.copyToPhyInertia(),
-                it.shipData.physicsData,
+                it.shipData.physicsData.copy(),
                 isStatic,
                 isVoxelsFullyLoaded
             )

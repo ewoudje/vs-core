@@ -16,8 +16,7 @@ import java.util.TreeSet
 import java.util.function.LongFunction
 import kotlin.math.min
 
-class ShipObjectServerWorldChunkTracker(
-    private val parent: ShipObjectServerWorld,
+internal class ShipObjectServerWorldChunkTracker(
     var chunkWatchDistance: Double,
     var chunkUnwatchDistance: Double,
 ) {
@@ -52,21 +51,30 @@ class ShipObjectServerWorldChunkTracker(
 
     internal val shipsToUnload = HashSet<ShipData>()
 
-    var chunkWatchTasks: SortedSet<ChunkWatchTask> = sortedSetOf()
+    var chunkWatchTasks: SortedSet<ChunkWatchTask> = TODO("remove")
         private set
-    var chunkUnwatchTasks: SortedSet<ChunkUnwatchTask> = sortedSetOf()
+    var chunkUnwatchTasks: SortedSet<ChunkUnwatchTask> = TODO("remove")
         private set
 
-    fun cleanDeletedShips() {
-        for (ship in parent.deletedShipObjects) {
+    private fun cleanDeletedShips(deletedShips: Iterable<ShipData>) {
+        for (ship in deletedShips) {
             playersToShipsWatchingMap.values.forEach { it.removeInt(ship) }
             shipsToPlayersWatchingMap.remove(ship.id)
             shipsToUnload.add(ship)
         }
     }
 
-    fun updateTracking(players: Set<IPlayer>, lastTickPlayers: Set<IPlayer>) {
-        cleanDeletedShips()
+    private fun resetForNewTick() {
+        playersToShipsNewlyWatchingMap.clear()
+        playersToShipsNoLongerWatchingMap.clear()
+    }
+
+    fun updateTracking(
+        players: Set<IPlayer>, lastTickPlayers: Set<IPlayer>, ships: Iterable<ShipData>,
+        deletedShips: Iterable<ShipData>
+    ): ChunkTrackingInfo {
+        resetForNewTick()
+        cleanDeletedShips(deletedShips)
         // Remove players that left the world
         removePlayers(lastTickPlayers - players)
 
@@ -76,7 +84,7 @@ class ShipObjectServerWorldChunkTracker(
         // Reuse these vector objects across iterations
         val tempVector0 = Vector3d()
         val tempVector1 = Vector3d()
-        parent.queryableShipData.forEach { shipData ->
+        ships.forEach { shipData ->
             val shipTransform = shipData.shipTransform
 
             shipData.shipActiveChunksSet.iterateChunkPos { chunkX, chunkZ ->
@@ -152,8 +160,16 @@ class ShipObjectServerWorldChunkTracker(
             }
         }
 
-        chunkWatchTasks = newChunkWatchTasks
-        chunkUnwatchTasks = newChunkUnwatchTasks
+        return ChunkTrackingInfo(
+            playersToShipsWatchingMap,
+            shipsToPlayersWatchingMap,
+            playersToShipsNewlyWatchingMap,
+            playersToShipsNoLongerWatchingMap,
+            shipsToLoad,
+            shipsToUnload,
+            newChunkWatchTasks,
+            newChunkUnwatchTasks
+        )
     }
 
     // note dimensionId intentionally ignored for now
@@ -161,10 +177,6 @@ class ShipObjectServerWorldChunkTracker(
     fun getPlayersWatchingChunk(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): Collection<IPlayer> {
         val chunkPosAsLong = IShipActiveChunksSet.chunkPosToLong(chunkX, chunkZ)
         return chunkToPlayersWatchingMap[chunkPosAsLong] ?: listOf()
-    }
-
-    fun getShipsPlayerIsWatching(player: IPlayer): Iterable<ShipData> {
-        return (playersToShipsWatchingMap[player] ?: emptyMap()).keys
     }
 
     private fun addWatchersToChunk(shipData: ShipData, chunkPos: Long, newWatchingPlayers: Iterable<IPlayer>) {

@@ -4,6 +4,7 @@ import dagger.Component
 import org.joml.Vector3d
 import org.joml.Vector3dc
 import org.valkyrienskies.core.game.ships.SerializedShipDataModule
+import org.valkyrienskies.core.networking.VSNetworking.NetworkingModule
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.concurrent.thread
@@ -24,7 +25,7 @@ class VSPipeline @Inject constructor(
     private val networkStage: VSNetworkPipelineStage
 ) {
     @Singleton
-    @Component(modules = [SerializedShipDataModule::class])
+    @Component(modules = [SerializedShipDataModule::class, NetworkingModule::class])
     interface Factory {
         fun create(): VSPipeline
     }

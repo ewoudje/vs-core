@@ -5,6 +5,7 @@ package org.valkyrienskies.core.networking.simple
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
 import org.valkyrienskies.core.game.IPlayer
+import org.valkyrienskies.core.networking.NetworkChannel
 import org.valkyrienskies.core.networking.PacketType
 import org.valkyrienskies.core.networking.RegisteredHandler
 import org.valkyrienskies.core.networking.VSNetworking
@@ -70,10 +71,13 @@ fun SimplePacket.sendToAllClients() {
     this::class.java.getPacketType().sendToAllClients(this.serialize())
 }
 
-fun KClass<out SimplePacket>.register(name: String = "SimplePacket - ${this.java}") {
+fun KClass<out SimplePacket>.register(
+    channel: NetworkChannel = VSNetworking.TCP,
+    name: String = "SimplePacket - ${this.java}"
+) {
     check(this.isData) { "SimplePacket (${this.java}) must be a data class!" }
 
-    val packetType = VSNetworking.TCP.registerPacket(name)
+    val packetType = channel.registerPacket(name)
     val packetInfo = SimplePacketInfo(packetType)
     classToPacket[this.java] = packetInfo
 

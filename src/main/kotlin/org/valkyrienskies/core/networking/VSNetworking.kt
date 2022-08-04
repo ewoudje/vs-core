@@ -21,9 +21,12 @@ import javax.crypto.SecretKey
 object VSNetworking {
 
     @Module
-    class DaggerModule {
+    class NetworkingModule {
         @Provides
         fun vsNetworking(): VSNetworking = VSNetworking
+
+        @Provides
+        fun packets(networking: VSNetworking) = networking.packets
     }
 
     /**
@@ -37,6 +40,8 @@ object VSNetworking {
      * Should be initialized by Forge or Fabric (see [NetworkChannel])
      */
     val TCP = NetworkChannel()
+
+    val packets: Packets = Packets
 
     var clientUsesUDP = false
     var serverUsesUDP = false
