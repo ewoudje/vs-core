@@ -3,7 +3,7 @@ package org.valkyrienskies.core.pipelines
 import dagger.Component
 import org.joml.Vector3d
 import org.joml.Vector3dc
-import org.valkyrienskies.core.config.VSCoreConfig.ConfigModule
+import org.valkyrienskies.core.config.VSCoreConfig.ServerConfigModule
 import org.valkyrienskies.core.game.ships.SerializedShipDataModule
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.networking.VSNetworking.NetworkingModule
@@ -28,7 +28,7 @@ class VSPipeline @Inject constructor(
     private val networkStage: VSNetworkPipelineStage
 ) {
     @Singleton
-    @Component(modules = [SerializedShipDataModule::class, NetworkingModule::class, ConfigModule::class])
+    @Component(modules = [SerializedShipDataModule::class, NetworkingModule::class, ServerConfigModule::class])
     interface Factory {
         fun create(): VSPipeline
     }

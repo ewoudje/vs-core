@@ -7,7 +7,7 @@ import dagger.Provides
 object VSCoreConfig {
 
     @Module
-    class ConfigModule {
+    class ServerConfigModule {
         @Provides
         fun server(): Server = SERVER
     }

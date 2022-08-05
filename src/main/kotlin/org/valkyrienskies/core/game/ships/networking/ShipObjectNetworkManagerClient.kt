@@ -1,5 +1,6 @@
 package org.valkyrienskies.core.game.ships.networking
 
+import dagger.Lazy
 import io.netty.buffer.ByteBuf
 import kotlinx.coroutines.launch
 import org.valkyrienskies.core.game.ships.ShipDataCommon
@@ -18,6 +19,7 @@ import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.simple.registerClientHandler
 import org.valkyrienskies.core.networking.unregisterAll
 import org.valkyrienskies.core.pipelines.VSNetworkPipelineStage
+import org.valkyrienskies.core.util.getValue
 import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.core.util.read3FAsNormQuatd
 import org.valkyrienskies.core.util.readVec3d
@@ -25,10 +27,14 @@ import org.valkyrienskies.core.util.readVec3fAsDouble
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import java.net.SocketAddress
 import javax.crypto.SecretKey
+import javax.inject.Inject
 
-class ShipObjectNetworkManagerClient(
-    private val parent: ShipObjectClientWorld
+class ShipObjectNetworkManagerClient @Inject constructor(
+    parent: Lazy<ShipObjectClientWorld>,
+    private val networking: VSNetworking
 ) {
+
+    private val parent by parent
 
     private val worldScope get() = parent.coroutineScope
 
@@ -44,15 +50,15 @@ class ShipObjectNetworkManagerClient(
             PacketShipRemove::class.registerClientHandler(this::onShipDataRemove)
         )
 
-        VSNetworking.TCP.clientIsReady()
-        VSNetworking.UDP.clientIsReady()
+        networking.TCP.clientIsReady()
+        networking.UDP.clientIsReady()
     }
 
     fun onDestroy() {
         handlers.unregisterAll()
         secretKey = null
-        VSNetworking.TCP.disable()
-        VSNetworking.UDP.disable()
+        networking.TCP.disable()
+        networking.UDP.disable()
     }
 
     private fun onShipDataRemove(packet: PacketShipRemove) = worldScope.launch {
@@ -103,7 +109,7 @@ class ShipObjectNetworkManagerClient(
     private var serverNoUdp = false
     private var tryConnectIn = 100
     fun tick(server: SocketAddress) {
-        if (!VSNetworking.clientUsesUDP && !serverNoUdp) {
+        if (!networking.clientUsesUDP && !serverNoUdp) {
             tryConnectIn--
             if (tryConnectIn <= 0) {
                 secretKey = VSCryptUtils.generateAES128Key()
