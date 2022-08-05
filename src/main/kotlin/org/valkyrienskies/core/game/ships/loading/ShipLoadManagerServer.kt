@@ -24,7 +24,7 @@ class ShipLoadManagerServer @Inject internal constructor(
         PRE_TICK, SET_EXECUTED, POST_TICK
     }
 
-    private val stageEnforcer = TickStageEnforcer {
+    private val stageEnforcer = TickStageEnforcer(PRE_TICK) {
         requireStagesAndOrder(*Stages.values())
     }
 
@@ -42,7 +42,7 @@ class ShipLoadManagerServer @Inject internal constructor(
         ships: Iterable<ShipData>,
         deletedShips: Iterable<ShipData>
     ) {
-        stageEnforcer.stage(PRE_TICK, true)
+        stageEnforcer.stage(PRE_TICK)
 
         chunkWatchTasks = tracker.generateChunkWatchTasksAndUpdatePlayers(players, lastTickPlayers, ships, deletedShips)
 

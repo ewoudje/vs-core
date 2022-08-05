@@ -12,37 +12,17 @@ import java.util.concurrent.Executors
 class TickStageEnforcerTest : StringSpec({
 
     "requires first stage is a reset" {
-        val enforcer = TickStageEnforcer<String>()
+        val enforcer = TickStageEnforcer("b")
 
         shouldThrow<IllegalArgumentException> {
             enforcer.stage("a")
         }
     }
 
-    "requires reset stage is the same each time" {
-        val enforcer = TickStageEnforcer<String>()
-
-        enforcer.stage("a", true)
-        shouldThrow<IllegalArgumentException> {
-            enforcer.stage("b", true)
-        }
-
-        enforcer.stage("a", true)
-        enforcer.stage("a", true)
-
-        shouldThrow<IllegalArgumentException> {
-            enforcer.stage("b", true)
-        }
-
-        shouldThrow<IllegalArgumentException> {
-            enforcer.stage("a") // no reset
-        }
-    }
-
     "enforces order" {
-        val enforcer = TickStageEnforcer(StageConstraint.requireOrder("a", "b", "c"))
+        val enforcer = TickStageEnforcer("a", StageConstraint.requireOrder("a", "b", "c"))
 
-        enforcer.stage("a", true)
+        enforcer.stage("a")
         enforcer.stage("d")
 
         shouldThrow<ConstraintFailedException> {
@@ -52,6 +32,7 @@ class TickStageEnforcerTest : StringSpec({
 
     "enforces predicate ordering with oneof" {
         val enforcer = TickStageEnforcer(
+            "a",
             StageConstraint.requireOrder(
                 StagePredicate.single("a"),
                 StagePredicate.oneOf("b", "c", "d"),
@@ -59,13 +40,13 @@ class TickStageEnforcerTest : StringSpec({
             )
         )
 
-        enforcer.stage("a", true)
+        enforcer.stage("a")
         enforcer.stage("b")
         enforcer.stage("d")
         enforcer.stage("c")
         enforcer.stage("b")
 
-        enforcer.stage("a", true)
+        enforcer.stage("a")
         enforcer.stage("f")
 
         shouldThrow<ConstraintFailedException> {
@@ -74,7 +55,7 @@ class TickStageEnforcerTest : StringSpec({
     }
 
     "enforces predicate ordering with oneof (builder style)" {
-        val enforcer = TickStageEnforcer {
+        val enforcer = TickStageEnforcer("a") {
             requireOrder {
                 single("a")
                 oneOf("b", "c", "d")
@@ -82,13 +63,13 @@ class TickStageEnforcerTest : StringSpec({
             }
         }
 
-        enforcer.stage("a", true)
+        enforcer.stage("a")
         enforcer.stage("b")
         enforcer.stage("d")
         enforcer.stage("c")
         enforcer.stage("b")
 
-        enforcer.stage("a", true)
+        enforcer.stage("a")
         enforcer.stage("f")
 
         shouldThrow<ConstraintFailedException> {
@@ -97,55 +78,55 @@ class TickStageEnforcerTest : StringSpec({
     }
 
     "allows duplicates in order" {
-        val enforcer = TickStageEnforcer(StageConstraint.requireOrder("a", "b", "c"))
+        val enforcer = TickStageEnforcer("a", StageConstraint.requireOrder("a", "b", "c"))
 
-        enforcer.stage("a", true)
+        enforcer.stage("a")
         enforcer.stage("b")
         enforcer.stage("b")
         enforcer.stage("c")
         enforcer.stage("c")
-        enforcer.stage("a", true)
+        enforcer.stage("a")
     }
 
     "enforces required stages" {
-        val enforcer = TickStageEnforcer(StageConstraint.requireStages("a", "b", "c"))
+        val enforcer = TickStageEnforcer("a", StageConstraint.requireStages("a", "b", "c"))
 
-        enforcer.stage("a", true)
+        enforcer.stage("a")
         enforcer.stage("b")
         enforcer.stage("b")
 
         shouldThrow<ConstraintFailedException> {
-            enforcer.stage("a", true)
+            enforcer.stage("a")
         }
 
         enforcer.stage("b")
         enforcer.stage("c")
-        enforcer.stage("a", true)
+        enforcer.stage("a")
     }
 
     "enforces required stages and order" {
-        val enforcer = TickStageEnforcer(StageConstraint.requireStagesAndOrder("a", "b", "c"))
+        val enforcer = TickStageEnforcer("a", StageConstraint.requireStagesAndOrder("a", "b", "c"))
 
-        enforcer.stage("a", true)
+        enforcer.stage("a")
         enforcer.stage("b")
         enforcer.stage("0")
         enforcer.stage("1")
 
         shouldThrow<ConstraintFailedException> {
-            enforcer.stage("a", true)
+            enforcer.stage("a")
         }
 
         enforcer.stage("1")
         enforcer.stage("b")
         enforcer.stage("c")
-        enforcer.stage("a", true)
+        enforcer.stage("a")
     }
 
     "allows full cycle of correct oder" {
-        val enforcer = TickStageEnforcer(StageConstraint.requireStagesAndOrder("a", "b", "c"))
+        val enforcer = TickStageEnforcer("a", StageConstraint.requireStagesAndOrder("a", "b", "c"))
 
         repeat(3) {
-            enforcer.stage("a", true)
+            enforcer.stage("a")
             enforcer.stage("b")
             enforcer.stage("c")
         }
@@ -155,9 +136,9 @@ class TickStageEnforcerTest : StringSpec({
         val thread = Thread()
         val executor = Executors.newSingleThreadExecutor { thread }
 
-        val enforcer = TickStageEnforcer(StageConstraint.requireThread({ it == thread }, "b"))
+        val enforcer = TickStageEnforcer("a", StageConstraint.requireThread({ it == thread }, "b"))
 
-        enforcer.stage("a", true)
+        enforcer.stage("a")
 
         shouldThrow<ConstraintFailedException> {
             enforcer.stage("b")
