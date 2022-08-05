@@ -6,7 +6,7 @@ import org.valkyrienskies.core.networking.VSNetworking.NetworkingModule
 import javax.inject.Inject
 
 class ShipObjectClientWorld @Inject constructor(
-    val networkManager: ShipObjectNetworkManagerClient
+    networkManagerFactory: ShipObjectNetworkManagerClient.Factory
 ) : ShipObjectWorld<ShipObjectClient>() {
 
     @Component(modules = [NetworkingModule::class])
@@ -18,6 +18,8 @@ class ShipObjectClientWorld @Inject constructor(
 
     private val shipObjectMap = HashMap<ShipId, ShipObjectClient>()
     override val shipObjects: Map<ShipId, ShipObjectClient> = shipObjectMap
+
+    val networkManager: ShipObjectNetworkManagerClient = networkManagerFactory.make(this)
 
     init {
         networkManager.registerPacketListeners()

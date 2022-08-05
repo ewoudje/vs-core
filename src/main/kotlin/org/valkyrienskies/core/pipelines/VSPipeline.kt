@@ -30,7 +30,7 @@ class VSPipeline @Inject constructor(
     @Singleton
     @Component(modules = [SerializedShipDataModule::class, NetworkingModule::class, ServerConfigModule::class])
     interface Factory {
-        fun create(): VSPipeline
+        fun make(): VSPipeline
     }
 
     private val physicsPipelineBackgroundTask: VSPhysicsPipelineBackgroundTask = VSPhysicsPipelineBackgroundTask(this)

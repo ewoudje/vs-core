@@ -1,6 +1,8 @@
 package org.valkyrienskies.core.game.ships.networking
 
-import dagger.Lazy
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedFactory
+import dagger.assisted.AssistedInject
 import io.netty.buffer.ByteBuf
 import kotlinx.coroutines.launch
 import org.valkyrienskies.core.game.ships.ShipDataCommon
@@ -19,7 +21,6 @@ import org.valkyrienskies.core.networking.impl.PacketShipRemove
 import org.valkyrienskies.core.networking.simple.registerClientHandler
 import org.valkyrienskies.core.networking.unregisterAll
 import org.valkyrienskies.core.pipelines.VSNetworkPipelineStage
-import org.valkyrienskies.core.util.getValue
 import org.valkyrienskies.core.util.logger
 import org.valkyrienskies.core.util.read3FAsNormQuatd
 import org.valkyrienskies.core.util.readVec3d
@@ -27,14 +28,16 @@ import org.valkyrienskies.core.util.readVec3fAsDouble
 import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import java.net.SocketAddress
 import javax.crypto.SecretKey
-import javax.inject.Inject
 
-class ShipObjectNetworkManagerClient @Inject constructor(
-    parent: Lazy<ShipObjectClientWorld>,
+class ShipObjectNetworkManagerClient @AssistedInject constructor(
+    @Assisted private val parent: ShipObjectClientWorld,
     private val networking: VSNetworking
 ) {
 
-    private val parent by parent
+    @AssistedFactory
+    interface Factory {
+        fun make(parent: ShipObjectClientWorld): ShipObjectNetworkManagerClient
+    }
 
     private val worldScope get() = parent.coroutineScope
 
