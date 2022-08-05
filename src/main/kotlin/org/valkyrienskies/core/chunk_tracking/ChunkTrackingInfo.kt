@@ -4,7 +4,6 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap
 import it.unimi.dsi.fastutil.objects.Object2IntMap
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.ships.ShipData
-import java.util.SortedSet
 
 /**
  * A class containing the result of the chunk tracking. **This object is only valid for the tick it was produced in!**
@@ -17,8 +16,6 @@ data class ChunkTrackingInfo(
     val playersToShipsNoLongerWatchingMap: Map<IPlayer, MutableSet<ShipData>>,
     val shipsToLoad: Set<ShipData>,
     val shipsToUnload: Set<ShipData>,
-    val chunkWatchTasks: SortedSet<ChunkWatchTask>,
-    val chunkUnwatchTasks: SortedSet<ChunkUnwatchTask>
 ) {
     fun getShipsPlayerIsWatching(player: IPlayer): Iterable<ShipData> {
         return (playersToShipsWatchingMap[player] ?: emptyMap()).keys

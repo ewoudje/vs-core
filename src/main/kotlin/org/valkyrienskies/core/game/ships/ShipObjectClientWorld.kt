@@ -24,8 +24,8 @@ class ShipObjectClientWorld(
         shipObjectMap.remove(shipId)
     }
 
-    public override fun tickShips() {
-        super.tickShips()
+    public override fun preTick() {
+        super.preTick()
 
         shipObjects.forEach { (_, shipObjectClient) ->
             shipObjectClient.tickUpdateShipTransform()

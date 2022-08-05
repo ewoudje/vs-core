@@ -1,8 +1,16 @@
 package org.valkyrienskies.core.config
 
 import com.github.imifou.jsonschema.module.addon.annotation.JsonSchema
+import dagger.Module
+import dagger.Provides
 
 object VSCoreConfig {
+
+    @Module
+    class ConfigModule {
+        @Provides
+        fun server(): Server = SERVER
+    }
 
     @JvmField
     val SERVER = Server()

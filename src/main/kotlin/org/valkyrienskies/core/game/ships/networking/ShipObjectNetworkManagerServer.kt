@@ -20,7 +20,7 @@ import org.valkyrienskies.core.util.serialization.VSJacksonUtil
 import org.valkyrienskies.core.util.toImmutableSet
 import javax.inject.Inject
 
-class ShipObjectNetworkManagerServer @Inject constructor(
+internal class ShipObjectNetworkManagerServer @Inject constructor(
     _parent: Lazy<ShipObjectServerWorld>,
     private val network: VSNetworking,
     private val packets: Packets

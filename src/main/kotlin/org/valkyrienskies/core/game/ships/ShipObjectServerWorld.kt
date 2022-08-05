@@ -7,8 +7,7 @@ import org.joml.Vector3ic
 import org.valkyrienskies.core.api.ServerShip
 import org.valkyrienskies.core.chunk_tracking.ChunkUnwatchTask
 import org.valkyrienskies.core.chunk_tracking.ChunkWatchTask
-import org.valkyrienskies.core.chunk_tracking.ShipObjectServerWorldChunkTracker
-import org.valkyrienskies.core.config.VSCoreConfig
+import org.valkyrienskies.core.chunk_tracking.ChunkWatchTasks
 import org.valkyrienskies.core.game.ChunkAllocator
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.IPlayer
@@ -26,8 +25,6 @@ import org.valkyrienskies.physics_api.voxel_updates.EmptyVoxelShapeUpdate
 import org.valkyrienskies.physics_api.voxel_updates.IVoxelShapeUpdate
 import org.valkyrienskies.physics_api.voxel_updates.KrunchVoxelStates
 import org.valkyrienskies.physics_api.voxel_updates.SparseVoxelShapeUpdate
-import java.util.Collections
-import java.util.Spliterator
 import java.util.concurrent.CompletableFuture
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -47,6 +44,8 @@ class ShipObjectServerWorld @Inject constructor(
             lastTickPlayers = field
             field = value
         }
+
+    val playersToTrackedShips by loadManager::playersToTrackedShips
 
     private val shipObjectMap = HashMap<ShipId, ShipObjectServer>()
 
@@ -78,9 +77,6 @@ class ShipObjectServerWorld @Inject constructor(
      * has full control of when the updates are applied.
      */
     private val shipToVoxelUpdates: MutableShipVoxelUpdates = HashMap()
-
-    internal val chunkTracker =
-        ShipObjectServerWorldChunkTracker(VSCoreConfig.SERVER.shipLoadDistance, VSCoreConfig.SERVER.shipUnloadDistance)
 
     @Deprecated(
         message = "All events moved to VSEvents",
@@ -183,8 +179,9 @@ class ShipObjectServerWorld @Inject constructor(
         return shipObjects[ship.id]
     }
 
-    public override fun tickShips() {
-        super.tickShips()
+    public override fun preTick() {
+        super.preTick()
+        clearNewUpdatedDeletedShipObjectsAndVoxelUpdates()
 
         val loadedShips = mutableListOf<ShipObjectServer>()
         val it = shipObjects.iterator()
@@ -232,11 +229,13 @@ class ShipObjectServerWorld @Inject constructor(
         }
         // endregion
 
-        chunkTracker.updateTracking(players, lastTickPlayers, queryableShipData, deletedShipObjects)
-        TODO()
-        // loadManager.tick(players)
+        loadManager.preTick(players, lastTickPlayers, queryableShipData, deletedShipObjects)
 
         loadedShips.forEach { VSEvents.shipLoadEvent.emit(ShipLoadEvent(it)) }
+    }
+
+    fun postTick() {
+        loadManager.postTick(players)
     }
 
     /**
@@ -245,11 +244,7 @@ class ShipObjectServerWorld @Inject constructor(
      * If the chunk at [chunkX], [chunkZ] is not a ship chunk, then this returns nothing.
      */
     fun getIPlayersWatchingShipChunk(chunkX: Int, chunkZ: Int, dimensionId: DimensionId): Iterator<IPlayer> {
-        // Check if this chunk potentially belongs to a ship
-        if (ChunkAllocator.isChunkInShipyard(chunkX, chunkZ)) {
-            return chunkTracker.getPlayersWatchingChunk(chunkX, chunkZ, dimensionId).iterator()
-        }
-        return Collections.emptyIterator()
+        return loadManager.getIPlayersWatchingShipChunk(chunkX, chunkZ, dimensionId)
     }
 
     /**
@@ -258,8 +253,12 @@ class ShipObjectServerWorld @Inject constructor(
      * It only returns the tasks, it is up to the caller to execute the tasks; however they do not have to execute all of them.
      * It is up to the caller to decide which tasks to execute, and which ones to skip.
      */
-    fun getChunkWatchUnwatchTasks(): Pair<Spliterator<ChunkWatchTask>, Spliterator<ChunkUnwatchTask>> {
-        return Pair(chunkTracker.chunkWatchTasks.spliterator(), chunkTracker.chunkUnwatchTasks.spliterator())
+    fun getChunkWatchTasks(): ChunkWatchTasks {
+        return loadManager.chunkWatchTasks
+    }
+
+    fun setExecutedChunkWatchTasks(watchTasks: Iterable<ChunkWatchTask>, unwatchTasks: Iterable<ChunkUnwatchTask>) {
+        loadManager.setExecutedChunkWatchTasks(watchTasks, unwatchTasks)
     }
 
     /**

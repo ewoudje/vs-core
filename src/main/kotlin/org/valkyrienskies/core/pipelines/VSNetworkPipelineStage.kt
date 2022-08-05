@@ -12,7 +12,9 @@ import org.valkyrienskies.core.util.writeVec3AsFloat
 import org.valkyrienskies.core.util.writeVec3d
 import javax.inject.Inject
 
-class VSNetworkPipelineStage @Inject constructor(private val shipWorld: ShipObjectServerWorld) {
+class VSNetworkPipelineStage @Inject constructor(
+    private val shipWorld: ShipObjectServerWorld
+) {
 
     var noSkip = true
 
@@ -25,7 +27,8 @@ class VSNetworkPipelineStage @Inject constructor(private val shipWorld: ShipObje
         noSkip = !noSkip
         if (noSkip) return
 
-        shipWorld.networkManager.playersToTrackedShips.forEach { (player, trackedShips) ->
+
+        shipWorld.playersToTrackedShips.forEach { (player, trackedShips) ->
             val buf = Unpooled.buffer()
 
             fun send(shipDatas: List<ShipData>) {

@@ -26,7 +26,7 @@ abstract class ShipObjectWorld<ShipObjectType : ShipObject> {
     var tickNumber = 0
         private set
 
-    protected open fun tickShips() {
+    protected open fun preTick() {
         try {
             _dispatcher.tick()
         } catch (ex: Exception) {

@@ -60,6 +60,8 @@ class VSGamePipelineStage @Inject constructor(private val shipWorld: ShipObjectS
         shipWorld.shipObjects.forEach {
             it.value.toBeTicked.forEach(Ticked::tick)
         }
+
+        shipWorld.preTick()
     }
 
     /**
@@ -214,7 +216,6 @@ class VSGamePipelineStage @Inject constructor(private val shipWorld: ShipObjectS
             gameFrameVoxelUpdatesMap[shipId] = voxelUpdatesMap.values.toList()
         }
 
-        shipWorld.clearNewUpdatedDeletedShipObjectsAndVoxelUpdates()
         return VSGameFrame(newShips, deletedShips, updatedShips, gameFrameVoxelUpdatesMap)
     }
 

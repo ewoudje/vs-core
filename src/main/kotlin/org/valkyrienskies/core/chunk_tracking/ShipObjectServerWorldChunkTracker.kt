@@ -6,55 +6,53 @@ import it.unimi.dsi.fastutil.objects.Object2IntMap
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap
 import org.joml.Vector3d
 import org.joml.Vector3dc
+import org.valkyrienskies.core.config.VSCoreConfig
 import org.valkyrienskies.core.game.DimensionId
 import org.valkyrienskies.core.game.IPlayer
 import org.valkyrienskies.core.game.ships.ShipData
 import org.valkyrienskies.core.game.ships.ShipObjectServerWorld
 import org.valkyrienskies.core.util.squared
-import java.util.SortedSet
 import java.util.TreeSet
 import java.util.function.LongFunction
+import javax.inject.Inject
 import kotlin.math.min
 
-internal class ShipObjectServerWorldChunkTracker(
-    var chunkWatchDistance: Double,
-    var chunkUnwatchDistance: Double,
+internal class ShipObjectServerWorldChunkTracker @Inject constructor(
+    val config: VSCoreConfig.Server
 ) {
+
+    private val chunkWatchDistance: Double = config.shipLoadDistance
+    private val chunkUnwatchDistance: Double = config.shipUnloadDistance
 
     private val chunkToPlayersWatchingMap: Long2ObjectMap<MutableSet<IPlayer>> = Long2ObjectOpenHashMap()
 
     /**
      * Player -> Ship Id -> Number of chunks on that ship the player is tracking
      */
-    internal val playersToShipsWatchingMap = HashMap<IPlayer, Object2IntMap<ShipData>>()
+    private val playersToShipsWatchingMap = HashMap<IPlayer, Object2IntMap<ShipData>>()
 
     /**
      * Ship Id -> Players watching
      */
-    internal val shipsToPlayersWatchingMap = Long2ObjectOpenHashMap<MutableSet<IPlayer>>()
+    private val shipsToPlayersWatchingMap = Long2ObjectOpenHashMap<MutableSet<IPlayer>>()
 
     /**
      * Players -> ships that they weren't watching before
      *
      * This gets cleared by [ShipObjectServerWorld] every tick
      */
-    internal val playersToShipsNewlyWatchingMap = HashMap<IPlayer, MutableSet<ShipData>>()
+    private val playersToShipsNewlyWatchingMap = HashMap<IPlayer, MutableSet<ShipData>>()
 
     /**
      * Players -> ships that they are no longer watching
      *
      * This gets cleared by [ShipObjectServerWorld] every tick
      */
-    internal val playersToShipsNoLongerWatchingMap = HashMap<IPlayer, MutableSet<ShipData>>()
+    private val playersToShipsNoLongerWatchingMap = HashMap<IPlayer, MutableSet<ShipData>>()
 
-    internal val shipsToLoad = HashSet<ShipData>()
+    private val shipsToLoad = HashSet<ShipData>()
 
-    internal val shipsToUnload = HashSet<ShipData>()
-
-    var chunkWatchTasks: SortedSet<ChunkWatchTask> = TODO("remove")
-        private set
-    var chunkUnwatchTasks: SortedSet<ChunkUnwatchTask> = TODO("remove")
-        private set
+    private val shipsToUnload = HashSet<ShipData>()
 
     private fun cleanDeletedShips(deletedShips: Iterable<ShipData>) {
         for (ship in deletedShips) {
@@ -69,10 +67,17 @@ internal class ShipObjectServerWorldChunkTracker(
         playersToShipsNoLongerWatchingMap.clear()
     }
 
-    fun updateTracking(
+    /**
+     * Analyzes player and ship positions according to the load distances specified in config and generates a list
+     * of *suggestions* for chunks to be watched. The game may or may not actually watch all these chunks.
+     *
+     * This untracks ships from all removed players, however the chunk tracker must also be updated by
+     * [applyTasksAndGenerateTrackingInfo]
+     */
+    fun generateChunkWatchTasksAndUpdatePlayers(
         players: Set<IPlayer>, lastTickPlayers: Set<IPlayer>, ships: Iterable<ShipData>,
         deletedShips: Iterable<ShipData>
-    ): ChunkTrackingInfo {
+    ): ChunkWatchTasks {
         resetForNewTick()
         cleanDeletedShips(deletedShips)
         // Remove players that left the world
@@ -140,10 +145,9 @@ internal class ShipObjectServerWorldChunkTracker(
                 // ( doesn't matter as long as we still do all of the watching in one tick though )
                 if (newPlayersWatching.isNotEmpty()) {
                     val newChunkWatchTask = ChunkWatchTask(
-                        chunkPosAsLong, shipData.chunkClaimDimension, newPlayersWatching, minWatchingDistanceSq
-                    ) {
-                        addWatchersToChunk(shipData, chunkPosAsLong, newPlayersWatching)
-                    }
+                        chunkPosAsLong, shipData.chunkClaimDimension, newPlayersWatching, minWatchingDistanceSq,
+                        shipData
+                    )
                     newChunkWatchTasks.add(newChunkWatchTask)
                 }
                 if (newPlayersUnwatching.isNotEmpty()) {
@@ -151,13 +155,31 @@ internal class ShipObjectServerWorldChunkTracker(
                     val shouldUnloadChunk = playersWatchingChunk.size == newPlayersUnwatching.size
                     val newChunkUnwatchTask = ChunkUnwatchTask(
                         chunkPosAsLong, shipData.chunkClaimDimension,
-                        newPlayersUnwatching, shouldUnloadChunk, minUnwatchingDistanceSq
-                    ) {
-                        removeWatchersFromChunk(shipData, chunkPosAsLong, newPlayersUnwatching)
-                    }
+                        newPlayersUnwatching, shouldUnloadChunk, minUnwatchingDistanceSq, shipData
+                    )
                     newChunkUnwatchTasks.add(newChunkUnwatchTask)
                 }
             }
+        }
+
+        return ChunkWatchTasks(newChunkWatchTasks, newChunkUnwatchTasks)
+    }
+
+    /**
+     * Updates the chunk trackers internal state and generates [ChunkTrackingInfo].
+     *
+     * [ChunkTrackingInfo] is only safe to be used for this tick
+     */
+    fun applyTasksAndGenerateTrackingInfo(
+        executedWatchTasks: Iterable<ChunkWatchTask>,
+        executedUnwatchTasks: Iterable<ChunkUnwatchTask>
+    ): ChunkTrackingInfo {
+        for (task in executedWatchTasks) {
+            addWatchersToChunk(task.ship, task.chunkPos, task.playersNeedWatching)
+        }
+
+        for (task in executedUnwatchTasks) {
+            removeWatchersFromChunk(task.ship, task.chunkPos, task.playersNeedUnwatching)
         }
 
         return ChunkTrackingInfo(
@@ -166,9 +188,7 @@ internal class ShipObjectServerWorldChunkTracker(
             playersToShipsNewlyWatchingMap,
             playersToShipsNoLongerWatchingMap,
             shipsToLoad,
-            shipsToUnload,
-            newChunkWatchTasks,
-            newChunkUnwatchTasks
+            shipsToUnload
         )
     }
 
