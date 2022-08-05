@@ -1,7 +1,6 @@
 plugins {
     kotlin("jvm") version "1.7.10"
     kotlin("kapt") version "1.7.10"
-    id("scabbard.gradle") version "0.5.0"
     id("org.jlleitschuh.gradle.ktlint") version "10.3.0"
     java
     checkstyle
@@ -17,16 +16,6 @@ version = if (project.hasProperty("CustomReleaseVersion")) {
     // But its made by Palantir 0_0.
     val gitRevision = "git rev-parse HEAD".execute()
     "1.0.0+" + gitRevision.substring(0, 10)
-}
-
-// Remove after updating scabbard - https://github.com/arunkumar9t2/scabbard-sample/pull/1/files
-configurations.all {
-    resolutionStrategy.eachDependency {
-        if (requested.group == "com.github.kittinunf.result" && requested.name == "result" && requested.version == "3.0.0") {
-            useVersion("3.0.1")
-            because("Transitive dependency of Scabbard, currently not available on mavenCentral()")
-        }
-    }
 }
 
 repositories {
@@ -111,10 +100,6 @@ tasks.withType<Checkstyle> {
         // Output xml reports
         xml.isEnabled = true
     }
-}
-
-scabbard {
-    enabled = true
 }
 
 checkstyle {
