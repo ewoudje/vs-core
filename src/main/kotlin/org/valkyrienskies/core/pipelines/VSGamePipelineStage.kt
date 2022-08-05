@@ -68,6 +68,7 @@ class VSGamePipelineStage @Inject constructor(private val shipWorld: ShipObjectS
      * Create a new game frame to be sent to the physics
      */
     fun postTickGame(): VSGameFrame {
+        shipWorld.postTick()
         // Finally, return the game frame
         return createGameFrame()
     }
@@ -216,6 +217,7 @@ class VSGamePipelineStage @Inject constructor(private val shipWorld: ShipObjectS
             gameFrameVoxelUpdatesMap[shipId] = voxelUpdatesMap.values.toList()
         }
 
+        shipWorld.clearNewUpdatedDeletedShipObjectsAndVoxelUpdates() // can we move this into [ShipObjectServerWorld]?
         return VSGameFrame(newShips, deletedShips, updatedShips, gameFrameVoxelUpdatesMap)
     }
 

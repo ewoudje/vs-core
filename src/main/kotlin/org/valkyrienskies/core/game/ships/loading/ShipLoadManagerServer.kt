@@ -12,8 +12,7 @@ import org.valkyrienskies.core.game.ships.loading.ShipLoadManagerServer.Stages.P
 import org.valkyrienskies.core.game.ships.loading.ShipLoadManagerServer.Stages.PRE_TICK
 import org.valkyrienskies.core.game.ships.loading.ShipLoadManagerServer.Stages.SET_EXECUTED
 import org.valkyrienskies.core.game.ships.networking.ShipObjectNetworkManagerServer
-import org.valkyrienskies.core.util.assertions.TickStageEnforcer
-import org.valkyrienskies.core.util.assertions.TickStageEnforcer.Constraints
+import org.valkyrienskies.core.util.assertions.stages.TickStageEnforcer
 import java.util.Collections
 import javax.inject.Inject
 
@@ -25,9 +24,9 @@ class ShipLoadManagerServer @Inject internal constructor(
         PRE_TICK, SET_EXECUTED, POST_TICK
     }
 
-    private val stageEnforcer = TickStageEnforcer(
-        Constraints.requireStagesAndOrder(*Stages.values())
-    )
+    private val stageEnforcer = TickStageEnforcer {
+        requireStagesAndOrder(*Stages.values())
+    }
 
     private lateinit var executedChunkWatchTasks: Iterable<ChunkWatchTask>
     private lateinit var executedChunkUnwatchTasks: Iterable<ChunkUnwatchTask>

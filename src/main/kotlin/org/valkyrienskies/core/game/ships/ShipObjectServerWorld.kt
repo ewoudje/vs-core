@@ -181,8 +181,11 @@ class ShipObjectServerWorld @Inject constructor(
 
     public override fun preTick() {
         super.preTick()
-        clearNewUpdatedDeletedShipObjectsAndVoxelUpdates()
 
+        loadManager.preTick(players, lastTickPlayers, queryableShipData, deletedShipObjects)
+    }
+
+    fun postTick() {
         val loadedShips = mutableListOf<ShipObjectServer>()
         val it = shipObjects.iterator()
         while (it.hasNext()) {
@@ -229,12 +232,8 @@ class ShipObjectServerWorld @Inject constructor(
         }
         // endregion
 
-        loadManager.preTick(players, lastTickPlayers, queryableShipData, deletedShipObjects)
-
         loadedShips.forEach { VSEvents.shipLoadEvent.emit(ShipLoadEvent(it)) }
-    }
 
-    fun postTick() {
         loadManager.postTick(players)
     }
 
