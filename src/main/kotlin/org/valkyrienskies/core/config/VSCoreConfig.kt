@@ -7,6 +7,9 @@ object VSCoreConfig {
     @JvmField
     val SERVER = Server()
 
+    @JvmField
+    val CLIENT = Client()
+
     class Server {
         @JsonSchema(
             description = "Port to attempt to establish UDP connections on"
@@ -22,6 +25,18 @@ object VSCoreConfig {
             description = "Ship unload distance in blocks"
         )
         var shipUnloadDistance = 196.0
+
+        @JsonSchema(
+            description = "Default turned off data collection"
+        )
+        var sentryUrl = ""
+    }
+
+    class Client {
+        @JsonSchema(
+            description = "Default turned off data collection"
+        )
+        var sentryUrl = ""
     }
 }
 
